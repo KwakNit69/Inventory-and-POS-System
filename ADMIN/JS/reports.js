@@ -1,4 +1,4 @@
-import { db, auth } from "../../FIREBASE/firebase-config.js";
+import { db, auth } from "../../Firebase/firebase-config.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 const period = document.getElementById("period");
 const reset = document.getElementById("reset");

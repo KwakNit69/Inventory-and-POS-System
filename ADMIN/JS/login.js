@@ -1,4 +1,4 @@
-import { loginUser, resetPassword, logout } from "../../FIREBASE/auth.js";
+import { loginUser, resetPassword, logout } from "../../Firebase/auth.js";
 
 const loginForm = document.getElementById("loginForm");
 const emailInput = document.getElementById("email");

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Sales</title>
+    <link rel="stylesheet" href="ADMIN/CSS/sales.css">
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar-container"></div>
+        <main class="sales-main">
+            <header class="topbar">
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input type="text" id="globalSearch" placeholder="Search transactions, customers, cashiers...">
+                    <small>⌘</small>
+                    <small>K</small>
+                </div>
+                <div class="profile">
+                    <span class="notification">♧</span>
+                    <div class="profile-name">
+                        <strong id="currentUserName"></strong>
+                        <small id="currentUserRole"></small>
+                    </div>
+                    <div class="avatar" id="currentUserAvatar"></div>
+                </div>
+            </header>
+            <section class="sales-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Sales</h1>
+                        <p>View and manage sales transactions.</p>
+                    </div>
+                    <button class="export-btn" id="exportSales" type="button">↓ Export Sales</button>
+                </div>
+                <div class="sales-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon blue-icon">₱</div>
+                        <div>
+                            <span>TOTAL SALES</span>
+                            <strong id="totalSales">₱0.00</strong>
+                            <small>Completed sales</small>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon purple-icon">#</div>
+                        <div>
+                            <span>TRANSACTIONS</span>
+                            <strong id="totalTransactions">0</strong>
+                            <small>Completed sales</small>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon green-icon">↗</div>
+                        <div>
+                            <span>AVERAGE TRANSACTION</span>
+                            <strong id="averageTransaction">₱0.00</strong>
+                            <small>Per transaction</small>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon orange-icon">◷</div>
+                        <div>
+                            <span>TODAY'S SALES</span>
+                            <strong id="todaySales">₱0.00</strong>
+                            <small>Current day</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="sales-toolbar">
+                    <div class="sales-search">
+                        <span>⌕</span>
+                        <input type="text" id="salesSearch" placeholder="Search transaction, customer, cashier...">
+                    </div>
+                    <select id="dateFilter">
+                        <option value="all">All Dates</option>
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                    <select id="paymentFilter">
+                        <option value="all">All Payment Methods</option>
+                    </select>
+                    <select id="statusFilter">
+                        <option value="all">All Status</option>
+                    </select>
+                    <button class="reset-btn" id="resetFilters" type="button">Reset</button>
+                </div>
+                <div class="sales-table-container">
+                    <table class="sales-table">
+                        <thead>
+                            <tr>
+                                <th>TRANSACTION</th>
+                                <th>DATE & TIME</th>
+                                <th>CUSTOMER</th>
+                                <th>ITEMS</th>
+                                <th>PAYMENT</th>
+                                <th>SUBTOTAL</th>
+                                <th>DISCOUNT</th>
+                                <th>TOTAL</th>
+                                <th>CASHIER</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">₱</div>
+                        <h3 id="emptyTitle">No sales found</h3>
+                        <p id="emptyMessage">Sales recorded in Firebase will appear here.</p>
+                    </div>
+                </div>
+                <div class="pagination">
+                    <span id="paginationInfo">Showing 0 of 0 transactions</span>
+                    <div class="pagination-buttons">
+                        <button id="previousPage" type="button">‹</button>
+                        <span id="currentPage">1</span>
+                        <button id="nextPage" type="button">›</button>
+                    </div>
+                </div>
+                <div class="sales-breakdown">
+                    <div class="section-header">
+                        <div>
+                            <h2>Sales Breakdown</h2>
+                            <p>Summary of sales by payment method.</p>
+                        </div>
+                    </div>
+                    <div class="breakdown-grid" id="breakdownGrid"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="modal-overlay" id="transactionModal">
+        <div class="transaction-modal">
+            <div class="modal-header">
+                <div>
+                    <h2>Transaction Details</h2>
+                    <p>Complete information from Firebase.</p>
+                </div>
+                <button class="close-modal" id="closeTransactionModal" type="button">×</button>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-top">
+                    <div>
+                        <span>TRANSACTION</span>
+                        <strong id="detailTransaction">-</strong>
+                    </div>
+                    <div>
+                        <span>STATUS</span>
+                        <strong id="detailStatus">-</strong>
+                    </div>
+                    <div>
+                        <span>DATE</span>
+                        <strong id="detailDate">-</strong>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h3>Customer Information</h3>
+                    <div class="detail-row">
+                        <span>Customer</span>
+                        <strong id="detailCustomer">-</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Cashier</span>
+                        <strong id="detailCashier">-</strong>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h3>Purchased Items</h3>
+                    <div class="detail-items" id="detailItems"></div>
+                </div>
+                <div class="detail-section">
+                    <h3>Payment Information</h3>
+                    <div class="detail-row">
+                        <span>Payment Method</span>
+                        <strong id="detailPayment">-</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Subtotal</span>
+                        <strong id="detailSubtotal">₱0.00</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Discount</span>
+                        <strong id="detailDiscount">₱0.00</strong>
+                    </div>
+                    <div class="detail-row detail-total">
+                        <span>Total</span>
+                        <strong id="detailTotal">₱0.00</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Cash Received</span>
+                        <strong id="detailCash">₱0.00</strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Change</span>
+                        <strong id="detailChange">₱0.00</strong>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="close-detail-btn" id="closeDetailButton" type="button">Close</button>
+                    <button class="print-detail-btn" id="printTransaction" type="button">Print Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="ADMIN/JS/sales.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,457 @@
+.staff-app {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+#sidebar-container {
+    width: 238px;
+    min-width: 238px;
+    flex: 0 0 238px;
+    position: relative;
+    z-index: 1000;
+}
+
+.staff-main {
+    width: calc(100% - 238px);
+    min-width: 0;
+    margin-left: 0;
+    min-height: 100vh;
+}
+
+@media(max-width:900px) {
+    #sidebar-container {
+        width: 220px;
+        min-width: 220px;
+        flex-basis: 220px;
+    }
+
+    .staff-main {
+        width: calc(100% - 220px);
+    }
+}
+
+
+@media(max-width:650px) {
+    #sidebar-container {
+        width: 70px;
+        min-width: 70px;
+        flex-basis: 70px;
+    }
+
+    .staff-main {
+        width: calc(100% - 70px);
+    }
+}
+
+
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0
+}
+
+.staff-sidebar {
+    width: 238px;
+    min-width: 238px;
+    height: 100vh;
+    background: #fff;
+    border-right: 1px solid #e4e9ef;
+    display: flex;
+    flex-direction: column;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 2px 0 12px rgba(18, 32, 51, .035)
+}
+
+.staff-brand {
+    height: 76px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #edf0f4;
+    flex-shrink: 0
+}
+
+.staff-logo {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    background: #1976d2;
+    color: #fff;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(25, 118, 210, .18)
+}
+
+.staff-brand-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px
+}
+
+.staff-brand-text strong {
+    display: block;
+    color: #14263a;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 750;
+    letter-spacing: -.2px;
+    white-space: nowrap
+}
+
+.staff-brand-text span {
+    display: block;
+    color: #8996a5;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 500;
+    white-space: nowrap
+}
+
+.staff-new-transaction {
+    height: 46px;
+    width: calc(100% - 32px);
+    margin: 18px 16px 20px;
+    border: 0;
+    border-radius: 8px;
+    background: #1976d2;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+    box-shadow: 0 4px 10px rgba(25, 118, 210, .16)
+}
+
+.staff-new-transaction:hover {
+    background: #1268bf;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(25, 118, 210, .22)
+}
+
+.staff-new-transaction span:first-child {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1
+}
+
+.staff-navigation {
+    display: flex;
+    flex-direction: column;
+    padding: 0 12px;
+    gap: 4px
+}
+
+.staff-navigation:before {
+    content: "MAIN MENU";
+    display: block;
+    padding: 0 10px 8px;
+    color: #9aa5b1;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: .8px
+}
+
+.staff-navigation a {
+    min-height: 44px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 8px;
+    color: #435365;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 550;
+    position: relative;
+    transition: background-color .18s ease, color .18s ease, transform .18s ease
+}
+
+.staff-navigation a:hover {
+    background: #f2f7fc;
+    color: #1976d2;
+    transform: translateX(2px)
+}
+
+.staff-navigation a.active {
+    background: #eaf4ff;
+    color: #1976d2;
+    font-weight: 700
+}
+
+.staff-navigation a.active:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: #1976d2
+}
+
+.staff-navigation a.active:hover {
+    background: #eaf4ff;
+    color: #1976d2;
+    transform: none
+}
+
+.staff-navigation a.active .staff-nav-icon {
+    color: #1976d2
+}
+
+.staff-navigation a:hover .staff-nav-icon {
+    color: #1976d2
+}
+
+.staff-nav-icon {
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #718096;
+    font-size: 15px;
+    line-height: 1;
+    transition: color .18s ease
+}
+
+.staff-sidebar-bottom {
+    margin-top: auto;
+    padding: 14px 12px 14px;
+    border-top: 1px solid #edf0f4;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0
+}
+
+.staff-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 12px
+}
+
+.staff-account-avatar {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    display: grid;
+    place-items: center;
+    background: #eaf4ff;
+    border: 1px solid #cfe3f7;
+    border-radius: 50%;
+    color: #1976d2;
+    font-size: 11px;
+    font-weight: 750
+}
+
+.staff-account-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px
+}
+
+.staff-account-info strong {
+    display: block;
+    color: #26333f;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.staff-account-info span {
+    display: block;
+    color: #89939d;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis
+}
+
+.staff-logout {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #dce2e8;
+    background: #fff;
+    color: #65717d;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .18s ease, color .18s ease, border-color .18s ease
+}
+
+.staff-logout span:first-child {
+    font-size: 15px
+}
+
+.staff-logout:hover {
+    background: #fff5f5;
+    color: #c0392b;
+    border-color: #e8b5b5
+}
+
+.staff-logout:disabled {
+    opacity: .65;
+    cursor: not-allowed
+}
+
+.staff-sidebar::-webkit-scrollbar {
+    width: 5px
+}
+
+.staff-sidebar::-webkit-scrollbar-track {
+    background: transparent
+}
+
+.staff-sidebar::-webkit-scrollbar-thumb {
+    background: #d9e0e7;
+    border-radius: 10px
+}
+
+.staff-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #c4ced8
+}
+
+@media(max-width:900px) {
+    .staff-sidebar {
+        width: 220px;
+        min-width: 220px
+    }
+
+    .staff-brand {
+        padding-left: 16px;
+        padding-right: 16px
+    }
+
+    .staff-new-transaction {
+        width: calc(100% - 24px);
+        margin-left: 12px;
+        margin-right: 12px
+    }
+
+    .staff-navigation {
+        padding-left: 9px;
+        padding-right: 9px
+    }
+
+    .staff-sidebar-bottom {
+        padding-left: 9px;
+        padding-right: 9px
+    }
+}
+
+@media(max-width:650px) {
+    .staff-sidebar {
+        width: 70px;
+        min-width: 70px
+    }
+
+    .staff-brand {
+        height: 70px;
+        justify-content: center;
+        padding: 0
+    }
+
+    .staff-brand-text {
+        display: none
+    }
+
+    .staff-logo {
+        width: 38px;
+        height: 38px
+    }
+
+    .staff-new-transaction {
+        width: 42px;
+        height: 42px;
+        margin: 14px auto;
+        padding: 0
+    }
+
+    .staff-new-transaction span:last-child {
+        display: none
+    }
+
+    .staff-navigation {
+        padding: 0 8px
+    }
+
+    .staff-navigation:before {
+        display: none
+    }
+
+    .staff-navigation a {
+        justify-content: center;
+        padding: 0;
+        min-height: 44px
+    }
+
+    .staff-navigation a span:last-child {
+        display: none
+    }
+
+    .staff-nav-icon {
+        margin: 0
+    }
+
+    .staff-navigation a.active:before {
+        left: -8px
+    }
+
+    .staff-sidebar-bottom {
+        padding: 8px
+    }
+
+    .staff-account {
+        justify-content: center;
+        padding: 8px 0 12px
+    }
+
+    .staff-account-info {
+        display: none
+    }
+
+    .staff-logout {
+        width: 42px;
+        height: 42px;
+        margin: 0 auto;
+        padding: 0
+    }
+
+    .staff-logout span:last-child {
+        display: none
+    }
+}

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Staff POS</title>
+    <link rel="stylesheet" href="staff-sidebar.css">
+    <link rel="stylesheet" href="CSS/pos.css">
+</head>
+
+<body>
+    <div class="staff-app">
+        <div id="sidebar-container"></div>
+        <main class="staff-main">
+            <header class="topbar">
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input type="text" placeholder="Search products, packages, insurance..." id="globalSearch">
+                </div>
+                <div class="profile">
+                    <div class="profile-text">
+                        <strong id="staffName">Loading...</strong>
+                        <small id="staffRole">Staff / Cashier</small>
+                    </div>
+                    <div class="avatar" id="staffAvatar">--</div>
+                </div>
+            </header>
+            <section class="pos-content">
+                <div class="page-heading">
+                    <div>
+                        <h1>POS Terminal</h1>
+                        <p>Create a new sales transaction.</p>
+                    </div>
+                    <div class="staff-status" id="staffStatus">
+                        <span></span>
+                        Online
+                    </div>
+                </div>
+                <div id="posError" class="pos-error">
+                    <strong>Unable to load POS</strong>
+                    <span id="posErrorMessage"></span>
+                    <button id="retryButton" type="button">Try Again</button>
+                </div>
+                <div class="pos-layout">
+                    <section class="products-section">
+                        <div class="products-toolbar">
+                            <div class="product-search">
+                                <span>⌕</span>
+                                <input type="text" id="productSearch"
+                                    placeholder="Search product, package, insurance or SKU...">
+                            </div>
+                            <select id="categoryFilter">
+                                <option value="all">All Categories</option>
+                            </select>
+                            <select id="typeFilter">
+                                <option value="all">All Types</option>
+                                <option value="product">Products</option>
+                                <option value="package">Packages</option>
+                                <option value="insurance">Insurance</option>
+                            </select>
+                            <button id="refreshProducts" type="button">↻</button>
+                        </div>
+                        <div id="productsGrid" class="products-grid">
+                            <div class="loading-products">Loading products...</div>
+                        </div>
+                    </section>
+                    <aside class="cart-section">
+                        <div class="cart-header">
+                            <div>
+                                <h2>Current Sale</h2>
+                                <p id="cartCount">0 items</p>
+                            </div>
+                            <button id="clearCart" type="button">Clear</button>
+                        </div>
+                        <div id="cartItems" class="cart-items">
+                            <div class="empty-cart">
+                                <div class="empty-cart-icon">₱</div>
+                                <strong>No items in cart</strong>
+                                <span>Add products, packages or insurance.</span>
+                            </div>
+                        </div>
+                        <div class="cart-summary">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <strong id="subtotal">₱0.00</strong>
+                            </div>
+                            <div class="discount-row">
+                                <label for="discount">Discount</label>
+                                <div class="discount-input">
+                                    <span>₱</span>
+                                    <input type="number" id="discount" min="0" step="1" inputmode="numeric"
+                                        pattern="[0-9]*" value="0" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="summary-row discount-summary">
+                                <span>Discount</span>
+                                <strong id="discountTotal">-₱0.00</strong>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>Total</span>
+                                <strong id="total">₱0.00</strong>
+                            </div>
+                            <button id="checkoutButton" class="checkout-button" type="button" disabled>Proceed to
+                                Payment</button>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="paymentModal" class="modal">
+        <div class="payment-box">
+            <div class="payment-header">
+                <div>
+                    <h2>Payment</h2>
+                    <p>Complete the customer's payment.</p>
+                </div>
+                <button id="closePayment" type="button">×</button>
+            </div>
+            <div class="amount-due">
+                <span>Amount Due</span>
+                <strong id="paymentTotal">₱0.00</strong>
+            </div>
+            <div class="payment-method-title">Payment Method</div>
+            <div class="payment-methods">
+                <button class="payment-method active" type="button" data-method="Cash">
+                    <span>₱</span>
+                    <strong>Cash</strong>
+                    <small>Cash</small>
+                </button>
+                <button class="payment-method" type="button" data-method="Card">
+                    <span>▣</span>
+                    <strong>Card</strong>
+                    <small>Card</small>
+                </button>
+                <button class="payment-method" type="button" data-method="GCash">
+                    <span>G</span>
+                    <strong>GCash</strong>
+                    <small>GCash</small>
+                </button>
+            </div>
+            <div id="cashPaymentArea" class="cash-payment-area">
+                <label for="cashReceived">Cash Received</label>
+                <input type="number" id="cashReceived" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+                <div class="quick-cash">
+                    <button type="button" data-cash="exact">Exact</button>
+                    <button type="button" data-cash="100">₱100</button>
+                    <button type="button" data-cash="500">₱500</button>
+                    <button type="button" data-cash="1000">₱1,000</button>
+                </div>
+            </div>
+            <div class="change-box">
+                <span>Change</span>
+                <strong id="changeAmount">₱0.00</strong>
+            </div>
+            <div id="paymentError" class="payment-error"></div>
+            <button id="completeSale" class="complete-sale" type="button">Complete Sale</button>
+        </div>
+    </div>
+    <div id="successModal" class="modal">
+        <div class="success-box">
+            <div class="success-icon">✓</div>
+            <h2>Sale Completed</h2>
+            <p id="successMessage">The transaction was successfully recorded.</p>
+            <div class="success-total" id="successTotal">₱0.00</div>
+            <button id="newSaleButton" type="button">New Sale</button>
+        </div>
+    </div>
+    <script type="module">
+        fetch("staff-sidebar.html")
+            .then(response => {
+                if (!response.ok) throw new Error("Unable to load staff sidebar.");
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+                const script = document.createElement("script");
+                script.type = "module";
+                script.src = "staff-sidebar.js";
+                document.body.appendChild(script);
+            })
+            .catch(error => console.error("Staff sidebar error:", error));
+    </script>
+    <script type="module" src="JS/pos.js"></script>
+</body>
+
+</html>

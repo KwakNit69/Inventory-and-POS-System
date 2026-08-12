@@ -1,0 +1,439 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+
+    min-height: 100vh;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #f5f7f9;
+
+    color: #172331;
+
+}
+
+
+button {
+
+    font-family: inherit;
+
+}
+
+
+/* =========================================
+   PAGE
+   ========================================= */
+
+.role-page {
+
+    min-height: 100vh;
+
+    display: flex;
+
+}
+
+
+/* =========================================
+   LEFT SIDE
+   ========================================= */
+
+.role-intro {
+
+    width: 45%;
+
+    min-height: 100vh;
+
+    background:
+        linear-gradient(
+            135deg,
+            #102a43,
+            #173f61
+        );
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 50px;
+
+}
+
+
+.intro-content {
+
+    max-width: 500px;
+
+    margin: auto;
+
+}
+
+
+/* =========================================
+   BRAND
+   ========================================= */
+
+.brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 100px;
+
+}
+
+
+.brand-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    display: grid;
+
+    place-items: center;
+
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    color: #143653;
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+}
+
+
+.brand h2 {
+
+    font-size: 20px;
+
+    margin-bottom: 3px;
+
+}
+
+
+.brand p {
+
+    font-size: 10px;
+
+    color: #b9ccdd;
+
+}
+
+
+/* =========================================
+   INTRO TEXT
+   ========================================= */
+
+.intro-text h1 {
+
+    font-size: 38px;
+
+    line-height: 1.12;
+
+    margin-bottom: 20px;
+
+}
+
+
+.intro-text p {
+
+    max-width: 420px;
+
+    color: #c2d2df;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+
+}
+
+
+/* =========================================
+   RIGHT SIDE
+   ========================================= */
+
+.role-selection {
+
+    flex: 1;
+
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #ffffff;
+
+}
+
+
+.selection-container {
+
+    width: 500px;
+
+    max-width: 90%;
+
+}
+
+
+/* =========================================
+   HEADER
+   ========================================= */
+
+.selection-header {
+
+    margin-bottom: 30px;
+
+}
+
+
+.selection-header h1 {
+
+    font-size: 28px;
+
+    margin-bottom: 8px;
+
+    color: #142536;
+
+}
+
+
+.selection-header p {
+
+    font-size: 13px;
+
+    color: #707b86;
+
+}
+
+
+/* =========================================
+   ROLE CARD
+   ========================================= */
+
+.role-card {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    text-align: left;
+
+    padding: 22px;
+
+    margin-bottom: 15px;
+
+    border:
+        1px solid #d9e0e7;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    cursor: pointer;
+
+    transition:
+        transform .15s ease,
+        border-color .15s ease,
+        box-shadow .15s ease,
+        background .15s ease;
+
+}
+
+
+.role-card:hover {
+
+    transform:
+        translateY(-2px);
+
+    border-color:
+        #1976d2;
+
+    background:
+        #f8fbff;
+
+    box-shadow:
+        0 8px 25px
+        rgba(20, 55, 85, .08);
+
+}
+
+
+/* =========================================
+   ROLE ICON
+   ========================================= */
+
+.role-icon {
+
+    width: 52px;
+
+    height: 52px;
+
+    min-width: 52px;
+
+    display: grid;
+
+    place-items: center;
+
+    border-radius: 8px;
+
+    font-size: 24px;
+
+}
+
+
+.admin-icon {
+
+    background: #e7f1fc;
+
+    color: #1976d2;
+
+}
+
+
+.staff-icon {
+
+    background: #edf7f2;
+
+    color: #16803c;
+
+}
+
+
+/* =========================================
+   ROLE INFO
+   ========================================= */
+
+.role-info h2 {
+
+    color: #172a3a;
+
+    font-size: 17px;
+
+    margin-bottom: 6px;
+
+}
+
+
+.role-info p {
+
+    color: #687582;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+
+    margin-bottom: 8px;
+
+}
+
+
+.role-info span {
+
+    color: #1976d2;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================
+   FOOTER
+   ========================================= */
+
+.selection-footer {
+
+    margin-top: 35px;
+
+    text-align: center;
+
+}
+
+
+.selection-footer p {
+
+    color: #9aa3ac;
+
+    font-size: 9px;
+
+}
+
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 800px) {
+
+    .role-page {
+
+        flex-direction: column;
+
+    }
+
+
+    .role-intro {
+
+        width: 100%;
+
+        min-height: 250px;
+
+        padding: 30px;
+
+    }
+
+
+    .brand {
+
+        margin-bottom: 30px;
+
+    }
+
+
+    .intro-text h1 {
+
+        font-size: 27px;
+
+    }
+
+
+    .intro-text p {
+
+        display: none;
+
+    }
+
+
+    .role-selection {
+
+        min-height: auto;
+
+        padding: 50px 20px;
+
+    }
+
+}

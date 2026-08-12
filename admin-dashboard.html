@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Admin Dashboard</title>
+    <link rel="stylesheet" href="ADMIN/CSS/dashboard.css">
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar-container"></div>
+        <main class="dashboard-main">
+            <header class="topbar">
+                <div class="search-box">
+                    <span class="search-icon">⌕</span>
+                    <input id="globalSearch" type="text" placeholder="Search products, orders, customers...">
+                    <small>⌘</small>
+                    <small>K</small>
+                </div>
+                <div class="profile">
+                    <span class="notification">♧</span>
+                    <div class="profile-name">
+                        <strong id="profileName">Loading...</strong>
+                        <small id="profileRole">Administrator</small>
+                    </div>
+                    <div class="avatar" id="profileAvatar">--</div>
+                </div>
+            </header>
+            <section class="dashboard-content">
+                <div class="heading-row">
+                    <div>
+                        <h1 id="greeting">Good morning!</h1>
+                        <p>Here's your business overview.</p>
+                    </div>
+                    <div class="date-filter">
+                        <button class="active" data-period="today">Today</button>
+                        <button data-period="week">This Week</button>
+                        <button data-period="month">This Month</button>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="primary" id="addProduct">▣ Add Product</button>
+                    <button id="addStock">□ Add Stock</button>
+                    <button id="addExpense">▤ Add Expense</button>
+                    <button id="viewSales">◉ View Sales</button>
+                </div>
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-label">
+                            <span>CASH ON HAND</span>
+                            <span>▣</span>
+                        </div>
+                        <strong id="cashOnHand">₱0.00</strong>
+                        <small id="cashOnHandNote">Current balance</small>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">
+                            <span>CASH IN</span>
+                            <span>▤</span>
+                        </div>
+                        <strong id="cashIn">₱0.00</strong>
+                        <small id="cashInNote">Selected period</small>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">
+                            <span>CASH OUT</span>
+                            <span>▣</span>
+                        </div>
+                        <strong id="cashOut">₱0.00</strong>
+                        <small id="cashOutNote">Selected period</small>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">
+                            <span>NET CASH CHANGE</span>
+                            <span class="green">↗</span>
+                        </div>
+                        <strong id="netCash" class="green">₱0.00</strong>
+                        <small id="netCashNote">Cash in minus cash out</small>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">
+                            <span>SALES</span>
+                            <span>▣</span>
+                        </div>
+                        <strong id="sales">₱0.00</strong>
+                        <small id="salesNote">0 Transactions</small>
+                    </div>
+                </div>
+                <div id="dashboardError" class="dashboard-error"></div>
+                <div class="overview">
+                    <section class="panel chart-panel">
+                        <div class="panel-title">
+                            <strong>Cash Flow Activity</strong>
+                            <button class="more-button" id="refreshDashboard">↻</button>
+                        </div>
+                        <div class="chart">
+                            <canvas id="cashFlowChart"></canvas>
+                            <div id="chartEmpty" class="chart-note">No cash flow data available.</div>
+                        </div>
+                    </section>
+                    <section class="panel summary">
+                        <div class="panel-title">
+                            <strong>Daily Summary</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Beginning Balance</span>
+                            <b id="beginningBalance">₱0.00</b>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Cash In</span>
+                            <b class="blue" id="summaryCashIn">+₱0.00</b>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Cash Out</span>
+                            <b class="red" id="summaryCashOut">-₱0.00</b>
+                        </div>
+                        <div class="summary-row">
+                            <span>Net Change</span>
+                            <b class="green" id="summaryNet">+₱0.00</b>
+                        </div>
+                        <div class="ending">
+                            <span>Ending Position</span>
+                            <b id="endingBalance">₱0.00</b>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="ADMIN/JS/dashboard.js"></script>
+</body>
+
+</html>

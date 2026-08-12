@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>StockMaster - Categories</title>
+    <link rel="stylesheet" href="ADMIN/CSS/categories.css">
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar-container"></div>
+        <main>
+            <header class="topbar">
+                <div class="search">⌕ <input placeholder="Search products, orders, customers..."></div>
+                <div>Jane Doe <span class="avatar">JD</span></div>
+            </header>
+            <section class="content">
+                <div class="page-header">
+                    <div>
+                        <h1>Categories</h1>
+                        <p>Organize your products into categories.</p>
+                    </div>
+                    <button id="add" type="button">+ Add Category</button>
+                </div>
+                <div class="summary">
+                    <div class="card">TOTAL CATEGORIES<strong id="total">0</strong></div>
+                    <div class="card">PRODUCTS<strong id="products">0</strong></div>
+                    <div class="card">ACTIVE<strong id="active">0</strong></div>
+                    <div class="card">EMPTY<strong id="empty">0</strong></div>
+                </div>
+                <div class="toolbar">
+                    <input id="search" type="search" placeholder="Search category...">
+                </div>
+                <div class="grid" id="grid"></div>
+            </section>
+        </main>
+    </div>
+    <div class="modal" id="modal">
+        <div class="box">
+            <h2>Add Category</h2>
+            <form id="form">
+                <label>
+                    Name
+                    <input id="name" type="text" required>
+                </label>
+                <label>
+                    Description
+                    <textarea id="description"></textarea>
+                </label>
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+                    <button type="button" id="cancelCategory"
+                        style="background:#fff;color:#172331;border:1px solid #d5dce4;">Cancel</button>
+                    <button type="submit">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="module" src="ADMIN/JS/categories.js?v=1"></script>
+</body>
+
+</html>

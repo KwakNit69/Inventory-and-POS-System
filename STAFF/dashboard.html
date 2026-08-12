@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Staff Dashboard</title>
+    <link rel="stylesheet" href="staff-sidebar.css">
+    <link rel="stylesheet" href="CSS/dashboard.css">
+</head>
+
+<body>
+    <div class="staff-app">
+        <div id="sidebar-container"></div>
+        <main class="staff-main">
+            <header class="staff-topbar">
+                <div class="staff-search">
+                    <span>⌕</span>
+                    <input type="text" placeholder="Search products, orders, customers..." id="globalSearch">
+                    <small>⌘</small>
+                    <small>K</small>
+                </div>
+                <div class="staff-profile">
+                    <span class="staff-notification">♧</span>
+                    <div class="staff-profile-text">
+                        <strong id="topbarName">Loading...</strong>
+                        <small>Staff / Cashier</small>
+                    </div>
+                    <div class="staff-avatar" id="topbarAvatar">--</div>
+                </div>
+            </header>
+            <section class="dashboard-content">
+                <div class="page-heading">
+                    <div>
+                        <h1>Good day, <span id="welcomeName">Staff</span>!</h1>
+                        <p>Here's your business overview.</p>
+                    </div>
+                    <div class="date-display" id="currentDate">Loading...</div>
+                </div>
+                <div class="quick-actions">
+                    <button class="primary-action" id="openPOS">+ New Transaction</button>
+                    <button id="viewSales">View Sales</button>
+                    <button id="viewInventory">View Inventory</button>
+                </div>
+                <div class="dashboard-error" id="dashboardError">
+                    <div>
+                        <strong>Unable to load dashboard</strong>
+                        <p id="dashboardErrorMessage">Please check your Firebase connection and permissions.</p>
+                    </div>
+                    <button id="retryDashboard">Try Again</button>
+                </div>
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="metric-icon blue">₱</div>
+                        <div class="metric-info">
+                            <span>MY SALES TODAY</span>
+                            <strong id="todaySales">₱0.00</strong>
+                            <small id="todayTransactions">0 Transactions</small>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon purple">#</div>
+                        <div class="metric-info">
+                            <span>MY TRANSACTIONS</span>
+                            <strong id="transactionCount">0</strong>
+                            <small>Completed sales</small>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon green">↗</div>
+                        <div class="metric-info">
+                            <span>ITEMS SOLD</span>
+                            <strong id="itemsSold">0</strong>
+                            <small>Units sold today</small>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon orange">!</div>
+                        <div class="metric-info">
+                            <span>LOW STOCK</span>
+                            <strong id="lowStock">0</strong>
+                            <small>Products need attention</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <section class="dashboard-panel sales-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>My Recent Sales</h2>
+                                <p>Your latest completed transactions.</p>
+                            </div>
+                            <button id="salesLink">View All</button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>TRANSACTION</th>
+                                        <th>TIME</th>
+                                        <th>ITEMS</th>
+                                        <th>PAYMENT</th>
+                                        <th>TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentSalesBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-cell">Loading sales...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                    <section class="dashboard-panel inventory-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Inventory Alerts</h2>
+                                <p>Products with low stock.</p>
+                            </div>
+                            <button id="inventoryLink">View All</button>
+                        </div>
+                        <div id="inventoryAlerts" class="inventory-alerts">
+                            <div class="empty-message">Loading inventory...</div>
+                        </div>
+                    </section>
+                </div>
+                <div class="dashboard-panel activity-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Today's Activity</h2>
+                            <p>Your sales activity for today.</p>
+                        </div>
+                    </div>
+                    <div class="activity-summary">
+                        <div class="activity-item">
+                            <span>Sales</span>
+                            <strong id="activitySales">₱0.00</strong>
+                        </div>
+                        <div class="activity-item">
+                            <span>Transactions</span>
+                            <strong id="activityTransactions">0</strong>
+                        </div>
+                        <div class="activity-item">
+                            <span>Items Sold</span>
+                            <strong id="activityItems">0</strong>
+                        </div>
+                        <div class="activity-item">
+                            <span>Average Sale</span>
+                            <strong id="activityAverage">₱0.00</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script type="module">
+        fetch("staff-sidebar.html")
+            .then(response => {
+                if (!response.ok) throw new Error("Unable to load staff sidebar.");
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+                const style = document.createElement("link");
+                style.rel = "stylesheet";
+                style.href = "staff-sidebar.css";
+                document.head.appendChild(style);
+                const script = document.createElement("script");
+                script.type = "module";
+                script.src = "staff-sidebar.js";
+                document.body.appendChild(script);
+            })
+            .catch(error => {
+                console.error("Staff sidebar error:", error);
+            });
+    </script>
+    <script type="module" src="JS/dashboard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Staff Inventory</title>
+    <link rel="stylesheet" href="staff-sidebar.css">
+    <link rel="stylesheet" href="CSS/inventory.css">
+</head>
+
+<body>
+    <div class="staff-app">
+        <div id="sidebar-container"></div>
+        <main class="staff-main">
+            <header class="topbar">
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input type="text" id="globalSearch" placeholder="Search products, orders, customers...">
+                </div>
+                <div class="profile">
+                    <div class="profile-text">
+                        <strong id="staffName">Loading...</strong>
+                        <small>Staff / Cashier</small>
+                    </div>
+                    <div class="avatar" id="staffAvatar">--</div>
+                </div>
+            </header>
+            <section class="inventory-content">
+                <div class="page-heading">
+                    <div>
+                        <h1>Inventory</h1>
+                        <p>View current product stock and inventory status.</p>
+                    </div>
+                    <div class="inventory-status">
+                        <span></span>
+                        Live Inventory
+                    </div>
+                </div>
+                <div id="inventoryError" class="inventory-error">
+                    <div>
+                        <strong>Unable to load inventory</strong>
+                        <p id="inventoryErrorMessage">Please check your Firebase connection and permissions.</p>
+                    </div>
+                    <button id="retryButton">Try Again</button>
+                </div>
+                <div class="summary">
+                    <div class="summary-card">
+                        <div class="summary-icon blue">▦</div>
+                        <div>
+                            <span>TOTAL PRODUCTS</span>
+                            <strong id="totalProducts">0</strong>
+                            <small>Products in inventory</small>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon green">✓</div>
+                        <div>
+                            <span>IN STOCK</span>
+                            <strong id="inStockProducts">0</strong>
+                            <small>Available products</small>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon orange">!</div>
+                        <div>
+                            <span>LOW STOCK</span>
+                            <strong id="lowStockProducts">0</strong>
+                            <small>Needs attention</small>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon red">×</div>
+                        <div>
+                            <span>OUT OF STOCK</span>
+                            <strong id="outOfStockProducts">0</strong>
+                            <small>Unavailable products</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="filters">
+                    <div class="search-input">
+                        <span>⌕</span>
+                        <input type="text" id="productSearch" placeholder="Search product name or SKU...">
+                    </div>
+                    <select id="categoryFilter">
+                        <option value="all">All Categories</option>
+                    </select>
+                    <select id="stockFilter">
+                        <option value="all">All Stock Status</option>
+                        <option value="in">In Stock</option>
+                        <option value="low">Low Stock</option>
+                        <option value="out">Out of Stock</option>
+                    </select>
+                    <button id="resetFilters">Reset</button>
+                    <button id="refreshInventory">↻</button>
+                </div>
+                <div class="inventory-panel">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th>SKU</th>
+                                    <th>CATEGORY</th>
+                                    <th>SELLING PRICE</th>
+                                    <th>STOCK</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryBody">
+                                <tr>
+                                    <td colspan="7" class="empty-cell">Loading inventory...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <span id="resultCount">Showing 0 products</span>
+                        <div class="pagination">
+                            <button id="previousPage">‹</button>
+                            <span id="pageNumber">1</span>
+                            <button id="nextPage">›</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="productModal" class="modal">
+        <div class="product-modal-box">
+            <div class="modal-header">
+                <div>
+                    <h2>Product Details</h2>
+                    <p id="modalProductId">Product information</p>
+                </div>
+                <button id="closeModal">×</button>
+            </div>
+            <div class="product-details">
+                <div class="detail-box">
+                    <span>PRODUCT NAME</span>
+                    <strong id="modalProductName">—</strong>
+                </div>
+                <div class="detail-box">
+                    <span>SKU</span>
+                    <strong id="modalSku">—</strong>
+                </div>
+                <div class="detail-box">
+                    <span>CATEGORY</span>
+                    <strong id="modalCategory">—</strong>
+                </div>
+                <div class="detail-box">
+                    <span>SELLING PRICE</span>
+                    <strong id="modalPrice">₱0.00</strong>
+                </div>
+                <div class="detail-box">
+                    <span>CURRENT STOCK</span>
+                    <strong id="modalStock">0</strong>
+                </div>
+                <div class="detail-box">
+                    <span>LOW STOCK LEVEL</span>
+                    <strong id="modalThreshold">0</strong>
+                </div>
+            </div>
+            <div class="stock-status-box" id="modalStatusBox">
+                <span>Status</span>
+                <strong id="modalStatus">—</strong>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        fetch("staff-sidebar.html")
+            .then(response => {
+                if (!response.ok) throw new Error("Unable to load staff sidebar.");
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+                const script = document.createElement("script");
+                script.type = "module";
+                script.src = "staff-sidebar.js";
+                document.body.appendChild(script);
+            })
+            .catch(error => console.error("Staff sidebar error:", error));
+    </script>
+    <script type="module" src="JS/inventory.js"></script>
+</body>
+
+</html>

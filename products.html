@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Products</title>
+    <link rel="stylesheet" href="ADMIN/CSS/products.css?v=11">
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar-container"></div>
+        <main class="products-main">
+            <header class="topbar">
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input type="text" id="globalSearch" placeholder="Search products, packages, insurance...">
+                    <small>⌘</small>
+                    <small>K</small>
+                </div>
+                <div class="profile">
+                    <span class="notification">♧</span>
+                    <div class="profile-name">
+                        <strong id="profileName">Loading...</strong>
+                        <small id="profileRole">Loading...</small>
+                    </div>
+                    <div class="avatar" id="profileAvatar">U</div>
+                </div>
+            </header>
+            <section class="products-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Products</h1>
+                        <p>Manage products, packages, insurance, pricing, and stock information.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="add-product-btn secondary-action" id="openAddPackage"
+                            type="button"><span>＋</span>Add Package</button>
+                        <button class="add-product-btn insurance-action" id="openAddInsurance"
+                            type="button"><span>＋</span>Add Insurance</button>
+                        <button class="add-product-btn" id="openAddProduct" type="button"><span>＋</span>Add
+                            Product</button>
+                    </div>
+                </div>
+                <div class="view-tabs">
+                    <button class="view-tab active" id="productsTab" type="button">Products</button>
+                    <button class="view-tab" id="packagesTab" type="button">Packages</button>
+                    <button class="view-tab" id="insuranceTab" type="button">Insurance</button>
+                </div>
+                <div id="productsView">
+                    <div class="product-summary">
+                        <div class="summary-card">
+                            <div class="summary-icon blue-icon">▣</div>
+                            <div><span>TOTAL PRODUCTS</span><strong id="totalProducts">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon green-icon">✓</div>
+                            <div><span>IN STOCK</span><strong id="inStockProducts">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon orange-icon">!</div>
+                            <div><span>LOW STOCK</span><strong id="lowStockProducts">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon red-icon">×</div>
+                            <div><span>OUT OF STOCK</span><strong id="outOfStockProducts">0</strong></div>
+                        </div>
+                    </div>
+                    <div class="product-toolbar">
+                        <div class="product-search">
+                            <span>⌕</span>
+                            <input type="text" id="productSearch" placeholder="Search product name or SKU...">
+                        </div>
+                        <select id="categoryFilter">
+                            <option value="all">All Categories</option>
+                        </select>
+                        <select id="stockFilter">
+                            <option value="all">All Stock Status</option>
+                            <option value="in-stock">In Stock</option>
+                            <option value="low-stock">Low Stock</option>
+                            <option value="out-of-stock">Out of Stock</option>
+                        </select>
+                        <button class="reset-filter" id="resetFilters" type="button">Reset</button>
+                    </div>
+                    <div class="product-table-container">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th>SKU</th>
+                                    <th>CATEGORY</th>
+                                    <th>SELLING PRICE</th>
+                                    <th>STOCK</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody"></tbody>
+                        </table>
+                        <div class="loading-state" id="loadingState">
+                            <div class="loading-spinner"></div>
+                            <p>Loading products...</p>
+                        </div>
+                        <div class="error-state" id="errorState">
+                            <div class="error-icon">!</div>
+                            <h3>Unable to load products</h3>
+                            <p id="errorMessage">Please check your Firebase connection.</p>
+                            <button id="retryProducts" type="button">Try Again</button>
+                        </div>
+                        <div class="empty-state" id="emptyState">
+                            <div class="empty-icon">▣</div>
+                            <h3>No products found</h3>
+                            <p>Try changing your search or filter.</p>
+                        </div>
+                    </div>
+                    <div class="pagination">
+                        <span id="paginationInfo">Showing 0 of 0 products</span>
+                        <div class="pagination-buttons">
+                            <button id="previousPage" type="button">‹</button>
+                            <span id="currentPage">1</span>
+                            <button id="nextPage" type="button">›</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="packagesView" class="hidden-view">
+                    <div class="product-summary">
+                        <div class="summary-card">
+                            <div class="summary-icon blue-icon">▣</div>
+                            <div><span>TOTAL PACKAGES</span><strong id="totalPackages">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon green-icon">✓</div>
+                            <div><span>AVAILABLE</span><strong id="availablePackages">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon orange-icon">!</div>
+                            <div><span>LIMITED STOCK</span><strong id="limitedPackages">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon red-icon">×</div>
+                            <div><span>UNAVAILABLE</span><strong id="unavailablePackages">0</strong></div>
+                        </div>
+                    </div>
+                    <div class="product-toolbar">
+                        <div class="product-search">
+                            <span>⌕</span>
+                            <input type="text" id="packageSearch" placeholder="Search package name or SKU...">
+                        </div>
+                        <button class="reset-filter" id="resetPackageFilters" type="button">Reset</button>
+                    </div>
+                    <div class="product-table-container">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>PACKAGE</th>
+                                    <th>SKU</th>
+                                    <th>SELLING PRICE</th>
+                                    <th>CONTENTS</th>
+                                    <th>AVAILABLE</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packageTableBody"></tbody>
+                        </table>
+                        <div class="empty-state" id="packageEmptyState">
+                            <div class="empty-icon">▣</div>
+                            <h3>No packages found</h3>
+                            <p>Create your first package to sell bundled products.</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="insuranceView" class="hidden-view">
+                    <div class="product-summary">
+                        <div class="summary-card">
+                            <div class="summary-icon blue-icon">▣</div>
+                            <div><span>TOTAL INSURANCE</span><strong id="totalInsurance">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon green-icon">✓</div>
+                            <div><span>ACTIVE</span><strong id="activeInsurance">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon orange-icon">!</div>
+                            <div><span>INACTIVE</span><strong id="inactiveInsurance">0</strong></div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon red-icon">×</div>
+                            <div><span>OPTIONS</span><strong id="insuranceOptions">0</strong></div>
+                        </div>
+                    </div>
+                    <div class="product-toolbar">
+                        <div class="product-search">
+                            <span>⌕</span>
+                            <input type="text" id="insuranceSearch" placeholder="Search insurance name or SKU...">
+                        </div>
+                        <button class="reset-filter" id="resetInsuranceFilters" type="button">Reset</button>
+                    </div>
+                    <div class="product-table-container">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th>INSURANCE</th>
+                                    <th>SKU</th>
+                                    <th>PRICE</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="insuranceTableBody"></tbody>
+                        </table>
+                        <div class="empty-state" id="insuranceEmptyState">
+                            <div class="empty-icon">✓</div>
+                            <h3>No insurance found</h3>
+                            <p>Create your first insurance option.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="modal-overlay" id="productModal">
+        <div class="product-modal">
+            <div class="modal-header">
+                <div>
+                    <h2 id="modalTitle">Add Product</h2>
+                    <p id="modalDescription">Add product information below.</p>
+                </div>
+                <button class="close-modal" id="closeProductModal" type="button">×</button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label>Product Name <span>*</span></label>
+                    <input type="text" id="productName" placeholder="Enter product name" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>SKU <span>*</span></label>
+                        <input type="text" id="productSku" placeholder="Automatically generated" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Category <span>*</span></label>
+                        <select id="productCategory" required>
+                            <option value="">Select category</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Selling Price <span>*</span></label>
+                    <div class="price-input">
+                        <span>₱</span>
+                        <input type="number" id="productPrice" min="0" step="0.01" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Current Stock <span>*</span></label>
+                        <input type="number" id="productStock" min="0" step="1" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Low Stock Alert</label>
+                        <input type="number" id="productLowStock" min="0" step="1" value="10" placeholder="10">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <input type="file" id="productImage" accept="image/png,image/jpeg,image/webp">
+                    <div id="imageUploadStatus" class="image-upload-status">JPG, PNG or WebP. Maximum 5MB.</div>
+                </div>
+                <div class="current-image-wrapper" id="currentImageWrapper">
+                    <span>Current Image</span>
+                    <img id="currentProductImage" src="" alt="Current product image">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="productDescription" rows="3" placeholder="Enter product description..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelProduct">Cancel</button>
+                    <button type="submit" class="save-btn" id="saveProductBtn">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="packageModal">
+        <div class="product-modal package-modal">
+            <div class="modal-header">
+                <div>
+                    <h2 id="packageModalTitle">Add Package</h2>
+                    <p>Create a package using existing products.</p>
+                </div>
+                <button class="close-modal" id="closePackageModal" type="button">×</button>
+            </div>
+            <form id="packageForm">
+                <div class="form-group">
+                    <label>Package Name <span>*</span></label>
+                    <input type="text" id="packageName" placeholder="e.g. School Starter Package" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Package SKU <span>*</span></label>
+                        <input type="text" id="packageSku" placeholder="Automatically generated" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Selling Price <span>*</span></label>
+                        <div class="price-input">
+                            <span>₱</span>
+                            <input type="number" id="packagePrice" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Products Included <span>*</span></label>
+                    <div class="package-item-header">
+                        <span>Product</span>
+                        <span>Quantity</span>
+                        <span></span>
+                    </div>
+                    <div id="packageItems"></div>
+                    <button type="button" class="add-item-btn" id="addPackageItem">＋ Add Product</button>
+                </div>
+                <div class="package-availability-preview">
+                    <span>Available Packages</span>
+                    <strong id="packageAvailabilityPreview">0</strong>
+                </div>
+                <div class="form-group">
+                    <label>Package Image</label>
+                    <input type="file" id="packageImage" accept="image/png,image/jpeg,image/webp">
+                    <div id="packageImageStatus" class="image-upload-status">JPG, PNG or WebP. Maximum 5MB.</div>
+                </div>
+                <div class="current-image-wrapper" id="currentPackageImageWrapper">
+                    <span>Current Image</span>
+                    <img id="currentPackageImage" src="" alt="Current package image">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="packageDescription" rows="3" placeholder="Enter package description..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelPackage">Cancel</button>
+                    <button type="submit" class="save-btn" id="savePackageBtn">Save Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="insuranceModal">
+        <div class="product-modal insurance-modal">
+            <div class="modal-header">
+                <div>
+                    <h2 id="insuranceModalTitle">Add Insurance</h2>
+                    <p>Create an insurance option without connecting it to any product.</p>
+                </div>
+                <button class="close-modal" id="closeInsuranceModal" type="button">×</button>
+            </div>
+            <form id="insuranceForm">
+                <div class="form-group">
+                    <label>Insurance Name <span>*</span></label>
+                    <input type="text" id="insuranceName" placeholder="e.g. Passenger Protection" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Insurance SKU <span>*</span></label>
+                        <input type="text" id="insuranceSku" placeholder="Automatically generated" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Insurance Price <span>*</span></label>
+                        <div class="price-input">
+                            <span>₱</span>
+                            <input type="number" id="insurancePrice" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="insuranceStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Insurance Image</label>
+                    <input type="file" id="insuranceImage" accept="image/png,image/jpeg,image/webp">
+                    <div id="insuranceImageStatus" class="image-upload-status">JPG, PNG or WebP. Maximum 5MB.</div>
+                </div>
+                <div class="current-image-wrapper" id="currentInsuranceImageWrapper">
+                    <span>Insurance Image Preview</span>
+                    <img id="currentInsuranceImage" src="" alt="Current insurance image">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="insuranceDescription" rows="4"
+                        placeholder="Enter insurance description..."></textarea>
+                </div>
+                <div class="insurance-notice">
+                    <strong>Inventory Notice</strong>
+                    <span>This insurance is independent and does not contain products or deduct product stock.</span>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelInsurance">Cancel</button>
+                    <button type="submit" class="save-btn" id="saveInsuranceBtn">Save Insurance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-overlay" id="deleteModal">
+        <div class="delete-modal">
+            <div class="delete-icon">!</div>
+            <h2>Delete Product?</h2>
+            <p>Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+            <div class="delete-actions">
+                <button class="cancel-btn" id="cancelDelete" type="button">Cancel</button>
+                <button class="delete-btn" id="confirmDelete" type="button">Delete Product</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="packageDeleteModal">
+        <div class="delete-modal">
+            <div class="delete-icon">!</div>
+            <h2>Delete Package?</h2>
+            <p>Are you sure you want to delete <strong id="deletePackageName"></strong>?</p>
+            <div class="delete-actions">
+                <button class="cancel-btn" id="cancelPackageDelete" type="button">Cancel</button>
+                <button class="delete-btn" id="confirmPackageDelete" type="button">Delete Package</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="ADMIN/JS/products.js?v=12"></script>
+</body>
+
+</html>

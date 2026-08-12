@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>StockMaster - Inventory</title>
+
+    <link rel="stylesheet" href="ADMIN/CSS/inventory.css?v=11">
+    <link rel="stylesheet" href="sidebar.css?v=10">
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <div id="sidebar-container"></div>
+
+        <main class="inventory-main">
+
+            <header class="topbar">
+
+                <div class="search-box">
+                    <span>⌕</span>
+
+                    <input type="text" id="globalSearch" placeholder="Search products, orders, customers...">
+
+                    <small>⌘</small>
+                    <small>K</small>
+                </div>
+
+                <div class="profile">
+
+                    <span class="notification">♧</span>
+
+                    <div class="profile-name">
+                        <strong id="profileName">Administrator</strong>
+                        <small id="profileRole">Administrator</small>
+                    </div>
+
+                    <div class="avatar" id="profileAvatar">AD</div>
+
+                </div>
+
+            </header>
+
+
+            <section class="inventory-content">
+
+                <div class="page-header">
+
+                    <div>
+                        <h1>Inventory</h1>
+
+                        <p>
+                            Monitor stock levels and manage inventory movements.
+                        </p>
+                    </div>
+
+                    <div class="header-actions">
+
+                        <button class="adjust-btn" id="openAdjustment" type="button">
+                            ⚙ Adjust Stock
+                        </button>
+
+                        <button class="stock-in-btn" id="openStockIn" type="button">
+                            ＋ Stock In
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- INVENTORY SUMMARY -->
+
+                <div class="inventory-summary">
+
+                    <div class="summary-card">
+
+                        <div class="summary-icon blue-icon">
+                            ▣
+                        </div>
+
+                        <div>
+
+                            <span>TOTAL PRODUCTS</span>
+
+                            <strong id="totalProducts">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-icon purple-icon">
+                            ▤
+                        </div>
+
+                        <div>
+
+                            <span>TOTAL STOCK UNITS</span>
+
+                            <strong id="totalUnits">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-icon orange-icon">
+                            !
+                        </div>
+
+                        <div>
+
+                            <span>LOW STOCK</span>
+
+                            <strong id="lowStock">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="summary-card">
+
+                        <div class="summary-icon red-icon">
+                            ×
+                        </div>
+
+                        <div>
+
+                            <span>OUT OF STOCK</span>
+
+                            <strong id="outOfStock">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- INVENTORY VALUE -->
+
+                <div class="inventory-status">
+
+                    <div class="status-card">
+
+                        <div class="status-header">
+
+                            <span>Inventory Value</span>
+
+                            <span class="status-icon">
+                                ₱
+                            </span>
+
+                        </div>
+
+                        <strong id="inventoryValue">
+                            ₱0.00
+                        </strong>
+
+                        <small>
+                            Based on selling price
+                        </small>
+
+                    </div>
+
+
+                    <div class="status-card">
+
+                        <div class="status-header">
+
+                            <span>Potential Sales Value</span>
+
+                            <span class="status-icon">
+                                ₱
+                            </span>
+
+                        </div>
+
+                        <strong id="salesValue">
+                            ₱0.00
+                        </strong>
+
+                        <small>
+                            Based on selling price
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FILTERS -->
+
+                <div class="inventory-toolbar">
+
+                    <div class="inventory-search">
+
+                        <span>⌕</span>
+
+                        <input type="text" id="inventorySearch" placeholder="Search product or SKU...">
+
+                    </div>
+
+
+                    <select id="categoryFilter">
+
+                        <option value="all">
+                            All Categories
+                        </option>
+
+                    </select>
+
+
+                    <select id="stockFilter">
+
+                        <option value="all">
+                            All Stock
+                        </option>
+
+                        <option value="normal">
+                            Normal Stock
+                        </option>
+
+                        <option value="low">
+                            Low Stock
+                        </option>
+
+                        <option value="out">
+                            Out of Stock
+                        </option>
+
+                    </select>
+
+
+                    <button class="reset-btn" id="resetFilters" type="button">
+                        Reset
+                    </button>
+
+                </div>
+
+
+                <!-- INVENTORY TABLE -->
+
+                <div class="inventory-table-container">
+
+                    <table class="inventory-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    PRODUCT
+                                </th>
+
+                                <th>
+                                    SKU
+                                </th>
+
+                                <th>
+                                    CATEGORY
+                                </th>
+
+                                <th>
+                                    SELLING PRICE
+                                </th>
+
+                                <th>
+                                    CURRENT STOCK
+                                </th>
+
+                                <th>
+                                    STOCK VALUE
+                                </th>
+
+                                <th>
+                                    STATUS
+                                </th>
+
+                                <th>
+                                    ACTION
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="inventoryTableBody"></tbody>
+
+                    </table>
+
+
+                    <!-- LOADING -->
+
+                    <div class="loading-state" id="loadingState">
+
+                        <div class="loading-spinner"></div>
+
+                        <strong>
+                            Loading inventory...
+                        </strong>
+
+                        <p>
+                            Getting products from Firebase.
+                        </p>
+
+                    </div>
+
+
+                    <!-- ERROR -->
+
+                    <div class="error-state" id="errorState">
+
+                        <div class="error-icon">
+                            !
+                        </div>
+
+                        <h3>
+                            Unable to load inventory
+                        </h3>
+
+                        <p id="errorMessage">
+                            Unable to load inventory from Firebase.
+                        </p>
+
+                        <button id="retryInventory" type="button">
+                            Try Again
+                        </button>
+
+                    </div>
+
+
+                    <!-- EMPTY -->
+
+                    <div class="empty-state" id="emptyState">
+
+                        <div class="empty-icon">
+                            ▤
+                        </div>
+
+                        <h3>
+                            No inventory records found
+                        </h3>
+
+                        <p>
+                            There are currently no products in Firebase.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PAGINATION -->
+
+                <div class="pagination">
+
+                    <span id="paginationInfo">
+                        Showing 0 of 0 products
+                    </span>
+
+                    <div class="pagination-buttons">
+
+                        <button id="previousPage" type="button">
+                            ‹
+                        </button>
+
+                        <span id="currentPage">
+                            1
+                        </span>
+
+                        <button id="nextPage" type="button">
+                            ›
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STOCK MOVEMENTS -->
+
+                <div class="movements-section">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h2>
+                                Recent Stock Movements
+                            </h2>
+
+                            <p>
+                                Track the latest inventory changes.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="movements-table-container">
+
+                        <table class="movements-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        DATE
+                                    </th>
+
+                                    <th>
+                                        PRODUCT
+                                    </th>
+
+                                    <th>
+                                        TYPE
+                                    </th>
+
+                                    <th>
+                                        QUANTITY
+                                    </th>
+
+                                    <th>
+                                        REASON
+                                    </th>
+
+                                    <th>
+                                        STAFF / ADMIN
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody id="movementTableBody"></tbody>
+
+                        </table>
+
+
+                        <div class="movement-empty" id="movementEmpty">
+                            No stock movements recorded yet.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- INVENTORY MOVEMENT MODAL -->
+
+    <div class="modal-overlay" id="inventoryModal">
+
+        <div class="inventory-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2 id="modalTitle">
+                        Stock In
+                    </h2>
+
+                    <p>
+                        Record an inventory movement.
+                    </p>
+
+                </div>
+
+                <button class="close-modal" id="closeInventoryModal" type="button">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="inventoryForm">
+
+                <div class="form-group">
+
+                    <label for="movementType">
+                        Movement Type
+                    </label>
+
+                    <select id="movementType" required>
+
+                        <option value="stock-in">
+                            Stock In
+                        </option>
+
+                        <option value="adjustment">
+                            Stock Adjustment
+                        </option>
+
+                        <option value="stock-out">
+                            Stock Out
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="movementProduct">
+                        Product <span>*</span>
+                    </label>
+
+                    <select id="movementProduct" required>
+
+                        <option value="">
+                            Select product
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="current-stock-box">
+
+                    <span>
+                        Current Stock
+                    </span>
+
+                    <strong id="currentStockDisplay">
+                        0 units
+                    </strong>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="movementQuantity">
+                        Quantity <span>*</span>
+                    </label>
+
+                    <input type="number" id="movementQuantity" min="1" placeholder="Enter quantity" required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="movementReason">
+                        Reason <span>*</span>
+                    </label>
+
+                    <select id="movementReason" required>
+
+                        <option value="">
+                            Select reason
+                        </option>
+
+                        <option value="Purchase / Restock">
+                            Purchase / Restock
+                        </option>
+
+                        <option value="Damaged">
+                            Damaged
+                        </option>
+
+                        <option value="Expired">
+                            Expired
+                        </option>
+
+                        <option value="Lost">
+                            Lost
+                        </option>
+
+                        <option value="Correction">
+                            Inventory Correction
+                        </option>
+
+                        <option value="Return">
+                            Customer Return
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="movementNotes">
+                        Notes
+                    </label>
+
+                    <textarea id="movementNotes" rows="3" placeholder="Enter additional notes..."></textarea>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button type="button" class="cancel-btn" id="cancelInventory">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="save-btn" id="saveMovementBtn">
+                        Save Movement
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script type="module" src="ADMIN/JS/inventory.js?v=11"></script>
+
+</body>
+
+</html>

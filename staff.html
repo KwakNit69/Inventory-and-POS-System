@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>StockMaster - Staff</title>
+
+    <link
+        rel="stylesheet"
+        href="ADMIN/CSS/staff.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="sidebar.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar-container"></div>
+
+
+    <main>
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div class="search">
+
+                <span>⌕</span>
+
+                <input
+                    id="globalSearch"
+                    placeholder="Search products, orders, customers..."
+                >
+
+            </div>
+
+
+            <div class="user-area">
+
+                <div class="user-info">
+
+                    <strong
+                        id="currentUserName"
+                    >
+                        Loading...
+                    </strong>
+
+                    <small
+                        id="currentUserRole"
+                    >
+                        Loading...
+                    </small>
+
+                </div>
+
+
+                <span
+                    class="avatar"
+                    id="currentUserAvatar"
+                >
+                    --
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- CONTENT -->
+        <section class="content">
+
+            <!-- HEADER -->
+            <div class="page-header">
+
+                <div>
+
+                    <h1>
+                        Staff
+                    </h1>
+
+                    <p>
+                        Manage staff accounts and POS access.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="addStaff"
+                    class="primary-button"
+                    type="button"
+                >
+                    + Add Staff
+                </button>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+            <div class="summary">
+
+                <div class="card">
+
+                    <span>
+                        TOTAL STAFF
+                    </span>
+
+                    <strong id="total">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="card">
+
+                    <span>
+                        ACTIVE
+                    </span>
+
+                    <strong id="active">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="card">
+
+                    <span>
+                        INACTIVE
+                    </span>
+
+                    <strong id="inactive">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="card">
+
+                    <span>
+                        STAFF SALES
+                    </span>
+
+                    <strong id="staffSales">
+                        ₱0.00
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- TOOLBAR -->
+            <div class="toolbar">
+
+                <input
+                    id="search"
+                    type="text"
+                    placeholder="Search staff name or email..."
+                >
+
+
+                <select id="filter">
+
+                    <option value="all">
+                        All Status
+                    </option>
+
+                    <option value="Active">
+                        Active
+                    </option>
+
+                    <option value="Inactive">
+                        Inactive
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- TABLE -->
+            <div class="panel">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                STAFF
+                            </th>
+
+                            <th>
+                                EMAIL
+                            </th>
+
+                            <th>
+                                ROLE
+                            </th>
+
+                            <th>
+                                SALES
+                            </th>
+
+                            <th>
+                                STATUS
+                            </th>
+
+                            <th>
+                                LAST LOGIN
+                            </th>
+
+                            <th>
+                                ACTION
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="body">
+
+                    </tbody>
+
+                </table>
+
+
+                <!-- EMPTY STATE -->
+                <div
+                    id="emptyState"
+                    class="empty-state"
+                >
+
+                    <div class="empty-icon">
+                        👤
+                    </div>
+
+                    <strong>
+                        No staff members found
+                    </strong>
+
+                    <span>
+                        Staff accounts created in Firebase will appear here.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =====================================================
+     ADD STAFF MODAL
+     ===================================================== -->
+
+<div
+    class="modal"
+    id="modal"
+>
+
+    <div class="box">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Add Staff
+                </h2>
+
+                <p>
+                    Create a Firebase staff account.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="modal-close"
+                id="closeModal"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="form">
+
+            <label>
+
+                Name
+
+                <input
+                    id="name"
+                    type="text"
+                    placeholder="Enter staff name"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+
+                Email
+
+                <input
+                    id="email"
+                    type="email"
+                    placeholder="staff@example.com"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+
+                Password
+
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Minimum 6 characters"
+                    minlength="6"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+
+                Role
+
+                <input
+                    id="role"
+                    type="text"
+                    value="Staff / Cashier"
+                    placeholder="Staff / Cashier"
+                    required
+                >
+
+            </label>
+
+
+            <label>
+
+                Status
+
+                <select id="status">
+
+                    <option value="Active">
+                        Active
+                    </option>
+
+                    <option value="Inactive">
+                        Inactive
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="cancel-button"
+                    id="cancelStaff"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="save-button"
+                    id="saveStaff"
+                >
+                    Save Staff
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- FIREBASE / PAGE SCRIPT -->
+<script
+    type="module"
+    src="ADMIN/JS/staff.js"
+></script>
+
+</body>
+
+</html>

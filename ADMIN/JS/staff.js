@@ -28,44 +28,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 
 
-/* =========================================================
-   STOCKMASTER STAFF MANAGEMENT
-   =========================================================
-
-   Firebase:
-
-   Authentication
-       -> Staff login accounts
-
-   Firestore
-       users/{uid}
-           fullName
-           name
-           email
-           role
-           jobTitle
-           status
-           createdAt
-           createdBy
-           lastLoginAt
-
-       sales/{saleId}
-           staffId
-           staffUid
-           cashierId
-           cashierUid
-           staffName
-           cashier
-           total
-           status
-           createdAt
-
-   ========================================================= */
-
-
-/* =========================================================
-   VARIABLES
-   ========================================================= */
 
 let staff = [];
 let sales = [];
@@ -141,57 +103,25 @@ const currentUserAvatar =
    ========================================================= */
 
 async function loadSidebar() {
-
     if (!sidebarContainer) {
-        console.error(
-            "[Staff] sidebar-container not found."
-        );
+        console.error("[Staff] sidebar-container not found.");
         return;
     }
-
     try {
-
-        const response =
-            await fetch("/sidebar.html");
-
+        const response = await fetch("sidebar.html");
         if (!response.ok) {
-            throw new Error(
-                `Unable to load sidebar.html. HTTP ${response.status}`
-            );
+            throw new Error(`Unable to load sidebar.html. HTTP ${response.status}`);
         }
-
-        const html =
-            await response.text();
-
-        sidebarContainer.innerHTML =
-            html;
-
-        if (
-            !document.getElementById(
-                "stockmaster-sidebar-script"
-            )
-        ) {
-
-            const script =
-                document.createElement("script");
-
-            script.id =
-                "stockmaster-sidebar-script";
-
-            script.src =
-                "/sidebar.js?v=20260810";
-
-            document.body.appendChild(
-                script
-            );
+        const html = await response.text();
+        sidebarContainer.innerHTML = html;
+        if (!document.getElementById("stockmaster-sidebar-script")) {
+            const script = document.createElement("script");
+            script.id = "stockmaster-sidebar-script";
+            script.src = "sidebar.js?v=20260810";
+            document.body.appendChild(script);
         }
-
     } catch (error) {
-
-        console.error(
-            "[Staff] Sidebar error:",
-            error
-        );
+        console.error("[Staff] Sidebar error:", error);
     }
 }
 
@@ -615,21 +545,21 @@ function getStaffSales(member) {
         const matchesUid =
             saleStaffId &&
             saleStaffId ===
-                String(
-                    member.uid
-                );
+            String(
+                member.uid
+            );
 
         const matchesEmail =
             saleStaffEmail &&
             memberEmail &&
             saleStaffEmail ===
-                memberEmail;
+            memberEmail;
 
         const matchesName =
             saleStaffName &&
             memberName &&
             saleStaffName ===
-                memberName;
+            memberName;
 
         if (
             matchesUid ||
@@ -745,17 +675,17 @@ function render() {
 
                             <div class="staff-avatar-small">
                                 ${escapeHTML(
-                                    getInitials(
-                                        member.name
-                                    )
-                                )}
+                    getInitials(
+                        member.name
+                    )
+                )}
                             </div>
 
                             <div>
                                 <b>
                                     ${escapeHTML(
-                                        member.name
-                                    )}
+                    member.name
+                )}
                                 </b>
                             </div>
 
@@ -764,20 +694,20 @@ function render() {
 
                     <td>
                         ${escapeHTML(
-                            member.email
-                        )}
+                    member.email
+                )}
                     </td>
 
                     <td>
                         ${escapeHTML(
-                            member.role
-                        )}
+                    member.role
+                )}
                     </td>
 
                     <td>
                         ${formatMoney(
-                            salesAmount
-                        )}
+                    salesAmount
+                )}
                     </td>
 
                     <td>
@@ -785,17 +715,17 @@ function render() {
                             class="badge ${statusClass}"
                         >
                             ${escapeHTML(
-                                member.status
-                            )}
+                    member.status
+                )}
                         </span>
                     </td>
 
                     <td>
                         ${escapeHTML(
-                            formatDate(
-                                member.lastLogin
-                            )
-                        )}
+                    formatDate(
+                        member.lastLogin
+                    )
+                )}
                     </td>
 
                     <td>
@@ -804,15 +734,14 @@ function render() {
                             class="action"
                             data-action="toggle"
                             data-id="${escapeHTML(
-                                member.id
-                            )}"
+                    member.id
+                )}"
                         >
-                            ${
-                                member.status ===
-                                "Active"
-                                    ? "Disable"
-                                    : "Activate"
-                            }
+                            ${member.status ===
+                        "Active"
+                        ? "Disable"
+                        : "Activate"
+                    }
                         </button>
 
                     </td>
@@ -1346,7 +1275,7 @@ async function toggleStaff(id) {
 
     const newStatus =
         member.status ===
-        "Active"
+            "Active"
             ? "Inactive"
             : "Active";
 

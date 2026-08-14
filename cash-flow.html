@@ -3,276 +3,1078 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>StockMaster - Cash Flow</title>
+
     <link rel="stylesheet" href="ADMIN/CSS/cash-flow.css">
     <link rel="stylesheet" href="sidebar.css">
 </head>
 
 <body>
+
     <div class="app-shell">
+
+        <!-- SIDEBAR -->
         <div id="sidebar-container"></div>
+
+
+        <!-- MAIN -->
         <main class="cashflow-main">
+
+            <!-- TOP BAR -->
             <header class="topbar">
+
                 <div class="search-box">
                     <span>⌕</span>
-                    <input type="text" id="globalSearch" placeholder="Search transactions, categories, descriptions...">
+
+                    <input type="text" id="globalSearch" placeholder="Search transactions, accounts, categories...">
+
                     <small>⌘</small>
                     <small>K</small>
                 </div>
+
+
                 <div class="profile">
+
                     <span class="notification">♧</span>
+
                     <div class="profile-name">
                         <strong id="currentUserName"></strong>
                         <small id="currentUserRole"></small>
                     </div>
-                    <div class="avatar" id="currentUserAvatar"></div>
+
+                    <div class="avatar" id="currentUserAvatar">
+                    </div>
+
                 </div>
+
             </header>
+
+
+            <!-- CONTENT -->
             <section class="cashflow-content">
+
+
+                <!-- PAGE HEADER -->
                 <div class="page-header">
+
                     <div>
                         <h1>Cash Flow</h1>
-                        <p>Monitor your business cash inflows, outflows, and balance.</p>
+
+                        <p>
+                            Monitor your business money, accounts,
+                            cash inflows, and cash outflows.
+                        </p>
                     </div>
+
+
                     <div class="cashflow-actions">
-                        <button class="add-cash-in-btn" id="addCashInButton" type="button">+ Add Cash In</button>
-                        <button class="add-expense-btn" id="addExpenseButton" type="button">+ Add Cash Out</button>
+
+                        <button class="add-cash-in-btn" id="addCashInButton" type="button">
+
+                            + Add Cash In
+
+                        </button>
+
+
+                        <button class="add-expense-btn" id="addExpenseButton" type="button">
+
+                            + Add Cash Out
+
+                        </button>
+
                     </div>
+
                 </div>
+
+
+
+                <!-- SUMMARY -->
                 <div class="cash-summary">
+
+
+                    <!-- TOTAL CASH IN -->
                     <div class="summary-card">
-                        <div class="summary-icon cash-in-icon">↑</div>
+
+                        <div class="summary-icon cash-in-icon">
+                            ↑
+                        </div>
+
                         <div>
+
                             <span>TOTAL CASH IN</span>
-                            <strong id="totalCashIn">₱0.00</strong>
-                            <small>Money received</small>
+
+                            <strong id="totalCashIn">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                All money received
+                            </small>
+
                         </div>
+
                     </div>
+
+
+                    <!-- TOTAL CASH OUT -->
                     <div class="summary-card">
-                        <div class="summary-icon cash-out-icon">↓</div>
+
+                        <div class="summary-icon cash-out-icon">
+                            ↓
+                        </div>
+
                         <div>
+
                             <span>TOTAL CASH OUT</span>
-                            <strong id="totalCashOut">₱0.00</strong>
-                            <small>Money spent</small>
+
+                            <strong id="totalCashOut">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                All money spent
+                            </small>
+
                         </div>
+
                     </div>
+
+
+                    <!-- NET -->
                     <div class="summary-card">
-                        <div class="summary-icon net-icon">₱</div>
+
+                        <div class="summary-icon net-icon">
+                            ₱
+                        </div>
+
                         <div>
+
                             <span>NET CASH FLOW</span>
-                            <strong id="netCashFlow">₱0.00</strong>
-                            <small id="netDescription">Cash in minus cash out</small>
+
+                            <strong id="netCashFlow">
+                                ₱0.00
+                            </strong>
+
+                            <small id="netDescription">
+                                Cash in minus cash out
+                            </small>
+
                         </div>
+
                     </div>
+
+
+                    <!-- TOTAL FUNDS -->
                     <div class="summary-card">
-                        <div class="summary-icon balance-icon">◉</div>
+
+                        <div class="summary-icon balance-icon">
+                            ◉
+                        </div>
+
                         <div>
-                            <span>CASH BALANCE</span>
-                            <strong id="cashBalance">₱0.00</strong>
-                            <small>Current balance</small>
+
+                            <span>TOTAL FUNDS</span>
+
+                            <strong id="cashBalance">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                All accounts combined
+                            </small>
+
                         </div>
+
                     </div>
+
                 </div>
+
+
+
+                <!-- ACCOUNT BALANCES -->
+                <section class="accounts-section">
+
+                    <div class="section-header accounts-header">
+
+                        <div>
+                            <h2>Account Balances</h2>
+
+                            <p>
+                                Current money available in each account.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="accounts-grid">
+
+
+                        <!-- CASH -->
+                        <div class="account-card cash-account">
+
+                            <div class="account-top">
+
+                                <div class="account-icon">
+                                    ₱
+                                </div>
+
+                                <span class="account-status">
+                                    CASH
+                                </span>
+
+                            </div>
+
+                            <div class="account-name">
+                                Cash on Hand
+                            </div>
+
+                            <strong id="accountCash">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                Physical cash
+                            </small>
+
+                        </div>
+
+
+                        <!-- GCASH -->
+                        <div class="account-card gcash-account">
+
+                            <div class="account-top">
+
+                                <div class="account-icon">
+                                    G
+                                </div>
+
+                                <span class="account-status">
+                                    GCASH
+                                </span>
+
+                            </div>
+
+                            <div class="account-name">
+                                GCash
+                            </div>
+
+                            <strong id="accountGCash">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                GCash funds
+                            </small>
+
+                        </div>
+
+
+                        <!-- BDO -->
+                        <div class="account-card bdo-account">
+
+                            <div class="account-top">
+
+                                <div class="account-icon">
+                                    B
+                                </div>
+
+                                <span class="account-status">
+                                    BDO
+                                </span>
+
+                            </div>
+
+                            <div class="account-name">
+                                BDO
+                            </div>
+
+                            <strong id="accountBDO">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                BDO funds
+                            </small>
+
+                        </div>
+
+
+                        <!-- BIBO -->
+                        <div class="account-card bibo-account">
+
+                            <div class="account-top">
+
+                                <div class="account-icon">
+                                    B
+                                </div>
+
+                                <span class="account-status">
+                                    BIBO
+                                </span>
+
+                            </div>
+
+                            <div class="account-name">
+                                BIBO
+                            </div>
+
+                            <strong id="accountBIBO">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                BIBO funds
+                            </small>
+
+                        </div>
+
+
+                        <!-- BPI -->
+                        <div class="account-card bpi-account">
+
+                            <div class="account-top">
+
+                                <div class="account-icon">
+                                    B
+                                </div>
+
+                                <span class="account-status">
+                                    BPI
+                                </span>
+
+                            </div>
+
+                            <div class="account-name">
+                                BPI
+                            </div>
+
+                            <strong id="accountBPI">
+                                ₱0.00
+                            </strong>
+
+                            <small>
+                                BPI funds
+                            </small>
+
+                        </div>
+
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- CHART + BREAKDOWN -->
                 <div class="overview-grid">
+
+
+                    <!-- CHART -->
                     <div class="chart-card">
+
                         <div class="section-header">
+
                             <div>
+
                                 <h2>Cash Flow Overview</h2>
-                                <p>Cash inflow and outflow over time.</p>
+
+                                <p>
+                                    Cash inflow and outflow over time.
+                                </p>
+
                             </div>
+
+
                             <select id="chartPeriod">
-                                <option value="7">Last 7 Days</option>
-                                <option value="14">Last 14 Days</option>
-                                <option value="30">Last 30 Days</option>
+
+                                <option value="7">
+                                    Last 7 Days
+                                </option>
+
+                                <option value="14">
+                                    Last 14 Days
+                                </option>
+
+                                <option value="30">
+                                    Last 30 Days
+                                </option>
+
                             </select>
+
                         </div>
+
+
                         <div class="chart-wrapper">
+
                             <canvas id="cashFlowChart"></canvas>
+
                         </div>
+
                     </div>
+
+
+
+                    <!-- BREAKDOWN -->
                     <div class="breakdown-card">
+
                         <div class="section-header">
+
                             <div>
+
                                 <h2>Cash Breakdown</h2>
-                                <p>Where your money comes from.</p>
+
+                                <p>
+                                    Money by source and account.
+                                </p>
+
                             </div>
+
                         </div>
+
+
                         <div class="breakdown-list">
+
+
                             <div class="breakdown-row">
-                                <div class="breakdown-label"><span class="dot sales-dot"></span><span>Sales</span></div>
-                                <strong id="salesCash">₱0.00</strong>
-                            </div>
-                            <div class="breakdown-row">
-                                <div class="breakdown-label"><span class="dot other-in-dot"></span><span>Other
-                                        Income</span></div>
-                                <strong id="otherIncomeCash">₱0.00</strong>
-                            </div>
-                            <div class="breakdown-row">
-                                <div class="breakdown-label"><span class="dot expense-dot"></span><span>Expenses</span>
+
+                                <div class="breakdown-label">
+                                    <span class="dot sales-dot"></span>
+                                    <span>Sales</span>
                                 </div>
-                                <strong id="expenseCash">₱0.00</strong>
+
+                                <strong id="salesCash">
+                                    ₱0.00
+                                </strong>
+
                             </div>
+
+
                             <div class="breakdown-row">
-                                <div class="breakdown-label"><span class="dot purchase-dot"></span><span>Inventory
-                                        Purchases</span></div>
-                                <strong id="purchaseCash">₱0.00</strong>
-                            </div>
-                            <div class="breakdown-row">
-                                <div class="breakdown-label"><span class="dot refund-dot"></span><span>Refunds</span>
+
+                                <div class="breakdown-label">
+                                    <span class="dot other-in-dot"></span>
+                                    <span>Other Income</span>
                                 </div>
-                                <strong id="refundCash">₱0.00</strong>
+
+                                <strong id="otherIncomeCash">
+                                    ₱0.00
+                                </strong>
+
                             </div>
+
+
+                            <div class="breakdown-row">
+
+                                <div class="breakdown-label">
+                                    <span class="dot expense-dot"></span>
+                                    <span>Expenses</span>
+                                </div>
+
+                                <strong id="expenseCash">
+                                    ₱0.00
+                                </strong>
+
+                            </div>
+
+
+                            <div class="breakdown-row">
+
+                                <div class="breakdown-label">
+                                    <span class="dot purchase-dot"></span>
+                                    <span>Inventory Purchases</span>
+                                </div>
+
+                                <strong id="purchaseCash">
+                                    ₱0.00
+                                </strong>
+
+                            </div>
+
+
+                            <div class="breakdown-row">
+
+                                <div class="breakdown-label">
+                                    <span class="dot refund-dot"></span>
+                                    <span>Refunds</span>
+                                </div>
+
+                                <strong id="refundCash">
+                                    ₱0.00
+                                </strong>
+
+                            </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
+
+
+                <!-- TOOLBAR -->
                 <div class="cashflow-toolbar">
+
+
                     <div class="cashflow-search">
+
                         <span>⌕</span>
+
                         <input type="text" id="cashflowSearch"
-                            placeholder="Search transaction, description, category...">
+                            placeholder="Search transaction, account, description...">
+
                     </div>
+
+
                     <select id="dateFilter">
-                        <option value="all">All Dates</option>
-                        <option value="today">Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
+
+                        <option value="all">
+                            All Dates
+                        </option>
+
+                        <option value="today">
+                            Today
+                        </option>
+
+                        <option value="yesterday">
+                            Yesterday
+                        </option>
+
+                        <option value="week">
+                            This Week
+                        </option>
+
+                        <option value="month">
+                            This Month
+                        </option>
+
                     </select>
+
+
                     <select id="typeFilter">
-                        <option value="all">All Types</option>
-                        <option value="in">Cash In</option>
-                        <option value="out">Cash Out</option>
+
+                        <option value="all">
+                            All Types
+                        </option>
+
+                        <option value="in">
+                            Cash In
+                        </option>
+
+                        <option value="out">
+                            Cash Out
+                        </option>
+
                     </select>
+
+
+                    <select id="accountFilter">
+
+                        <option value="all">
+                            All Accounts
+                        </option>
+
+                        <option value="Cash">
+                            Cash
+                        </option>
+
+                        <option value="GCash">
+                            GCash
+                        </option>
+
+                        <option value="BDO">
+                            BDO
+                        </option>
+
+                        <option value="BIBO">
+                            BIBO
+                        </option>
+
+                        <option value="BPI">
+                            BPI
+                        </option>
+
+                    </select>
+
+
                     <select id="categoryFilter">
-                        <option value="all">All Categories</option>
+
+                        <option value="all">
+                            All Categories
+                        </option>
+
                     </select>
-                    <button class="reset-btn" id="resetFilters" type="button">Reset</button>
+
+
+                    <button class="reset-btn" id="resetFilters" type="button">
+
+                        Reset
+
+                    </button>
+
                 </div>
+
+
+
+                <!-- TABLE -->
                 <div class="table-container">
+
                     <table class="cashflow-table">
+
                         <thead>
+
                             <tr>
+
                                 <th>TRANSACTION</th>
+
                                 <th>DATE & TIME</th>
+
                                 <th>TYPE</th>
+
+                                <th>ACCOUNT</th>
+
                                 <th>CATEGORY</th>
+
                                 <th>DESCRIPTION</th>
+
                                 <th>CASH IN</th>
+
                                 <th>CASH OUT</th>
-                                <th>BALANCE</th>
+
+                                <th>ACCOUNT BALANCE</th>
+
                             </tr>
+
                         </thead>
+
                         <tbody id="cashflowTableBody"></tbody>
+
                     </table>
+
+
                     <div class="empty-state" id="emptyState">
-                        <div class="empty-icon">₱</div>
-                        <h3>No cash flow records found</h3>
-                        <p>Cash flow records will appear here when transactions are recorded.</p>
+
+                        <div class="empty-icon">
+                            ₱
+                        </div>
+
+                        <h3>
+                            No cash flow records found
+                        </h3>
+
+                        <p>
+                            Cash flow records will appear here
+                            when transactions are recorded.
+                        </p>
+
                     </div>
+
                 </div>
+
+
+
+                <!-- PAGINATION -->
                 <div class="pagination">
-                    <span id="paginationInfo">Showing 0-0 of 0 transactions</span>
+
+                    <span id="paginationInfo">
+                        Showing 0-0 of 0 transactions
+                    </span>
+
                     <div class="pagination-buttons">
-                        <button id="previousPage" type="button">‹</button>
-                        <span id="currentPage">1</span>
-                        <button id="nextPage" type="button">›</button>
+
+                        <button id="previousPage" type="button">
+
+                            ‹
+
+                        </button>
+
+                        <span id="currentPage">
+                            1
+                        </span>
+
+                        <button id="nextPage" type="button">
+
+                            ›
+
+                        </button>
+
                     </div>
+
                 </div>
+
             </section>
+
         </main>
+
     </div>
+
+
+
+    <!-- ============================= -->
+    <!-- CASH OUT MODAL -->
+    <!-- ============================= -->
+
     <div class="modal-overlay" id="expenseModal">
+
         <div class="expense-modal">
+
+
             <div class="modal-header">
+
                 <div>
-                    <h2>Add Cash Out</h2>
-                    <p>Record a business expense or cash out.</p>
+
+                    <h2>
+                        Add Cash Out
+                    </h2>
+
+                    <p>
+                        Record money removed from an account.
+                    </p>
+
                 </div>
-                <button class="close-modal" id="closeExpenseModal" type="button">×</button>
+
+                <button class="close-modal" id="closeExpenseModal" type="button">
+
+                    ×
+
+                </button>
+
             </div>
+
+
+
             <form id="expenseForm" class="expense-form">
+
+
                 <div class="form-group">
-                    <label for="expenseCategory">Category</label>
-                    <input type="text" id="expenseCategory" placeholder="Enter category" required>
+
+                    <label for="expenseAccount">
+                        Account
+                    </label>
+
+                    <select id="expenseAccount" required>
+
+                        <option value="">
+                            Select account
+                        </option>
+
+                        <option value="Cash">
+                            Cash
+                        </option>
+
+                        <option value="GCash">
+                            GCash
+                        </option>
+
+                        <option value="BDO">
+                            BDO
+                        </option>
+
+                        <option value="BIBO">
+                            BIBO
+                        </option>
+
+                        <option value="BPI">
+                            BPI
+                        </option>
+
+                    </select>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="expenseDescription">Description</label>
+
+                    <label for="expenseCategory">
+                        Category
+                    </label>
+
+                    <input type="text" id="expenseCategory" placeholder="Example: Utilities, Supplies" required>
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label for="expenseDescription">
+                        Description
+                    </label>
+
                     <input type="text" id="expenseDescription" placeholder="Enter description" required>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="expenseAmount">Amount</label>
+
+                    <label for="expenseAmount">
+                        Amount
+                    </label>
+
                     <div class="amount-input">
+
                         <span>₱</span>
+
                         <input type="number" id="expenseAmount" min="0.01" step="0.01" placeholder="0.00" required>
+
                     </div>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="expenseDate">Date</label>
+
+                    <label for="expenseDate">
+                        Date
+                    </label>
+
                     <input type="datetime-local" id="expenseDate" required>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="expenseReference">Reference Number</label>
+
+                    <label for="expenseReference">
+                        Reference Number
+                    </label>
+
                     <input type="text" id="expenseReference" placeholder="Optional reference">
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="expenseNotes">Notes</label>
+
+                    <label for="expenseNotes">
+                        Notes
+                    </label>
+
                     <textarea id="expenseNotes" rows="3" placeholder="Additional notes..."></textarea>
+
                 </div>
+
+
+
                 <div class="form-actions">
-                    <button type="button" class="cancel-btn" id="cancelExpense">Cancel</button>
-                    <button type="submit" class="save-expense-btn">Save Cash Out</button>
+
+                    <button type="button" class="cancel-btn" id="cancelExpense">
+
+                        Cancel
+
+                    </button>
+
+                    <button type="submit" class="save-expense-btn">
+
+                        Save Cash Out
+
+                    </button>
+
                 </div>
+
             </form>
+
         </div>
+
     </div>
+
+
+
+    <!-- ============================= -->
+    <!-- CASH IN MODAL -->
+    <!-- ============================= -->
+
     <div class="modal-overlay" id="cashInModal">
+
         <div class="expense-modal">
+
+
             <div class="modal-header">
+
                 <div>
-                    <h2>Add Cash In</h2>
-                    <p>Record additional money received by the business.</p>
+
+                    <h2>
+                        Add Cash In
+                    </h2>
+
+                    <p>
+                        Record money added to an account.
+                    </p>
+
                 </div>
-                <button class="close-modal" id="closeCashInModal" type="button">×</button>
+
+                <button class="close-modal" id="closeCashInModal" type="button">
+
+                    ×
+
+                </button>
+
             </div>
+
+
+
             <form id="cashInForm" class="expense-form">
+
+
                 <div class="form-group">
-                    <label for="cashInCategory">Category</label>
-                    <input type="text" id="cashInCategory" placeholder="Enter category" required>
+
+                    <label for="cashInAccount">
+                        Account
+                    </label>
+
+                    <select id="cashInAccount" required>
+
+                        <option value="">
+                            Select account
+                        </option>
+
+                        <option value="Cash">
+                            Cash
+                        </option>
+
+                        <option value="GCash">
+                            GCash
+                        </option>
+
+                        <option value="BDO">
+                            BDO
+                        </option>
+
+                        <option value="BIBO">
+                            BIBO
+                        </option>
+
+                        <option value="BPI">
+                            BPI
+                        </option>
+
+                    </select>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="cashInDescription">Description</label>
+
+                    <label for="cashInCategory">
+                        Category
+                    </label>
+
+                    <input type="text" id="cashInCategory" placeholder="Example: Capital, Deposit" required>
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label for="cashInDescription">
+                        Description
+                    </label>
+
                     <input type="text" id="cashInDescription" placeholder="Enter description" required>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="cashInAmount">Amount</label>
+
+                    <label for="cashInAmount">
+                        Amount
+                    </label>
+
                     <div class="amount-input">
+
                         <span>₱</span>
+
                         <input type="number" id="cashInAmount" min="0.01" step="0.01" placeholder="0.00" required>
+
                     </div>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="cashInDate">Date</label>
+
+                    <label for="cashInDate">
+                        Date
+                    </label>
+
                     <input type="datetime-local" id="cashInDate" required>
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="cashInReference">Reference Number</label>
+
+                    <label for="cashInReference">
+                        Reference Number
+                    </label>
+
                     <input type="text" id="cashInReference" placeholder="Optional reference">
+
                 </div>
+
+
+
                 <div class="form-group">
-                    <label for="cashInNotes">Notes</label>
+
+                    <label for="cashInNotes">
+                        Notes
+                    </label>
+
                     <textarea id="cashInNotes" rows="3" placeholder="Additional notes..."></textarea>
+
                 </div>
+
+
+
                 <div class="form-actions">
-                    <button type="button" class="cancel-btn" id="cancelCashIn">Cancel</button>
-                    <button type="submit" class="save-expense-btn">Save Cash In</button>
+
+                    <button type="button" class="cancel-btn" id="cancelCashIn">
+
+                        Cancel
+
+                    </button>
+
+                    <button type="submit" class="save-expense-btn">
+
+                        Save Cash In
+
+                    </button>
+
                 </div>
+
             </form>
+
         </div>
+
     </div>
+
+
+
+    <!-- CHART.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SIDEBAR -->
     <script src="sidebar.js"></script>
-    <script type="module" src="ADMIN/JS/cash-flow.js"></script>
+
+    <!-- CASH FLOW -->
+    <script type="module" src="ADMIN/JS/cash-flow.js">
+    </script>
+
 </body>
 
 </html>

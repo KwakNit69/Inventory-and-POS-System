@@ -13,7 +13,9 @@
   --background: #f5f7f9;
   --white: #fff;
   --green: #00a878;
-  --red: #e05252
+  --red: #e05252;
+  --purple: #7654c8;
+  --orange: #d88916
 }
 
 html,
@@ -161,7 +163,7 @@ button {
 
 .dashboard-content {
   width: 100%;
-  max-width: 1700px;
+  max-width: 1800px;
   margin: 0 auto;
   padding: 28px 28px 45px
 }
@@ -213,14 +215,14 @@ button {
 }
 
 .date-filter button.active {
-  background: #1976d2;
+  background: var(--blue);
   color: #fff
 }
 
 .actions {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px
+  margin-bottom: 24px
 }
 
 .actions button {
@@ -248,19 +250,188 @@ button {
   background: #20364d
 }
 
+.financial-section,
+.activity-section {
+  margin-bottom: 24px
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px
+}
+
+.section-heading h2 {
+  font-size: 17px;
+  margin-bottom: 4px
+}
+
+.section-heading p {
+  font-size: 12px;
+  color: var(--muted)
+}
+
+.financial-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #258256;
+  font-size: 11px;
+  font-weight: 600
+}
+
+.financial-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #20a464
+}
+
+.funds-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px
+}
+
+.fund-card {
+  min-height: 138px;
+  background: #fff;
+  border: 1px solid #d7dde4;
+  border-radius: 9px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .03);
+  transition: .2s
+}
+
+.fund-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(25, 55, 85, .08)
+}
+
+.fund-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  font-weight: 700
+}
+
+.fund-info {
+  min-width: 0;
+  padding-top: 1px
+}
+
+.fund-info span {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #53606c;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  margin-bottom: 8px
+}
+
+.fund-info strong {
+  display: block;
+  font-size: 21px;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #101820;
+  margin-bottom: 8px
+}
+
+.fund-info small {
+  display: block;
+  color: #7a858f;
+  font-size: 10px;
+  line-height: 1.3
+}
+
+.cash-card {
+  border-top: 3px solid #00a878
+}
+
+.cash-card .fund-icon {
+  background: #e8f7f0;
+  color: #00a878
+}
+
+.gcash-card {
+  border-top: 3px solid #7654c8
+}
+
+.gcash-card .fund-icon {
+  background: #f0eaff;
+  color: #7654c8
+}
+
+.bdo-card {
+  border-top: 3px solid #1976d2
+}
+
+.bdo-card .fund-icon {
+  background: #e8f2fc;
+  color: #1976d2
+}
+
+.bibo-card {
+  border-top: 3px solid #d88916
+}
+
+.bibo-card .fund-icon {
+  background: #fff4df;
+  color: #d88916
+}
+
+.bpi-card {
+  border-top: 3px solid #d65353
+}
+
+.bpi-card .fund-icon {
+  background: #fdecec;
+  color: #d65353
+}
+
+.total-card {
+  border-top: 3px solid #14263a;
+  background: linear-gradient(135deg, #fff 0%, #f4f7fa 100%)
+}
+
+.total-card .fund-icon {
+  background: #e7edf3;
+  color: #14263a
+}
+
+.total-card .fund-info span {
+  color: #14263a
+}
+
+.total-card .fund-info strong {
+  font-size: 23px;
+  color: #14263a
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 22px
+  gap: 14px
 }
 
 .metric {
-  min-height: 125px;
+  min-height: 120px;
   background: #fff;
   border: 1px solid #d7dde4;
   border-radius: 8px;
-  padding: 18px 18px 16px;
+  padding: 17px 18px 15px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .03)
 }
 
@@ -269,22 +440,22 @@ button {
   justify-content: space-between;
   align-items: center;
   color: #1e4e77;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   margin-bottom: 12px;
-  letter-spacing: .2px
+  letter-spacing: .3px
 }
 
 .metric-label span:last-child {
-  color: #1976d2;
-  font-size: 16px
+  color: var(--blue);
+  font-size: 15px
 }
 
 .metric strong {
   display: block;
-  font-size: 25px;
+  font-size: 23px;
   line-height: 1.1;
-  letter-spacing: -.5px;
+  letter-spacing: -.4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -293,7 +464,7 @@ button {
 
 .metric small {
   color: #68737f;
-  font-size: 12px
+  font-size: 11px
 }
 
 .green {
@@ -323,7 +494,7 @@ button {
 }
 
 .panel-title {
-  height: 58px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -332,31 +503,43 @@ button {
 }
 
 .panel-title strong {
+  display: block;
   font-size: 15px
 }
 
+.panel-title small {
+  display: block;
+  color: #7a858f;
+  font-size: 10px;
+  margin-top: 3px
+}
+
 .more-button {
-  border: 0;
-  background: transparent;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d7dde4;
+  border-radius: 5px;
+  background: #fff;
   color: #53606c;
-  font-size: 20px
+  font-size: 18px
 }
 
 .more-button:hover {
-  color: #1976d2
+  color: var(--blue);
+  border-color: var(--blue)
 }
 
 .chart-panel {
-  min-height: 270px
+  min-height: 315px
 }
 
 .chart {
   position: relative;
-  height: 220px;
-  margin: 0 14px 14px;
-  background: #f4f6f8;
+  height: 255px;
+  margin: 12px 14px 14px;
+  background: #fafbfc;
   border: 1px solid #edf0f3;
-  border-radius: 5px;
+  border-radius: 6px;
   overflow: hidden;
   padding: 8px
 }
@@ -378,21 +561,17 @@ button {
 }
 
 .summary {
-  min-height: 270px
+  min-height: 315px
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 13px 18px;
+  padding: 14px 18px;
   color: #5d6873;
   font-size: 12px;
   border-bottom: 1px solid #f0f2f4
-}
-
-.summary-row:last-of-type {
-  border-bottom: 0
 }
 
 .summary-row b {
@@ -402,8 +581,8 @@ button {
 }
 
 .ending {
-  margin: 28px 14px 14px;
-  padding: 14px 13px;
+  margin: 24px 14px 14px;
+  padding: 16px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -415,7 +594,7 @@ button {
 
 .ending b {
   color: #182530;
-  font-size: 15px
+  font-size: 16px
 }
 
 .dashboard-error {
@@ -451,7 +630,13 @@ button {
 }
 
 .loading {
-  opacity: .6
+  opacity: .5
+}
+
+@media(max-width:1500px) {
+  .funds-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+  }
 }
 
 @media(max-width:1250px) {
@@ -481,6 +666,10 @@ button {
 
   .search-box {
     width: 300px
+  }
+
+  .funds-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
   }
 
   .metrics {
@@ -531,6 +720,10 @@ button {
     font-size: 13px
   }
 
+  .funds-grid {
+    grid-template-columns: 1fr
+  }
+
   .metrics {
     grid-template-columns: 1fr
   }
@@ -544,7 +737,7 @@ button {
   }
 
   .chart {
-    height: 210px
+    height: 230px
   }
 }
 
@@ -594,16 +787,16 @@ button {
   }
 
   .chart {
-    height: 180px;
+    height: 190px;
     margin: 0 8px 8px
   }
 
   .chart-panel {
-    min-height: 230px
+    min-height: 240px
   }
 
   .summary {
-    min-height: 230px
+    min-height: 240px
   }
 
   .summary-row {
@@ -613,4 +806,296 @@ button {
   .ending {
     margin: 18px 9px 9px
   }
+}
+
+/* =========================================================
+   SPECIFIC DATE FILTER
+   ========================================================= */
+
+.custom-date-filter {
+    display: none;
+    align-items: flex-end;
+    gap: 10px;
+    margin-left: 15px;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #d7dde4;
+    border-radius: 7px;
+}
+
+.custom-date-filter.show {
+    display: flex;
+}
+
+.custom-date-filter label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.custom-date-filter label span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6b7480;
+    text-transform: uppercase;
+}
+
+.custom-date-filter input {
+    height: 38px;
+    min-width: 145px;
+    padding: 0 10px;
+    border: 1px solid #ccd4dd;
+    border-radius: 5px;
+    background: #ffffff;
+    color: #26333f;
+    outline: none;
+}
+
+.custom-date-filter input:focus {
+    border-color: #1976d2;
+}
+
+.date-arrow {
+    padding-bottom: 10px;
+    color: #6b7480;
+    font-weight: 700;
+}
+
+.custom-date-filter button {
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid #1976d2;
+    border-radius: 5px;
+    background: #1976d2;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.custom-date-filter button:hover {
+    background: #075eb5;
+}
+
+
+/* =========================================================
+   CASH FLOW REPORT
+   ========================================================= */
+
+.cash-report-section {
+    margin-bottom: 28px;
+}
+
+.report-heading {
+    align-items: flex-end;
+}
+
+.report-year-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.report-year-control label {
+    color: #68727e;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.report-year-control select {
+    height: 38px;
+    min-width: 100px;
+    padding: 0 10px;
+    border: 1px solid #ccd4dd;
+    border-radius: 5px;
+    background: #ffffff;
+    color: #26333f;
+    font-weight: 600;
+    outline: none;
+}
+
+.report-year-control select:focus {
+    border-color: #1976d2;
+}
+
+
+/* =========================================================
+   REPORT CHARTS
+   ========================================================= */
+
+.report-charts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: #cfd5db;
+    border: 1px solid #cfd5db;
+    overflow: hidden;
+}
+
+.report-chart-card {
+    min-width: 0;
+    min-height: 350px;
+    padding: 14px 14px 10px;
+    background: #ffffff;
+}
+
+.report-chart-card h3 {
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    color: #111820;
+}
+
+.report-chart-wrap {
+    position: relative;
+    height: 285px;
+    width: 100%;
+}
+
+
+/* =========================================================
+   MONTHLY REPORT TABLE
+   ========================================================= */
+
+.monthly-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #cfd5db;
+    border-top: 0;
+}
+
+.monthly-report-table {
+    width: 100%;
+    min-width: 1300px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.monthly-report-table th,
+.monthly-report-table td {
+    border: 1px solid #cfd5db;
+    padding: 7px 8px;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.monthly-report-table thead th {
+    background: #d9e8dd;
+    color: #17221a;
+    font-weight: 800;
+}
+
+.monthly-report-table thead th:first-child {
+    width: 190px;
+}
+
+.monthly-report-table tbody th {
+    background: #e8f1e9;
+    text-align: left;
+    font-weight: 800;
+    color: #111820;
+}
+
+.monthly-report-table tbody td {
+    background: #ffffff;
+    color: #202830;
+    font-weight: 600;
+}
+
+.monthly-report-table .ending-row th,
+.monthly-report-table .ending-row td {
+    font-weight: 800;
+    background: #eef4ef;
+}
+
+
+/* =========================================================
+   RESPONSIVE DATE FILTER
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .heading-row {
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: flex-start;
+    }
+
+    .date-filter {
+        width: 100%;
+    }
+
+    .date-filter button {
+        flex: 1;
+    }
+
+    .custom-date-filter {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .report-charts {
+        grid-template-columns: 1fr;
+    }
+
+    .funds-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    #sidebar-container {
+        width: 0;
+        min-width: 0;
+        flex: 0 0 0;
+    }
+
+    .dashboard-main {
+        width: 100%;
+    }
+
+    .topbar {
+        padding: 0 14px;
+    }
+
+    .search-box {
+        width: 220px;
+    }
+
+    .dashboard-content {
+        padding: 18px 14px 35px;
+    }
+
+    .date-filter {
+        overflow-x: auto;
+    }
+
+    .date-filter button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .custom-date-filter {
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .custom-date-filter input {
+        min-width: 130px;
+    }
+
+    .funds-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .report-year-control {
+        width: 100%;
+        justify-content: space-between;
+    }
 }

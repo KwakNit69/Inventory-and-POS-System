@@ -33,67 +33,281 @@
                 <div class="heading-row">
                     <div>
                         <h1 id="greeting">Good morning!</h1>
-                        <p>Here's your business overview.</p>
+                        <p>Monitor your business finances, sales, and cash position.</p>
                     </div>
                     <div class="date-filter">
                         <button class="active" data-period="today">Today</button>
                         <button data-period="week">This Week</button>
                         <button data-period="month">This Month</button>
+                        <button data-period="custom">Specific Date</button>
+                    </div>
+
+                    <div class="custom-date-filter" id="customDateFilter">
+                        <label>
+                            <span>From</span>
+                            <input type="date" id="startDate">
+                        </label>
+
+                        <span class="date-arrow">→</span>
+
+                        <label>
+                            <span>To</span>
+                            <input type="date" id="endDate">
+                        </label>
+
+                        <button type="button" id="applyDateFilter">Apply</button>
                     </div>
                 </div>
                 <div class="actions">
                     <button class="primary" id="addProduct">▣ Add Product</button>
                     <button id="addStock">□ Add Stock</button>
-                    <button id="addExpense">▤ Add Expense</button>
+                    <button id="addExpense">▤ Cash Flow</button>
                     <button id="viewSales">◉ View Sales</button>
                 </div>
-                <div class="metrics">
-                    <div class="metric">
-                        <div class="metric-label">
-                            <span>CASH ON HAND</span>
-                            <span>▣</span>
+                <section class="financial-section">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Financial Overview</h2>
+                            <p>Current money available across all payment methods.</p>
                         </div>
-                        <strong id="cashOnHand">₱0.00</strong>
-                        <small id="cashOnHandNote">Current balance</small>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">
-                            <span>CASH IN</span>
-                            <span>▤</span>
+                        <div class="financial-status">
+                            <span></span>
+                            Live Balance
                         </div>
-                        <strong id="cashIn">₱0.00</strong>
-                        <small id="cashInNote">Selected period</small>
                     </div>
-                    <div class="metric">
-                        <div class="metric-label">
-                            <span>CASH OUT</span>
-                            <span>▣</span>
+                    <div class="funds-grid">
+                        <div class="fund-card cash-card">
+                            <div class="fund-icon">₱</div>
+                            <div class="fund-info">
+                                <span>Cash</span>
+                                <strong id="cashBalance">₱0.00</strong>
+                                <small>Physical cash on hand</small>
+                            </div>
                         </div>
-                        <strong id="cashOut">₱0.00</strong>
-                        <small id="cashOutNote">Selected period</small>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">
-                            <span>NET CASH CHANGE</span>
-                            <span class="green">↗</span>
+                        <div class="fund-card gcash-card">
+                            <div class="fund-icon">G</div>
+                            <div class="fund-info">
+                                <span>GCash</span>
+                                <strong id="gcashBalance">₱0.00</strong>
+                                <small>GCash balance</small>
+                            </div>
                         </div>
-                        <strong id="netCash" class="green">₱0.00</strong>
-                        <small id="netCashNote">Cash in minus cash out</small>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">
-                            <span>SALES</span>
-                            <span>▣</span>
+                        <div class="fund-card bdo-card">
+                            <div class="fund-icon">B</div>
+                            <div class="fund-info">
+                                <span>BDO</span>
+                                <strong id="bdoBalance">₱0.00</strong>
+                                <small>BDO balance</small>
+                            </div>
                         </div>
-                        <strong id="sales">₱0.00</strong>
-                        <small id="salesNote">0 Transactions</small>
+                        <div class="fund-card bibo-card">
+                            <div class="fund-icon">B</div>
+                            <div class="fund-info">
+                                <span>BIBO</span>
+                                <strong id="biboBalance">₱0.00</strong>
+                                <small>BIBO balance</small>
+                            </div>
+                        </div>
+                        <div class="fund-card bpi-card">
+                            <div class="fund-icon">B</div>
+                            <div class="fund-info">
+                                <span>BPI</span>
+                                <strong id="bpiBalance">₱0.00</strong>
+                                <small>BPI balance</small>
+                            </div>
+                        </div>
+                        <div class="fund-card total-card">
+                            <div class="fund-icon">₱</div>
+                            <div class="fund-info">
+                                <span>Total Funds</span>
+                                <strong id="totalFunds">₱0.00</strong>
+                                <small id="totalFundsNote">Cash + GCash + BDO + BIBO + BPI</small>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </section>
+                <section class="activity-section">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Business Activity</h2>
+                            <p>Financial activity for the selected period.</p>
+                        </div>
+                    </div>
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-label">
+                                <span>SALES</span>
+                                <span>▣</span>
+                            </div>
+                            <strong id="sales">₱0.00</strong>
+                            <small id="salesNote">0 Transactions</small>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">
+                                <span>CASH IN</span>
+                                <span>↗</span>
+                            </div>
+                            <strong id="cashIn">₱0.00</strong>
+                            <small id="cashInNote">Today</small>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">
+                                <span>CASH OUT</span>
+                                <span>↘</span>
+                            </div>
+                            <strong id="cashOut">₱0.00</strong>
+                            <small id="cashOutNote">Today</small>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">
+                                <span>NET CASH CHANGE</span>
+                                <span class="green">↗</span>
+                            </div>
+                            <strong id="netCash" class="green">₱0.00</strong>
+                            <small id="netCashNote">Cash in minus cash out</small>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">
+                                <span>CASH ON HAND</span>
+                                <span>₱</span>
+                            </div>
+                            <strong id="cashOnHand">₱0.00</strong>
+                            <small>Current physical cash</small>
+                        </div>
+                    </div>
+                </section>
+                <section class="cash-report-section">
+                    <div class="section-heading report-heading">
+                        <div>
+                            <h2>Cash Flow Report</h2>
+                            <p>Monthly ending balance, total cash receipts, and total cash payments.</p>
+                        </div>
+
+                        <div class="report-year-control">
+                            <label for="reportYear">Report Year</label>
+                            <select id="reportYear"></select>
+                        </div>
+                    </div>
+
+                    <div class="report-charts">
+                        <section class="report-chart-card">
+                            <h3>MONTHLY ENDING BALANCE</h3>
+                            <div class="report-chart-wrap">
+                                <canvas id="monthlyEndingChart"></canvas>
+                            </div>
+                        </section>
+
+                        <section class="report-chart-card">
+                            <h3>TOTAL CASH IN / RECEIPTS</h3>
+                            <div class="report-chart-wrap">
+                                <canvas id="monthlyCashInChart"></canvas>
+                            </div>
+                        </section>
+
+                        <section class="report-chart-card">
+                            <h3>TOTAL CASH OUT / PAYMENTS</h3>
+                            <div class="report-chart-wrap">
+                                <canvas id="monthlyCashOutChart"></canvas>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="monthly-table-wrap">
+                        <table class="monthly-report-table">
+                            <thead>
+                                <tr>
+                                    <th>Cash Flow Summary</th>
+                                    <th>January</th>
+                                    <th>February</th>
+                                    <th>March</th>
+                                    <th>April</th>
+                                    <th>May</th>
+                                    <th>June</th>
+                                    <th>July</th>
+                                    <th>August</th>
+                                    <th>September</th>
+                                    <th>October</th>
+                                    <th>November</th>
+                                    <th>December</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>Beginning Cash Balance</th>
+                                    <td id="reportBeginning-0">-</td>
+                                    <td id="reportBeginning-1">-</td>
+                                    <td id="reportBeginning-2">-</td>
+                                    <td id="reportBeginning-3">-</td>
+                                    <td id="reportBeginning-4">-</td>
+                                    <td id="reportBeginning-5">-</td>
+                                    <td id="reportBeginning-6">-</td>
+                                    <td id="reportBeginning-7">-</td>
+                                    <td id="reportBeginning-8">-</td>
+                                    <td id="reportBeginning-9">-</td>
+                                    <td id="reportBeginning-10">-</td>
+                                    <td id="reportBeginning-11">-</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Total Cash In / Receipts</th>
+                                    <td id="reportCashIn-0">-</td>
+                                    <td id="reportCashIn-1">-</td>
+                                    <td id="reportCashIn-2">-</td>
+                                    <td id="reportCashIn-3">-</td>
+                                    <td id="reportCashIn-4">-</td>
+                                    <td id="reportCashIn-5">-</td>
+                                    <td id="reportCashIn-6">-</td>
+                                    <td id="reportCashIn-7">-</td>
+                                    <td id="reportCashIn-8">-</td>
+                                    <td id="reportCashIn-9">-</td>
+                                    <td id="reportCashIn-10">-</td>
+                                    <td id="reportCashIn-11">-</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Total Cash Out / Payments</th>
+                                    <td id="reportCashOut-0">-</td>
+                                    <td id="reportCashOut-1">-</td>
+                                    <td id="reportCashOut-2">-</td>
+                                    <td id="reportCashOut-3">-</td>
+                                    <td id="reportCashOut-4">-</td>
+                                    <td id="reportCashOut-5">-</td>
+                                    <td id="reportCashOut-6">-</td>
+                                    <td id="reportCashOut-7">-</td>
+                                    <td id="reportCashOut-8">-</td>
+                                    <td id="reportCashOut-9">-</td>
+                                    <td id="reportCashOut-10">-</td>
+                                    <td id="reportCashOut-11">-</td>
+                                </tr>
+
+                                <tr class="ending-row">
+                                    <th>Ending Cash Balance</th>
+                                    <td id="reportEnding-0">-</td>
+                                    <td id="reportEnding-1">-</td>
+                                    <td id="reportEnding-2">-</td>
+                                    <td id="reportEnding-3">-</td>
+                                    <td id="reportEnding-4">-</td>
+                                    <td id="reportEnding-5">-</td>
+                                    <td id="reportEnding-6">-</td>
+                                    <td id="reportEnding-7">-</td>
+                                    <td id="reportEnding-8">-</td>
+                                    <td id="reportEnding-9">-</td>
+                                    <td id="reportEnding-10">-</td>
+                                    <td id="reportEnding-11">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
                 <div id="dashboardError" class="dashboard-error"></div>
                 <div class="overview">
                     <section class="panel chart-panel">
                         <div class="panel-title">
-                            <strong>Cash Flow Activity</strong>
+                            <div>
+                                <strong>Cash Flow Activity</strong>
+                                <small>Cash received and cash spent</small>
+                            </div>
                             <button class="more-button" id="refreshDashboard">↻</button>
                         </div>
                         <div class="chart">
@@ -103,10 +317,13 @@
                     </section>
                     <section class="panel summary">
                         <div class="panel-title">
-                            <strong>Daily Summary</strong>
+                            <div>
+                                <strong>Financial Summary</strong>
+                                <small>Selected period</small>
+                            </div>
                         </div>
                         <div class="summary-row">
-                            <span>Beginning Balance</span>
+                            <span>Beginning Cash</span>
                             <b id="beginningBalance">₱0.00</b>
                         </div>
                         <div class="summary-row">
@@ -118,11 +335,11 @@
                             <b class="red" id="summaryCashOut">-₱0.00</b>
                         </div>
                         <div class="summary-row">
-                            <span>Net Change</span>
+                            <span>Net Cash Change</span>
                             <b class="green" id="summaryNet">+₱0.00</b>
                         </div>
                         <div class="ending">
-                            <span>Ending Position</span>
+                            <span>Current Cash Position</span>
                             <b id="endingBalance">₱0.00</b>
                         </div>
                     </section>

@@ -20,6 +20,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
 
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
+
 let products = [];
 let movements = [];
 let filteredProducts = [];
@@ -29,9 +33,9 @@ let currentUser = null;
 const productsPerPage = 6;
 
 
-/* =========================
+/* =========================================================
    ELEMENTS
-========================= */
+========================================================= */
 
 const tableBody =
     document.getElementById("inventoryTableBody");
@@ -82,9 +86,9 @@ const movementEmpty =
     document.getElementById("movementEmpty");
 
 
-/* =========================
+/* =========================================================
    SIDEBAR
-========================= */
+========================================================= */
 
 function loadSidebar() {
 
@@ -144,29 +148,37 @@ function loadSidebar() {
 }
 
 
-/* =========================
+/* =========================================================
    LOADING / ERROR
-========================= */
+========================================================= */
 
 function showLoading() {
 
-    loadingState.style.display =
-        "flex";
+    if (loadingState) {
+        loadingState.style.display =
+            "flex";
+    }
 
-    errorState.classList.remove(
-        "show"
-    );
+    if (errorState) {
+        errorState.classList.remove(
+            "show"
+        );
+    }
 
-    emptyState.classList.remove(
-        "show"
-    );
+    if (emptyState) {
+        emptyState.classList.remove(
+            "show"
+        );
+    }
 }
 
 
 function hideLoading() {
 
-    loadingState.style.display =
-        "none";
+    if (loadingState) {
+        loadingState.style.display =
+            "none";
+    }
 }
 
 
@@ -174,20 +186,26 @@ function showError(error) {
 
     hideLoading();
 
-    emptyState.classList.remove(
-        "show"
-    );
+    if (emptyState) {
+        emptyState.classList.remove(
+            "show"
+        );
+    }
 
-    errorState.classList.add(
-        "show"
-    );
+    if (errorState) {
+        errorState.classList.add(
+            "show"
+        );
+    }
 
     const message =
         error?.message ||
         String(error);
 
-    errorMessage.textContent =
-        message;
+    if (errorMessage) {
+        errorMessage.textContent =
+            message;
+    }
 
     console.error(
         "INVENTORY FIREBASE ERROR:",
@@ -198,15 +216,17 @@ function showError(error) {
 
 function hideError() {
 
-    errorState.classList.remove(
-        "show"
-    );
+    if (errorState) {
+        errorState.classList.remove(
+            "show"
+        );
+    }
 }
 
 
-/* =========================
+/* =========================================================
    PRODUCT NORMALIZATION
-========================= */
+========================================================= */
 
 function normalizeProduct(id, data) {
 
@@ -226,11 +246,6 @@ function normalizeProduct(id, data) {
             data.category || ""
         ),
 
-        /*
-         * COST PRICE REMOVED
-         *
-         * Only SELLING PRICE is used.
-         */
         price: Number(
             data.price || 0
         ),
@@ -255,67 +270,281 @@ function normalizeProduct(id, data) {
 
         createdAt:
             data.createdAt || null
-
     };
-
 }
 
 
-/* =========================
+/* =========================================================
    MOVEMENT NORMALIZATION
-========================= */
+========================================================= */
+
+/*
+    IMPORTANT FIX
+
+    Normal inventory movement documents look like:
+
+        productName
+        quantity
+        type
+        reason
+        userName
+
+    But POS sale documents look like:
+
+        type: "sale"
+        items: [
+            {
+                name: "...",
+                quantity: 2,
+                price: 100
+            }
+        ]
+
+    Therefore one POS sale can produce multiple
+    inventory movement rows.
+
+    This function returns an ARRAY.
+*/
 
 function normalizeMovement(id, data) {
 
-    let date =
+    const date =
         data.createdAt?.toDate
             ? data.createdAt.toDate()
+
             : data.createdAt
                 ? new Date(data.createdAt)
+
                 : null;
 
-    return {
 
-        id: String(id),
+    /* =====================================================
+       NORMAL INVENTORY MOVEMENT
+    ===================================================== */
 
-        product: String(
-            data.productName ||
-            data.product ||
-            ""
-        ),
+    if (
+        data.type !== "sale" &&
+        data.type !== "Sale"
+    ) {
 
-        type: String(
-            data.type || ""
-        ),
+        return [
 
-        quantity: Number(
-            data.quantity || 0
-        ),
+            {
 
-        reason: String(
-            data.reason || ""
-        ),
+                id:
+                    String(id),
 
-        user: String(
-            data.userName ||
-            data.user ||
-            "Administrator"
-        ),
+                product:
+                    String(
+                        data.productName ||
+                        data.product ||
+                        ""
+                    ),
 
-        notes: String(
-            data.notes || ""
-        ),
+                type:
+                    String(
+                        data.type ||
+                        ""
+                    ),
 
-        createdAt: date
+                quantity:
+                    Number(
+                        data.quantity ||
+                        0
+                    ),
 
-    };
+                reason:
+                    String(
+                        data.reason ||
+                        ""
+                    ),
+
+                user:
+                    String(
+                        data.userName ||
+                        data.user ||
+                        data.staffName ||
+                        "Administrator"
+                    ),
+
+                notes:
+                    String(
+                        data.notes ||
+                        ""
+                    ),
+
+                transactionNumber:
+                    String(
+                        data.transactionNumber ||
+                        ""
+                    ),
+
+                createdAt:
+                    date
+            }
+
+        ];
+
+    }
+
+
+    /* =====================================================
+       POS SALE
+    ===================================================== */
+
+    const items =
+        Array.isArray(
+            data.items
+        )
+            ? data.items
+            : [];
+
+
+    const staff =
+        data.staffName ||
+        data.userName ||
+        data.user ||
+        "Administrator";
+
+
+    /*
+        If a sale somehow has no items,
+        still display the transaction.
+    */
+
+    if (!items.length) {
+
+        return [
+
+            {
+
+                id:
+                    String(id),
+
+                product:
+                    "Sale",
+
+                type:
+                    "Sale",
+
+                quantity:
+                    0,
+
+                reason:
+                    "Sale",
+
+                user:
+                    String(staff),
+
+                notes:
+                    String(
+                        data.transactionNumber
+                            ? `Transaction ${data.transactionNumber}`
+                            : ""
+                    ),
+
+                transactionNumber:
+                    String(
+                        data.transactionNumber ||
+                        ""
+                    ),
+
+                createdAt:
+                    date
+            }
+
+        ];
+
+    }
+
+
+    /*
+        Create one movement for every
+        product contained in the POS sale.
+    */
+
+    return items.map(
+        (item, index) => {
+
+            const quantity =
+                Number(
+                    item.quantity ||
+                    0
+                );
+
+
+            return {
+
+                id:
+                    `${String(id)}-${index}`,
+
+                product:
+                    String(
+                        item.name ||
+                        item.productName ||
+                        item.product ||
+                        item.sku ||
+                        "Unknown Product"
+                    ),
+
+                type:
+                    "Sale",
+
+                /*
+                    A sale removes inventory.
+
+                    Example:
+
+                    Sold 3 units
+                    => -3
+
+                    This is ONLY for displaying
+                    the movement.
+
+                    We do NOT update the product
+                    stock here because the POS
+                    already updated it.
+                */
+
+                quantity:
+                    -Math.abs(
+                        quantity
+                    ),
+
+                reason:
+                    "Sale",
+
+                user:
+                    String(
+                        staff
+                    ),
+
+                notes:
+                    String(
+                        data.transactionNumber
+                            ? `Transaction ${data.transactionNumber}`
+                            : ""
+                    ),
+
+                transactionNumber:
+                    String(
+                        data.transactionNumber ||
+                        ""
+                    ),
+
+                createdAt:
+                    date
+            };
+
+        }
+    );
 
 }
 
 
-/* =========================
+/* =========================================================
    LOAD PRODUCTS
-========================= */
+========================================================= */
 
 async function loadProducts() {
 
@@ -333,6 +562,7 @@ async function loadProducts() {
                 )
             );
 
+
         products =
             snapshot.docs.map(
                 item =>
@@ -341,6 +571,7 @@ async function loadProducts() {
                         item.data()
                     )
             );
+
 
         products.sort(
             (a, b) => {
@@ -353,10 +584,11 @@ async function loadProducts() {
                     b.createdAt?.seconds ||
                     0;
 
-                return bTime - aTime;
-
+                return bTime -
+                    aTime;
             }
         );
+
 
         populateCategoryFilter();
 
@@ -368,7 +600,9 @@ async function loadProducts() {
 
         hideLoading();
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         showError(error);
 
@@ -377,9 +611,9 @@ async function loadProducts() {
 }
 
 
-/* =========================
+/* =========================================================
    REAL-TIME PRODUCTS
-========================= */
+========================================================= */
 
 function listenToProducts() {
 
@@ -401,6 +635,7 @@ function listenToProducts() {
                         )
                 );
 
+
             products.sort(
                 (a, b) => {
 
@@ -412,10 +647,11 @@ function listenToProducts() {
                         b.createdAt?.seconds ||
                         0;
 
-                    return bTime - aTime;
-
+                    return bTime -
+                        aTime;
                 }
             );
+
 
             populateCategoryFilter();
 
@@ -442,23 +678,27 @@ function listenToProducts() {
 }
 
 
-/* =========================
+/* =========================================================
    MOVEMENTS
-========================= */
+========================================================= */
 
 function listenToMovements() {
 
     const movementsQuery =
         query(
+
             collection(
                 db,
                 "inventoryMovements"
             ),
+
             orderBy(
                 "createdAt",
                 "desc"
             )
+
         );
+
 
     return onSnapshot(
 
@@ -466,14 +706,29 @@ function listenToMovements() {
 
         snapshot => {
 
+            /*
+                IMPORTANT:
+
+                normalizeMovement()
+                returns an ARRAY.
+
+                flatMap() combines all arrays
+                into one movement list.
+
+                This allows one POS sale
+                containing multiple products
+                to appear as multiple rows.
+            */
+
             movements =
-                snapshot.docs.map(
+                snapshot.docs.flatMap(
                     item =>
                         normalizeMovement(
                             item.id,
                             item.data()
                         )
                 );
+
 
             renderMovements();
 
@@ -497,9 +752,9 @@ function listenToMovements() {
 }
 
 
-/* =========================
+/* =========================================================
    SUMMARY
-========================= */
+========================================================= */
 
 function updateSummary() {
 
@@ -509,45 +764,65 @@ function updateSummary() {
 
     const totalUnits =
         products.reduce(
+
             (total, product) =>
                 total +
                 Number(
-                    product.stock || 0
+                    product.stock ||
+                    0
                 ),
+
             0
+
         );
 
 
     const lowStock =
         products.filter(
+
             product =>
-                Number(product.stock) > 0 &&
-                Number(product.stock) <=
-                Number(product.lowStock)
+                Number(
+                    product.stock
+                ) > 0 &&
+
+                Number(
+                    product.stock
+                ) <=
+
+                Number(
+                    product.lowStock
+                )
+
         ).length;
 
 
     const outOfStock =
         products.filter(
+
             product =>
-                Number(product.stock) <= 0
+                Number(
+                    product.stock
+                ) <= 0
+
         ).length;
 
 
-    /*
-     * COST PRICE REMOVED
-     *
-     * Inventory value is now calculated
-     * using SELLING PRICE only.
-     */
-
     const inventoryValue =
         products.reduce(
+
             (total, product) =>
                 total +
-                Number(product.price) *
-                Number(product.stock),
+
+                Number(
+                    product.price
+                ) *
+
+                Number(
+                    product.stock
+                ),
+
             0
+
         );
 
 
@@ -555,51 +830,93 @@ function updateSummary() {
         inventoryValue;
 
 
-    document.getElementById(
-        "totalProducts"
-    ).textContent =
-        totalProducts;
-
-
-    document.getElementById(
-        "totalUnits"
-    ).textContent =
-        totalUnits;
-
-
-    document.getElementById(
-        "lowStock"
-    ).textContent =
-        lowStock;
-
-
-    document.getElementById(
-        "outOfStock"
-    ).textContent =
-        outOfStock;
-
-
-    document.getElementById(
-        "inventoryValue"
-    ).textContent =
-        formatMoney(
-            inventoryValue
+    const totalProductsElement =
+        document.getElementById(
+            "totalProducts"
         );
 
+    if (totalProductsElement) {
 
-    document.getElementById(
-        "salesValue"
-    ).textContent =
-        formatMoney(
-            salesValue
+        totalProductsElement.textContent =
+            totalProducts;
+
+    }
+
+
+    const totalUnitsElement =
+        document.getElementById(
+            "totalUnits"
         );
+
+    if (totalUnitsElement) {
+
+        totalUnitsElement.textContent =
+            totalUnits;
+
+    }
+
+
+    const lowStockElement =
+        document.getElementById(
+            "lowStock"
+        );
+
+    if (lowStockElement) {
+
+        lowStockElement.textContent =
+            lowStock;
+
+    }
+
+
+    const outOfStockElement =
+        document.getElementById(
+            "outOfStock"
+        );
+
+    if (outOfStockElement) {
+
+        outOfStockElement.textContent =
+            outOfStock;
+
+    }
+
+
+    const inventoryValueElement =
+        document.getElementById(
+            "inventoryValue"
+        );
+
+    if (inventoryValueElement) {
+
+        inventoryValueElement.textContent =
+            formatMoney(
+                inventoryValue
+            );
+
+    }
+
+
+    const salesValueElement =
+        document.getElementById(
+            "salesValue"
+        );
+
+    if (salesValueElement) {
+
+        salesValueElement.textContent =
+            formatMoney(
+                salesValue
+            );
+
+    }
 
 }
 
 
-/* =========================
+/* =========================================================
    CATEGORY FILTER
-========================= */
+========================================================= */
 
 function populateCategoryFilter() {
 
@@ -608,21 +925,34 @@ function populateCategoryFilter() {
             "categoryFilter"
         );
 
+    if (!categoryFilter) return;
+
+
     const currentValue =
         categoryFilter.value;
 
 
     const categories =
+
         [
+
             ...new Set(
+
                 products
+
                     .map(
                         product =>
                             product.category
                     )
-                    .filter(Boolean)
+
+                    .filter(
+                        Boolean
+                    )
+
             )
+
         ]
+
             .sort(
                 (a, b) =>
                     a.localeCompare(b)
@@ -638,11 +968,14 @@ function populateCategoryFilter() {
             "option"
         );
 
+
     allOption.value =
         "all";
 
+
     allOption.textContent =
         "All Categories";
+
 
     categoryFilter.appendChild(
         allOption
@@ -657,11 +990,14 @@ function populateCategoryFilter() {
                     "option"
                 );
 
+
             option.value =
                 category;
 
+
             option.textContent =
                 category;
+
 
             categoryFilter.appendChild(
                 option
@@ -685,11 +1021,16 @@ function populateCategoryFilter() {
 }
 
 
-/* =========================
+/* =========================================================
    PRODUCT SELECT
-========================= */
+========================================================= */
 
 function populateProductSelect() {
+
+    if (!movementProduct) {
+        return;
+    }
+
 
     const currentValue =
         movementProduct.value;
@@ -704,8 +1045,10 @@ function populateProductSelect() {
             "option"
         );
 
+
     firstOption.value =
         "";
+
 
     firstOption.textContent =
         products.length
@@ -726,11 +1069,14 @@ function populateProductSelect() {
                     "option"
                 );
 
+
             option.value =
                 product.id;
 
+
             option.textContent =
                 `${product.name} (${product.sku})`;
+
 
             movementProduct.appendChild(
                 option
@@ -759,14 +1105,16 @@ function populateProductSelect() {
 }
 
 
-/* =========================
+/* =========================================================
    STOCK STATUS
-========================= */
+========================================================= */
 
 function getStockStatus(product) {
 
     if (
-        Number(product.stock) <= 0
+        Number(
+            product.stock
+        ) <= 0
     ) {
 
         return {
@@ -786,8 +1134,13 @@ function getStockStatus(product) {
 
 
     if (
-        Number(product.stock) <=
-        Number(product.lowStock)
+        Number(
+            product.stock
+        ) <=
+
+        Number(
+            product.lowStock
+        )
     ) {
 
         return {
@@ -822,11 +1175,14 @@ function getStockStatus(product) {
 }
 
 
-/* =========================
+/* =========================================================
    RENDER INVENTORY
-========================= */
+========================================================= */
 
 function renderInventory() {
+
+    if (!tableBody) return;
+
 
     tableBody.innerHTML =
         "";
@@ -836,9 +1192,13 @@ function renderInventory() {
         filteredProducts.length === 0
     ) {
 
-        emptyState.classList.add(
-            "show"
-        );
+        if (emptyState) {
+
+            emptyState.classList.add(
+                "show"
+            );
+
+        }
 
         updatePagination();
 
@@ -847,9 +1207,13 @@ function renderInventory() {
     }
 
 
-    emptyState.classList.remove(
-        "show"
-    );
+    if (emptyState) {
+
+        emptyState.classList.remove(
+            "show"
+        );
+
+    }
 
 
     const start =
@@ -863,7 +1227,12 @@ function renderInventory() {
 
 
     filteredProducts
-        .slice(start, end)
+
+        .slice(
+            start,
+            end
+        )
+
         .forEach(
             product => {
 
@@ -873,16 +1242,11 @@ function renderInventory() {
                     );
 
 
-                /*
-                 * STOCK VALUE
-                 *
-                 * Selling Price × Current Stock
-                 */
-
                 const stockValue =
                     Number(
                         product.price
                     ) *
+
                     Number(
                         product.stock
                     );
@@ -924,16 +1288,16 @@ function renderInventory() {
                                 <div class="product-name">
 
                                     ${escapeHTML(
-                    product.name
-                )}
+                                        product.name
+                                    )}
 
                                 </div>
 
                                 <div class="product-description">
 
                                     ${escapeHTML(
-                    product.description
-                )}
+                                        product.description
+                                    )}
 
                                 </div>
 
@@ -949,8 +1313,8 @@ function renderInventory() {
                         <span class="sku">
 
                             ${escapeHTML(
-                    product.sku
-                )}
+                                product.sku
+                            )}
 
                         </span>
 
@@ -960,8 +1324,8 @@ function renderInventory() {
                     <td>
 
                         ${escapeHTML(
-                    product.category
-                )}
+                            product.category
+                        )}
 
                     </td>
 
@@ -971,8 +1335,8 @@ function renderInventory() {
                         <span class="price">
 
                             ${formatMoney(
-                    product.price
-                )}
+                                product.price
+                            )}
 
                         </span>
 
@@ -997,8 +1361,8 @@ function renderInventory() {
                         <span class="stock-value">
 
                             ${formatMoney(
-                    stockValue
-                )}
+                                stockValue
+                            )}
 
                         </span>
 
@@ -1041,6 +1405,7 @@ function renderInventory() {
                 );
 
             }
+
         );
 
 
@@ -1049,32 +1414,46 @@ function renderInventory() {
 }
 
 
-/* =========================
+/* =========================================================
    FILTER INVENTORY
-========================= */
+========================================================= */
 
 function filterInventory() {
 
+    const searchElement =
+        document.getElementById(
+            "inventorySearch"
+        );
+
+    const categoryElement =
+        document.getElementById(
+            "categoryFilter"
+        );
+
+    const stockElement =
+        document.getElementById(
+            "stockFilter"
+        );
+
+
     const search =
-        document
-            .getElementById(
-                "inventorySearch"
-            )
-            .value
-            .trim()
-            .toLowerCase();
+        searchElement
+            ? searchElement.value
+                .trim()
+                .toLowerCase()
+            : "";
 
 
     const category =
-        document.getElementById(
-            "categoryFilter"
-        ).value;
+        categoryElement
+            ? categoryElement.value
+            : "all";
 
 
     const stock =
-        document.getElementById(
-            "stockFilter"
-        ).value;
+        stockElement
+            ? stockElement.value
+            : "all";
 
 
     filteredProducts =
@@ -1082,6 +1461,7 @@ function filterInventory() {
             product => {
 
                 const matchesSearch =
+
                     product.name
                         .toLowerCase()
                         .includes(search)
@@ -1109,8 +1489,14 @@ function filterInventory() {
                 ) {
 
                     matchesStock =
-                        Number(product.stock) >
-                        Number(product.lowStock);
+
+                        Number(
+                            product.stock
+                        ) >
+
+                        Number(
+                            product.lowStock
+                        );
 
                 }
 
@@ -1120,10 +1506,18 @@ function filterInventory() {
                 ) {
 
                     matchesStock =
-                        Number(product.stock) > 0 &&
 
-                        Number(product.stock) <=
-                        Number(product.lowStock);
+                        Number(
+                            product.stock
+                        ) > 0 &&
+
+                        Number(
+                            product.stock
+                        ) <=
+
+                        Number(
+                            product.lowStock
+                        );
 
                 }
 
@@ -1133,16 +1527,22 @@ function filterInventory() {
                 ) {
 
                     matchesStock =
-                        Number(product.stock) <=
-                        0;
+
+                        Number(
+                            product.stock
+                        ) <= 0;
 
                 }
 
 
                 return (
+
                     matchesSearch &&
+
                     matchesCategory &&
+
                     matchesStock
+
                 );
 
             }
@@ -1158,9 +1558,9 @@ function filterInventory() {
 }
 
 
-/* =========================
+/* =========================================================
    PAGINATION
-========================= */
+========================================================= */
 
 function updatePagination() {
 
@@ -1170,11 +1570,14 @@ function updatePagination() {
 
     const totalPages =
         Math.max(
+
             1,
+
             Math.ceil(
                 total /
                 productsPerPage
             )
+
         );
 
 
@@ -1195,56 +1598,98 @@ function updatePagination() {
             ? 0
 
             : (
+
                 (currentPage - 1) *
                 productsPerPage
+
             ) + 1;
 
 
     const end =
         Math.min(
+
             currentPage *
             productsPerPage,
+
             total
+
         );
 
 
-    document.getElementById(
-        "paginationInfo"
-    ).textContent =
-
-        total === 0
-
-            ? "Showing 0 of 0 products"
-
-            : `Showing ${start}-${end} of ${total} products`;
+    const paginationInfo =
+        document.getElementById(
+            "paginationInfo"
+        );
 
 
-    document.getElementById(
-        "currentPage"
-    ).textContent =
-        currentPage;
+    if (paginationInfo) {
+
+        paginationInfo.textContent =
+
+            total === 0
+
+                ? "Showing 0 of 0 products"
+
+                : `Showing ${start}-${end} of ${total} products`;
+
+    }
 
 
-    document.getElementById(
-        "previousPage"
-    ).disabled =
-        currentPage <= 1;
+    const currentPageElement =
+        document.getElementById(
+            "currentPage"
+        );
 
 
-    document.getElementById(
-        "nextPage"
-    ).disabled =
-        currentPage >=
-        totalPages;
+    if (currentPageElement) {
+
+        currentPageElement.textContent =
+            currentPage;
+
+    }
+
+
+    const previousPage =
+        document.getElementById(
+            "previousPage"
+        );
+
+
+    if (previousPage) {
+
+        previousPage.disabled =
+            currentPage <= 1;
+
+    }
+
+
+    const nextPage =
+        document.getElementById(
+            "nextPage"
+        );
+
+
+    if (nextPage) {
+
+        nextPage.disabled =
+            currentPage >=
+            totalPages;
+
+    }
 
 }
 
 
-/* =========================
+/* =========================================================
    MOVEMENT TABLE
-========================= */
+========================================================= */
 
 function renderMovements() {
+
+    if (!movementTableBody) {
+        return;
+    }
+
 
     movementTableBody.innerHTML =
         "";
@@ -1254,20 +1699,33 @@ function renderMovements() {
         !movements.length
     ) {
 
-        movementEmpty.style.display =
-            "block";
+        if (movementEmpty) {
+
+            movementEmpty.style.display =
+                "block";
+
+        }
 
         return;
 
     }
 
 
-    movementEmpty.style.display =
-        "none";
+    if (movementEmpty) {
+
+        movementEmpty.style.display =
+            "none";
+
+    }
 
 
     movements
-        .slice(0, 10)
+
+        .slice(
+            0,
+            10
+        )
+
         .forEach(
             movement => {
 
@@ -1303,6 +1761,11 @@ function renderMovements() {
                         : "—";
 
 
+                /*
+                    SALE IS NOW TREATED AS AN
+                    OUTGOING INVENTORY MOVEMENT.
+                */
+
                 const typeClass =
 
                     movement.type ===
@@ -1310,15 +1773,23 @@ function renderMovements() {
 
                         ? "movement-in"
 
-                        : movement.type ===
-                            "Stock Out"
+                        :
 
-                            ? "movement-out"
+                    movement.type ===
+                        "Stock Out" ||
 
-                            : "movement-adjustment";
+                    movement.type ===
+                        "Sale"
+
+                        ? "movement-out"
+
+                        :
+
+                    "movement-adjustment";
 
 
                 const quantityClass =
+
                     movement.quantity >= 0
 
                         ? "quantity-in"
@@ -1327,7 +1798,8 @@ function renderMovements() {
 
 
                 const quantityText =
-                    movement.quantity >= 0
+
+                    movement.quantity > 0
 
                         ? `+${movement.quantity}`
 
@@ -1339,8 +1811,8 @@ function renderMovements() {
                     <td>
 
                         ${escapeHTML(
-                    date
-                )}
+                            date
+                        )}
 
                     </td>
 
@@ -1350,8 +1822,8 @@ function renderMovements() {
                         <strong>
 
                             ${escapeHTML(
-                    movement.product
-                )}
+                                movement.product
+                            )}
 
                         </strong>
 
@@ -1365,8 +1837,8 @@ function renderMovements() {
                         >
 
                             ${escapeHTML(
-                    movement.type
-                )}
+                                movement.type
+                            )}
 
                         </span>
 
@@ -1389,8 +1861,8 @@ function renderMovements() {
                     <td>
 
                         ${escapeHTML(
-                    movement.reason
-                )}
+                            movement.reason
+                        )}
 
                     </td>
 
@@ -1398,8 +1870,8 @@ function renderMovements() {
                     <td>
 
                         ${escapeHTML(
-                    movement.user
-                )}
+                            movement.user
+                        )}
 
                     </td>
 
@@ -1416,11 +1888,16 @@ function renderMovements() {
 }
 
 
-/* =========================
+/* =========================================================
    CURRENT STOCK
-========================= */
+========================================================= */
 
 function updateCurrentStock() {
+
+    if (!movementProduct) {
+        return;
+    }
+
 
     const productId =
         movementProduct.value;
@@ -1434,19 +1911,24 @@ function updateCurrentStock() {
         );
 
 
-    currentStockDisplay.textContent =
-        product
+    if (currentStockDisplay) {
 
-            ? `${product.stock} units`
+        currentStockDisplay.textContent =
 
-            : "0 units";
+            product
+
+                ? `${product.stock} units`
+
+                : "0 units";
+
+    }
 
 }
 
 
-/* =========================
+/* =========================================================
    OPEN INVENTORY MODAL
-========================= */
+========================================================= */
 
 function openInventoryModal(type) {
 
@@ -1470,26 +1952,44 @@ function openInventoryModal(type) {
         type;
 
 
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
+    const modalTitle =
+        document.getElementById(
+            "modalTitle"
+        );
 
-        type === "stock-in"
 
-            ? "Stock In"
+    if (modalTitle) {
 
-            : type === "stock-out"
+        modalTitle.textContent =
+
+            type ===
+                "stock-in"
+
+                ? "Stock In"
+
+                :
+
+            type ===
+                "stock-out"
 
                 ? "Stock Out"
 
-                : "Stock Adjustment";
+                :
+
+            "Stock Adjustment";
+
+    }
 
 
     populateProductSelect();
 
 
-    currentStockDisplay.textContent =
-        "0 units";
+    if (currentStockDisplay) {
+
+        currentStockDisplay.textContent =
+            "0 units";
+
+    }
 
 
     inventoryModal.classList.add(
@@ -1499,9 +1999,9 @@ function openInventoryModal(type) {
 }
 
 
-/* =========================
+/* =========================================================
    SAVE MOVEMENT
-========================= */
+========================================================= */
 
 async function saveMovement(event) {
 
@@ -1583,7 +2083,8 @@ async function saveMovement(event) {
 
 
     if (
-        type === "stock-in"
+        type ===
+        "stock-in"
     ) {
 
         stockChange =
@@ -1596,7 +2097,8 @@ async function saveMovement(event) {
 
 
     if (
-        type === "stock-out"
+        type ===
+        "stock-out"
     ) {
 
         stockChange =
@@ -1608,7 +2110,9 @@ async function saveMovement(event) {
 
         if (
             quantity >
-            Number(product.stock)
+            Number(
+                product.stock
+            )
         ) {
 
             alert(
@@ -1623,7 +2127,8 @@ async function saveMovement(event) {
 
 
     if (
-        type === "adjustment"
+        type ===
+        "adjustment"
     ) {
 
         stockChange =
@@ -1635,7 +2140,9 @@ async function saveMovement(event) {
 
         if (
             quantity >
-            Number(product.stock)
+            Number(
+                product.stock
+            )
         ) {
 
             alert(
@@ -1660,7 +2167,9 @@ async function saveMovement(event) {
     try {
 
         await runTransaction(
+
             db,
+
             async transaction => {
 
                 const productRef =
@@ -1716,7 +2225,9 @@ async function saveMovement(event) {
 
 
                 transaction.update(
+
                     productRef,
+
                     {
 
                         stock:
@@ -1726,17 +2237,21 @@ async function saveMovement(event) {
                             serverTimestamp()
 
                     }
+
                 );
 
             }
+
         );
 
 
         await addDoc(
+
             collection(
                 db,
                 "inventoryMovements"
             ),
+
             {
 
                 productId:
@@ -1772,6 +2287,7 @@ async function saveMovement(event) {
                     serverTimestamp()
 
             }
+
         );
 
 
@@ -1787,8 +2303,9 @@ async function saveMovement(event) {
             "Inventory movement saved successfully."
         );
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(
             "SAVE INVENTORY ERROR:",
@@ -1800,8 +2317,9 @@ async function saveMovement(event) {
             `Unable to save inventory movement.\n\n${error.message}`
         );
 
+    }
 
-    } finally {
+    finally {
 
         saveMovementBtn.disabled =
             false;
@@ -1815,9 +2333,9 @@ async function saveMovement(event) {
 }
 
 
-/* =========================
+/* =========================================================
    CLOSE MODAL
-========================= */
+========================================================= */
 
 function closeInventoryModal() {
 
@@ -1834,53 +2352,64 @@ function closeInventoryModal() {
 }
 
 
-/* =========================
+/* =========================================================
    MONEY FORMAT
-========================= */
+========================================================= */
 
 function formatMoney(value) {
 
     return new Intl.NumberFormat(
         "en-PH",
         {
+
             style:
                 "currency",
 
             currency:
                 "PHP"
+
         }
+
     ).format(
-        Number(value || 0)
+        Number(
+            value ||
+            0
+        )
     );
 
 }
 
 
-/* =========================
+/* =========================================================
    ESCAPE HTML
-========================= */
+========================================================= */
 
 function escapeHTML(value) {
 
     return String(
         value ?? ""
     )
+
         .replaceAll(
             "&",
             "&amp;"
         )
+
         .replaceAll(
             "<",
             "&lt;"
         )
+
         .replaceAll(
             ">",
             "&gt;"
         )
+
         .replaceAll(
             '"',
             "&quot;"
         )
+
         .replaceAll(
             "'",
             "&#039;"
@@ -1889,15 +2418,18 @@ function escapeHTML(value) {
 }
 
 
-/* =========================
+/* =========================================================
    BUTTON EVENTS
-========================= */
+========================================================= */
 
-document
-    .getElementById(
+const openStockInButton =
+    document.getElementById(
         "openStockIn"
-    )
-    .addEventListener(
+    );
+
+if (openStockInButton) {
+
+    openStockInButton.addEventListener(
         "click",
         () =>
             openInventoryModal(
@@ -1905,12 +2437,17 @@ document
             )
     );
 
+}
 
-document
-    .getElementById(
+
+const openAdjustmentButton =
+    document.getElementById(
         "openAdjustment"
-    )
-    .addEventListener(
+    );
+
+if (openAdjustmentButton) {
+
+    openAdjustmentButton.addEventListener(
         "click",
         () =>
             openInventoryModal(
@@ -1918,32 +2455,42 @@ document
             )
     );
 
+}
 
-document
-    .getElementById(
+
+const closeInventoryModalButton =
+    document.getElementById(
         "closeInventoryModal"
-    )
-    .addEventListener(
+    );
+
+if (closeInventoryModalButton) {
+
+    closeInventoryModalButton.addEventListener(
         "click",
         closeInventoryModal
     );
 
+}
 
-document
-    .getElementById(
+
+const cancelInventoryButton =
+    document.getElementById(
         "cancelInventory"
-    )
-    .addEventListener(
+    );
+
+if (cancelInventoryButton) {
+
+    cancelInventoryButton.addEventListener(
         "click",
         closeInventoryModal
     );
 
+}
 
-document
-    .getElementById(
-        "inventoryModal"
-    )
-    .addEventListener(
+
+if (inventoryModal) {
+
+    inventoryModal.addEventListener(
         "click",
         event => {
 
@@ -1959,104 +2506,156 @@ document
         }
     );
 
+}
 
-/* =========================
+
+/* =========================================================
    MOVEMENT EVENTS
-========================= */
+========================================================= */
 
-movementProduct.addEventListener(
-    "change",
-    updateCurrentStock
-);
+if (movementProduct) {
+
+    movementProduct.addEventListener(
+        "change",
+        updateCurrentStock
+    );
+
+}
 
 
-movementType.addEventListener(
-    "change",
-    () => {
+if (movementType) {
 
-        document.getElementById(
-            "modalTitle"
-        ).textContent =
+    movementType.addEventListener(
+        "change",
+        () => {
 
-            movementType.value ===
-                "stock-in"
+            const modalTitle =
+                document.getElementById(
+                    "modalTitle"
+                );
 
-                ? "Stock In"
 
-                : movementType.value ===
+            if (!modalTitle) {
+                return;
+            }
+
+
+            modalTitle.textContent =
+
+                movementType.value ===
+                    "stock-in"
+
+                    ? "Stock In"
+
+                    :
+
+                movementType.value ===
                     "stock-out"
 
                     ? "Stock Out"
 
-                    : "Stock Adjustment";
+                    :
 
-    }
-);
+                "Stock Adjustment";
 
+        }
+    );
 
-inventoryForm.addEventListener(
-    "submit",
-    saveMovement
-);
+}
 
 
-/* =========================
+if (inventoryForm) {
+
+    inventoryForm.addEventListener(
+        "submit",
+        saveMovement
+    );
+
+}
+
+
+/* =========================================================
    SEARCH / FILTER EVENTS
-========================= */
+========================================================= */
 
-document
-    .getElementById(
+const inventorySearch =
+    document.getElementById(
         "inventorySearch"
-    )
-    .addEventListener(
+    );
+
+if (inventorySearch) {
+
+    inventorySearch.addEventListener(
         "input",
         filterInventory
     );
 
+}
 
-document
-    .getElementById(
+
+const categoryFilter =
+    document.getElementById(
         "categoryFilter"
-    )
-    .addEventListener(
+    );
+
+if (categoryFilter) {
+
+    categoryFilter.addEventListener(
         "change",
         filterInventory
     );
 
+}
 
-document
-    .getElementById(
+
+const stockFilter =
+    document.getElementById(
         "stockFilter"
-    )
-    .addEventListener(
+    );
+
+if (stockFilter) {
+
+    stockFilter.addEventListener(
         "change",
         filterInventory
     );
 
+}
 
-document
-    .getElementById(
+
+const resetFilters =
+    document.getElementById(
         "resetFilters"
-    )
-    .addEventListener(
+    );
+
+if (resetFilters) {
+
+    resetFilters.addEventListener(
         "click",
         () => {
 
-            document.getElementById(
-                "inventorySearch"
-            ).value = "";
+            if (inventorySearch) {
+
+                inventorySearch.value =
+                    "";
+
+            }
 
 
-            document.getElementById(
-                "categoryFilter"
-            ).value =
-                "all";
+            if (categoryFilter) {
+
+                categoryFilter.value =
+                    "all";
+
+            }
 
 
-            document.getElementById(
-                "stockFilter"
-            ).value =
-                "all";
+            if (stockFilter) {
+
+                stockFilter.value =
+                    "all";
+
+            }
 
 
             filterInventory();
@@ -2064,21 +2663,27 @@ document
         }
     );
 
+}
 
-/* =========================
+
+/* =========================================================
    PAGINATION EVENTS
-========================= */
+========================================================= */
 
-document
-    .getElementById(
+const previousPage =
+    document.getElementById(
         "previousPage"
-    )
-    .addEventListener(
+    );
+
+if (previousPage) {
+
+    previousPage.addEventListener(
         "click",
         () => {
 
             if (
-                currentPage > 1
+                currentPage >
+                1
             ) {
 
                 currentPage--;
@@ -2090,22 +2695,32 @@ document
         }
     );
 
+}
 
-document
-    .getElementById(
+
+const nextPage =
+    document.getElementById(
         "nextPage"
-    )
-    .addEventListener(
+    );
+
+if (nextPage) {
+
+    nextPage.addEventListener(
         "click",
         () => {
 
             const totalPages =
                 Math.max(
+
                     1,
+
                     Math.ceil(
+
                         filteredProducts.length /
                         productsPerPage
+
                     )
+
                 );
 
 
@@ -2123,30 +2738,40 @@ document
         }
     );
 
+}
 
-/* =========================
+
+/* =========================================================
    RETRY
-========================= */
+========================================================= */
 
-document
-    .getElementById(
+const retryInventory =
+    document.getElementById(
         "retryInventory"
-    )
-    .addEventListener(
+    );
+
+if (retryInventory) {
+
+    retryInventory.addEventListener(
         "click",
         loadProducts
     );
 
+}
 
-/* =========================
+
+/* =========================================================
    GLOBAL SEARCH
-========================= */
+========================================================= */
 
-document
-    .getElementById(
+const globalSearch =
+    document.getElementById(
         "globalSearch"
-    )
-    .addEventListener(
+    );
+
+if (globalSearch) {
+
+    globalSearch.addEventListener(
         "keydown",
         event => {
 
@@ -2155,41 +2780,48 @@ document
                 "Enter"
             ) {
 
-                document.getElementById(
-                    "inventorySearch"
-                ).value =
-                    event.target.value;
+                if (inventorySearch) {
 
+                    inventorySearch.value =
+                        event.target.value;
 
-                filterInventory();
+                    filterInventory();
+
+                }
 
             }
 
         }
     );
 
+}
 
-/* =========================
+
+/* =========================================================
    START SIDEBAR
-========================= */
+========================================================= */
 
 loadSidebar();
 
 
-/* =========================
+/* =========================================================
    AUTH
-========================= */
+========================================================= */
 
 onAuthStateChanged(
+
     auth,
+
     user => {
 
         if (!user) {
 
             showError(
+
                 new Error(
                     "You are not authenticated. Please log in first."
                 )
+
             );
 
             return;
@@ -2201,40 +2833,66 @@ onAuthStateChanged(
             user;
 
 
-        document.getElementById(
-            "profileName"
-        ).textContent =
-            user.email ||
-            "Administrator";
+        const profileName =
+            document.getElementById(
+                "profileName"
+            );
 
 
-        document.getElementById(
-            "profileRole"
-        ).textContent =
-            "Administrator";
+        if (profileName) {
 
-
-        document.getElementById(
-            "profileAvatar"
-        ).textContent =
-            (
+            profileName.textContent =
                 user.email ||
-                "AD"
-            )
-                .substring(
-                    0,
-                    2
+                "Administrator";
+
+        }
+
+
+        const profileRole =
+            document.getElementById(
+                "profileRole"
+            );
+
+
+        if (profileRole) {
+
+            profileRole.textContent =
+                "Administrator";
+
+        }
+
+
+        const profileAvatar =
+            document.getElementById(
+                "profileAvatar"
+            );
+
+
+        if (profileAvatar) {
+
+            profileAvatar.textContent =
+
+                (
+                    user.email ||
+                    "AD"
                 )
-                .toUpperCase();
+
+                    .substring(
+                        0,
+                        2
+                    )
+
+                    .toUpperCase();
+
+        }
 
 
         loadProducts();
 
-
         listenToProducts();
-
 
         listenToMovements();
 
     }
+
 );

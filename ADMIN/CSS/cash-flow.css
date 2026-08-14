@@ -7,19 +7,28 @@
 :root {
   --blue: #1976d2;
   --blue-dark: #075eb5;
+
   --text: #172331;
   --muted: #6b7480;
+
   --border: #d8dee6;
   --background: #f5f7f9;
   --white: #ffffff;
+
   --green: #16803c;
   --green-bg: #eaf7ef;
+
   --red: #d74343;
   --red-bg: #fdecec;
+
   --orange: #c87500;
   --orange-bg: #fff5df;
+
   --purple: #7357b7;
   --purple-bg: #f0ebfb;
+
+  --cyan: #07889b;
+  --cyan-bg: #e8f8fa;
 }
 
 body {
@@ -41,8 +50,6 @@ button {
   cursor: pointer;
 }
 
-
-
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -54,26 +61,38 @@ button {
 }
 
 
+/* ========================= */
+/* TOP BAR */
+/* ========================= */
 
 .topbar {
   height: 38px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   padding: 0 13px 0 25px;
+
   background: white;
+
   border-bottom: 1px solid var(--border);
 }
 
 .search-box {
-  width: 205px;
-  height: 23px;
+  width: 250px;
+  height: 27px;
+
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 5px;
+
+  gap: 6px;
+
+  padding: 0 7px;
+
   border: 1px solid #d5dce4;
-  border-radius: 3px;
+  border-radius: 4px;
+
   background: #fafbfc;
 }
 
@@ -85,23 +104,29 @@ button {
 .search-box input {
   flex: 1;
   min-width: 0;
+
   border: 0;
   outline: 0;
+
   background: transparent;
-  font-size: 8px;
+
+  font-size: 9px;
 }
 
 .search-box small {
-  width: 11px;
-  height: 11px;
+  width: 14px;
+  height: 14px;
+
   display: grid;
   place-items: center;
+
   border: 1px solid #d4dae1;
   border-radius: 2px;
-  color: #7d8690;
-  font-size: 6px;
-}
 
+  color: #7d8690;
+
+  font-size: 7px;
+}
 
 .profile {
   display: flex;
@@ -124,35 +149,47 @@ button {
 
 .profile-name small {
   display: block;
+
   margin-top: 2px;
+
   color: var(--blue);
+
   font-size: 7px;
 }
 
 .avatar {
   width: 22px;
   height: 22px;
+
   display: grid;
   place-items: center;
+
   border-radius: 50%;
+
   background: #d9e8f8;
+
   border: 1px solid #c7d9eb;
+
   color: #1c5d9e;
+
   font-size: 7px;
   font-weight: 700;
 }
 
 
+/* ========================= */
+/* CONTENT */
+/* ========================= */
 
 .cashflow-content {
   padding: 18px 20px 35px;
 }
 
-
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 17px;
 }
 
@@ -166,15 +203,43 @@ button {
   font-size: 9px;
 }
 
+
+/* ========================= */
+/* BUTTONS */
+/* ========================= */
+
+.cashflow-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.add-cash-in-btn,
 .add-expense-btn {
   height: 30px;
+
   padding: 0 12px;
-  border: 1px solid var(--blue);
-  border-radius: 3px;
-  background: var(--blue);
-  color: white;
+
+  border-radius: 4px;
+
   font-size: 8px;
   font-weight: 700;
+}
+
+.add-cash-in-btn {
+  border: 1px solid var(--green);
+  background: var(--green);
+  color: white;
+}
+
+.add-cash-in-btn:hover {
+  background: #116b31;
+}
+
+.add-expense-btn {
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: white;
 }
 
 .add-expense-btn:hover {
@@ -182,30 +247,46 @@ button {
 }
 
 
+/* ========================= */
+/* SUMMARY */
+/* ========================= */
+
 .cash-summary {
   display: grid;
+
   grid-template-columns: repeat(4, 1fr);
+
   gap: 9px;
-  margin-bottom: 13px;
+
+  margin-bottom: 15px;
 }
 
 .summary-card {
   min-height: 78px;
+
   display: flex;
   align-items: center;
+
   gap: 11px;
+
   padding: 10px;
+
   background: white;
+
   border: 1px solid var(--border);
-  border-radius: 4px;
+
+  border-radius: 5px;
 }
 
 .summary-icon {
   width: 35px;
   height: 35px;
+
   display: grid;
   place-items: center;
+
   border-radius: 5px;
+
   font-size: 15px;
   font-weight: 700;
 }
@@ -232,16 +313,22 @@ button {
 
 .summary-card span {
   display: block;
+
   color: #65717d;
+
   font-size: 6px;
   font-weight: 700;
+
   margin-bottom: 5px;
 }
 
 .summary-card strong {
   display: block;
+
   color: #1d2d3a;
+
   font-size: 16px;
+
   margin-bottom: 4px;
 }
 
@@ -251,52 +338,213 @@ button {
 }
 
 
+/* ========================= */
+/* ACCOUNTS */
+/* ========================= */
+
+.accounts-section {
+  background: white;
+
+  border: 1px solid var(--border);
+
+  border-radius: 5px;
+
+  margin-bottom: 13px;
+
+  overflow: hidden;
+}
+
+.accounts-header {
+  min-height: 55px;
+}
+
+.accounts-grid {
+  display: grid;
+
+  grid-template-columns: repeat(5, 1fr);
+
+  gap: 9px;
+
+  padding: 11px;
+}
+
+.account-card {
+  min-height: 125px;
+
+  padding: 13px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  transition: 0.15s ease;
+}
+
+.account-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+}
+
+.account-top {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.account-icon {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.account-status {
+  font-size: 6px !important;
+
+  padding: 4px 6px;
+
+  border-radius: 10px;
+
+  background: #f3f5f7;
+
+  color: #6c7680 !important;
+}
+
+.account-name {
+  color: #6c7680;
+
+  font-size: 8px;
+
+  margin-bottom: 5px;
+}
+
+.account-card strong {
+  display: block;
+
+  color: #1b2935;
+
+  font-size: 17px;
+
+  margin-bottom: 5px;
+}
+
+.account-card small {
+  color: #8a949e;
+
+  font-size: 6px;
+}
+
+
+/* ACCOUNT COLORS */
+
+.cash-account .account-icon {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.gcash-account .account-icon {
+  background: var(--cyan-bg);
+  color: var(--cyan);
+}
+
+.bdo-account .account-icon {
+  background: #e8f2fc;
+  color: var(--blue);
+}
+
+.bibo-account .account-icon {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.bpi-account .account-icon {
+  background: var(--purple-bg);
+  color: var(--purple);
+}
+
+
+/* ========================= */
+/* OVERVIEW */
+/* ========================= */
+
 .overview-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+
+  grid-template-columns:
+    minmax(0, 2fr) minmax(260px, 1fr);
+
   gap: 10px;
+
   margin-bottom: 13px;
 }
 
 .chart-card,
 .breakdown-card {
   min-width: 0;
+
   background: white;
+
   border: 1px solid var(--border);
+
   border-radius: 4px;
 }
 
 .section-header {
   min-height: 55px;
+
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
   padding: 0 11px;
+
   border-bottom: 1px solid var(--border);
 }
 
 .section-header h2 {
   font-size: 11px;
+
   margin-bottom: 3px;
 }
 
 .section-header p {
   color: #7a858f;
+
   font-size: 7px;
 }
 
 .section-header select {
   height: 26px;
+
   padding: 0 7px;
+
   border: 1px solid #d5dce4;
+
   border-radius: 3px;
+
   background: white;
+
   color: #53606c;
+
   font-size: 7px;
 }
 
 .chart-wrapper {
   height: 240px;
+
   padding: 12px;
 }
 
@@ -306,6 +554,9 @@ button {
 }
 
 
+/* ========================= */
+/* BREAKDOWN */
+/* ========================= */
 
 .breakdown-list {
   padding: 8px 11px;
@@ -313,9 +564,12 @@ button {
 
 .breakdown-row {
   min-height: 39px;
+
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
   border-bottom: 1px solid #edf0f3;
 }
 
@@ -325,20 +579,26 @@ button {
 
 .breakdown-label {
   display: flex;
+
   align-items: center;
+
   gap: 7px;
+
   color: #52606c;
+
   font-size: 8px;
 }
 
 .breakdown-row strong {
   color: #273743;
+
   font-size: 8px;
 }
 
 .dot {
   width: 7px;
   height: 7px;
+
   border-radius: 50%;
 }
 
@@ -363,27 +623,44 @@ button {
 }
 
 
+/* ========================= */
+/* TOOLBAR */
+/* ========================= */
 
 .cashflow-toolbar {
   min-height: 47px;
+
   display: flex;
+
   align-items: center;
+
   gap: 7px;
+
   padding: 8px;
+
   background: white;
+
   border: 1px solid var(--border);
+
   border-bottom: 0;
+
   border-radius: 4px 4px 0 0;
 }
 
 .cashflow-search {
   width: 270px;
   height: 28px;
+
   display: flex;
+
   align-items: center;
+
   gap: 6px;
+
   padding: 0 8px;
+
   border: 1px solid #d5dce4;
+
   border-radius: 3px;
 }
 
@@ -393,63 +670,99 @@ button {
 
 .cashflow-search input {
   width: 100%;
+
   border: 0;
   outline: 0;
+
   font-size: 8px;
 }
 
 .cashflow-toolbar select {
   height: 28px;
+
   padding: 0 8px;
+
   border: 1px solid #d5dce4;
+
   border-radius: 3px;
+
   background: white;
+
   color: #46525e;
+
   font-size: 8px;
 }
 
 .reset-btn {
   height: 28px;
+
   padding: 0 10px;
+
   border: 1px solid #d5dce4;
+
   border-radius: 3px;
+
   background: white;
+
   color: #52606d;
+
   font-size: 8px;
 }
 
+.reset-btn:hover {
+  background: #f5f7f9;
+}
 
 
+/* ========================= */
+/* TABLE */
+/* ========================= */
 
 .table-container {
   background: white;
+
   border: 1px solid var(--border);
+
   border-radius: 0 0 4px 4px;
+
   overflow-x: auto;
 }
 
 .cashflow-table {
   width: 100%;
-  min-width: 1050px;
+
+  min-width: 1200px;
+
   border-collapse: collapse;
 }
 
 .cashflow-table th {
   height: 36px;
+
   padding: 0 10px;
+
   background: #f7f9fb;
+
   border-bottom: 1px solid var(--border);
+
   color: #5c6874;
+
   text-align: left;
+
   font-size: 7px;
+
   font-weight: 700;
 }
 
 .cashflow-table td {
   height: 55px;
+
   padding: 7px 10px;
+
   border-bottom: 1px solid #edf0f3;
+
   color: #43515d;
+
   font-size: 8px;
 }
 
@@ -457,39 +770,47 @@ button {
   background: #fafcff;
 }
 
-
-
 .flow-id {
   color: var(--blue);
+
   font-family: monospace;
+
   font-size: 7px;
+
   font-weight: 700;
 }
 
 .flow-date {
   color: #65727e;
+
   font-size: 7px;
 }
 
 .flow-description {
   color: #344450;
+
   font-size: 8px;
+
   font-weight: 700;
 }
 
 .flow-reference {
   color: #8a949e;
+
   font-size: 6px;
+
   margin-top: 3px;
 }
 
-
-
 .flow-type {
   display: inline-flex;
+
   padding: 4px 7px;
+
   border-radius: 12px;
+
   font-size: 6px;
+
   font-weight: 700;
 }
 
@@ -503,31 +824,60 @@ button {
   color: var(--red);
 }
 
-
 .category-badge {
   color: #5f6d79;
+
   font-size: 7px;
+}
+
+.account-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 5px 7px;
+
+  border-radius: 10px;
+
+  background: #eef4fb;
+
+  color: #1c5d9e;
+
+  font-size: 6px;
+
+  font-weight: 700;
 }
 
 .cash-in {
   color: var(--green);
+
   font-weight: 700;
 }
 
 .cash-out {
   color: var(--red);
+
   font-weight: 700;
 }
 
 .balance-value {
   color: #273743;
+
   font-size: 8px;
+
   font-weight: 700;
 }
 
+
+/* ========================= */
+/* EMPTY */
+/* ========================= */
+
 .empty-state {
   display: none;
+
   padding: 55px 20px;
+
   text-align: center;
 }
 
@@ -537,74 +887,116 @@ button {
 
 .empty-icon {
   color: #aeb7c0;
+
   font-size: 30px;
+
   margin-bottom: 10px;
 }
 
 .empty-state h3 {
   color: #364451;
+
   font-size: 12px;
+
   margin-bottom: 5px;
 }
 
 .empty-state p {
   color: #89939d;
+
   font-size: 8px;
 }
 
+
+/* ========================= */
+/* PAGINATION */
+/* ========================= */
+
 .pagination {
   min-height: 45px;
+
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
   padding: 0 9px;
+
   background: white;
+
   border: 1px solid var(--border);
+
   border-top: 0;
+
   color: #7b858f;
+
   font-size: 7px;
 }
 
 .pagination-buttons {
   display: flex;
+
   align-items: center;
+
   gap: 5px;
 }
 
 .pagination-buttons button {
   width: 25px;
   height: 23px;
+
   border: 1px solid #d8dee6;
+
   border-radius: 3px;
+
   background: white;
+
   color: #46525e;
 }
 
 .pagination-buttons button:disabled {
   opacity: 0.4;
+
   cursor: not-allowed;
 }
 
 #currentPage {
   min-width: 25px;
   height: 23px;
+
   display: grid;
   place-items: center;
+
   border-radius: 3px;
+
   background: #e8f2fc;
+
   color: var(--blue);
+
   font-size: 8px;
+
   font-weight: 700;
 }
 
+
+/* ========================= */
+/* MODAL */
+/* ========================= */
+
 .modal-overlay {
   position: fixed;
+
   inset: 0;
+
   z-index: 1000;
+
   display: none;
+
   align-items: center;
   justify-content: center;
+
   padding: 20px;
+
   background: rgba(15, 29, 43, 0.48);
 }
 
@@ -614,40 +1006,65 @@ button {
 
 .expense-modal {
   width: 430px;
+
   max-width: 100%;
+
   max-height: 92vh;
+
   overflow-y: auto;
+
   background: white;
+
   border-radius: 6px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.18);
+
+  box-shadow:
+    0 15px 50px rgba(0, 0, 0, 0.18);
 }
 
 .modal-header {
   display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
+
   padding: 17px;
+
   border-bottom: 1px solid var(--border);
 }
 
 .modal-header h2 {
   font-size: 15px;
+
   margin-bottom: 4px;
 }
 
 .modal-header p {
   color: var(--muted);
+
   font-size: 8px;
 }
 
 .close-modal {
   width: 25px;
   height: 25px;
+
   border: 0;
+
   background: transparent;
+
   color: #6d7781;
+
   font-size: 19px;
 }
+
+.close-modal:hover {
+  color: var(--red);
+}
+
+
+/* ========================= */
+/* FORM */
+/* ========================= */
 
 .expense-form {
   padding: 17px;
@@ -659,9 +1076,13 @@ button {
 
 .form-group label {
   display: block;
+
   color: #4e5b67;
+
   font-size: 8px;
+
   font-weight: 700;
+
   margin-bottom: 5px;
 }
 
@@ -669,22 +1090,30 @@ button {
 .form-group select,
 .form-group textarea {
   width: 100%;
+
   border: 1px solid #d5dce4;
+
   border-radius: 3px;
+
   outline: none;
+
   background: white;
+
   color: #33424e;
+
   font-size: 8px;
 }
 
 .form-group input,
 .form-group select {
   height: 32px;
+
   padding: 0 9px;
 }
 
 .form-group textarea {
   padding: 8px 9px;
+
   resize: vertical;
 }
 
@@ -692,56 +1121,95 @@ button {
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--blue);
+
+  box-shadow:
+    0 0 0 2px rgba(25, 118, 210, 0.08);
 }
+
+
+/* ========================= */
+/* AMOUNT */
+/* ========================= */
 
 .amount-input {
   height: 34px;
+
   display: flex;
+
   align-items: center;
+
   border: 1px solid #d5dce4;
+
   border-radius: 3px;
 }
 
 .amount-input span {
   padding-left: 9px;
+
   color: #6d7984;
+
   font-size: 9px;
 }
 
 .amount-input input {
   flex: 1;
+
   height: 31px;
+
   border: 0;
+
   outline: 0;
+
   padding: 0 9px;
+
   font-size: 10px;
 }
 
+
+/* ========================= */
+/* FORM ACTIONS */
+/* ========================= */
+
 .form-actions {
   display: flex;
+
   justify-content: flex-end;
+
   gap: 7px;
+
   margin-top: 17px;
 }
 
 .cancel-btn,
 .save-expense-btn {
   height: 32px;
+
   padding: 0 13px;
+
   border-radius: 3px;
+
   font-size: 8px;
+
   font-weight: 700;
 }
 
 .cancel-btn {
   border: 1px solid #d5dce4;
+
   background: white;
+
   color: #52606d;
+}
+
+.cancel-btn:hover {
+  background: #f4f6f8;
 }
 
 .save-expense-btn {
   border: 1px solid var(--blue);
+
   background: var(--blue);
+
   color: white;
 }
 
@@ -749,7 +1217,21 @@ button {
   background: var(--blue-dark);
 }
 
+
+/* ========================= */
+/* RESPONSIVE */
+/* ========================= */
+
+@media (max-width: 1200px) {
+
+  .accounts-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+}
+
 @media (max-width: 1050px) {
+
   .cash-summary {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -757,20 +1239,32 @@ button {
   .overview-grid {
     grid-template-columns: 1fr;
   }
+
+  .accounts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
 }
 
 @media (max-width: 700px) {
+
   .cashflow-content {
     padding: 14px 10px 30px;
   }
 
   .page-header {
     align-items: flex-start;
+
     flex-direction: column;
+
     gap: 10px;
   }
 
   .cash-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .accounts-grid {
     grid-template-columns: 1fr;
   }
 
@@ -789,47 +1283,10 @@ button {
   .profile-name {
     display: none;
   }
-}
 
-.cashflow-actions {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.add-cash-in-btn,
-.add-expense-btn {
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 3px;
-  font-size: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.add-cash-in-btn {
-  border: 1px solid var(--green);
-  background: var(--green);
-  color: #fff;
-}
-
-.add-cash-in-btn:hover {
-  background: #116b31;
-}
-
-.add-expense-btn {
-  border: 1px solid var(--blue);
-  background: var(--blue);
-  color: #fff;
-}
-
-.add-expense-btn:hover {
-  background: var(--blue-dark);
-}
-
-@media(max-width:600px) {
   .cashflow-actions {
     width: 100%;
+
     flex-wrap: wrap;
   }
 
@@ -837,4 +1294,5 @@ button {
   .add-expense-btn {
     flex: 1;
   }
+
 }

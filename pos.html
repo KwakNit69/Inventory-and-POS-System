@@ -1,233 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>StockMaster - POS Terminal</title>
-    <link rel="stylesheet" href="ADMIN/CSS/pos.css?v=21">
-    <link rel="stylesheet" href="sidebar.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>StockMaster - POS Terminal</title>
+<link rel="stylesheet" href="ADMIN/CSS/pos.css?v=22">
+<link rel="stylesheet" href="sidebar.css">
 </head>
-
 <body>
-    <div class="app-shell">
-        <div id="sidebar-container"></div>
-        <main class="pos-main">
-            <header class="topbar">
-                <div class="search-box">
-                    <span>⌕</span>
-                    <input type="text" id="globalSearch" placeholder="Search products, packages, insurance...">
-                    <small>⌘</small>
-                    <small>K</small>
-                </div>
-                <div class="profile">
-                    <span class="notification">♧</span>
-                    <div class="profile-name">
-                        <strong id="profileName">Loading...</strong>
-                        <small id="profileRole">Loading...</small>
-                    </div>
-                    <div class="avatar" id="profileAvatar">U</div>
-                </div>
-            </header>
-            <section class="pos-content">
-                <div class="pos-header">
-                    <div>
-                        <h1>POS Terminal</h1>
-                        <p>Process customer transactions and sales.</p>
-                    </div>
-                    <div class="transaction-info">
-                        <span>Transaction</span>
-                        <strong id="transactionNumber">Pending</strong>
-                    </div>
-                </div>
-                <div class="pos-workspace">
-                    <section class="products-panel">
-                        <div class="product-search">
-                            <span>⌕</span>
-                            <input type="text" id="productSearch"
-                                placeholder="Search product, package, insurance or SKU...">
-                        </div>
-                        <div class="pos-type-tabs" id="posTypeTabs">
-                            <button type="button" class="pos-type-tab active" data-type="all">All</button>
-                            <button type="button" class="pos-type-tab" data-type="product">Products</button>
-                            <button type="button" class="pos-type-tab" data-type="package">Packages</button>
-                            <button type="button" class="pos-type-tab" data-type="insurance">Insurance</button>
-                        </div>
-                        <div class="category-buttons" id="categoryButtons">
-                            <button type="button" class="category-btn active" data-category="all">All
-                                Categories</button>
-                        </div>
-                        <div class="product-grid" id="productGrid"></div>
-                        <div class="empty-products" id="emptyProducts">
-                            <div>▣</div>
-                            <h3>No items found</h3>
-                            <p>Products, packages and insurance from Firebase will appear here.</p>
-                        </div>
-                    </section>
-                    <aside class="cart-panel">
-                        <div class="cart-header">
-                            <div>
-                                <h2>Current Sale</h2>
-                                <span id="cartItemCount">0 items</span>
-                            </div>
-                            <button type="button" id="clearCart" class="clear-cart">Clear</button>
-                        </div>
-                        <div class="cart-items" id="cartItems">
-                            <div class="empty-cart" id="emptyCart">
-                                <div class="cart-empty-icon">🛒</div>
-                                <h3>Cart is empty</h3>
-                                <p>Select a product, package or insurance.</p>
-                            </div>
-                        </div>
-                        <div class="customer-section">
-                            <label for="customerName">Customer</label>
-                            <input type="text" id="customerName" placeholder="Optional customer name">
-                        </div>
-                        <div class="cart-totals">
-                            <div>
-                                <span>Subtotal</span>
-                                <strong id="subtotal">₱0.00</strong>
-                            </div>
-                            <div class="total-row">
-                                <span>TOTAL</span>
-                                <strong id="total">₱0.00</strong>
-                            </div>
-                        </div>
-                        <button type="button" class="checkout-btn" id="checkoutButton" disabled>Proceed to
-                            Payment</button>
-                    </aside>
-                </div>
-            </section>
-        </main>
-    </div>
-    <div class="modal-overlay" id="paymentModal">
-        <div class="payment-modal">
-            <div class="modal-header">
-                <div>
-                    <h2>Payment</h2>
-                    <p>Complete the customer's payment.</p>
-                </div>
-                <button type="button" class="close-modal" id="closePayment">×</button>
-            </div>
-            <div class="payment-content">
-                <div class="payment-total">
-                    <span>Amount Due</span>
-                    <strong id="paymentTotal">₱0.00</strong>
-                </div>
-                <label class="payment-label">Payment Method</label>
-                <div class="payment-methods">
-                    <button type="button" class="payment-method active" data-method="Cash"><span>₱</span>Cash</button>
-                    <button type="button" class="payment-method" data-method="GCash"><span>G</span>GCash</button>
-                    <button type="button" class="payment-method" data-method="BDO"><span>B</span>BDO</button>
-                    <button type="button" class="payment-method" data-method="BIBO"><span>B</span>BIBO</button>
-                    <button type="button" class="payment-method split-method" data-method="Split"><span>+</span>Split
-                        Payment</button>
-                </div>
-                <div class="payment-discount-field" id="paymentDiscountField">
-                    <label for="paymentDiscount">Discount Amount</label>
-                    <div class="payment-discount-input">
-                        <span>₱</span>
-                        <input type="text" id="paymentDiscount" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
-                            value="0" placeholder="0">
-                    </div>
-                    <small>Enter the discount amount in pesos.</small>
-                </div>
-                <div class="cash-field" id="cashField">
-                    <label for="cashReceived">Cash Received</label>
-                    <div class="cash-input">
-                        <span>₱</span>
-                        <input type="number" id="cashReceived" min="0" step="0.01" placeholder="0.00">
-                    </div>
-                </div>
-                <div class="split-payment-fields" id="splitPaymentFields">
-                    <div class="split-payment-title">Split Payment Amounts</div>
-                    <div class="split-payment-grid">
-                        <label>Cash
-                            <div class="split-input">
-                                <span>₱</span>
-                                <input type="number" id="splitCash" min="0" step="0.01" placeholder="0.00">
-                            </div>
-                        </label>
-                        <label>GCash
-                            <div class="split-input">
-                                <span>₱</span>
-                                <input type="number" id="splitGCash" min="0" step="0.01" placeholder="0.00">
-                            </div>
-                        </label>
-                        <label>BDO
-                            <div class="split-input">
-                                <span>₱</span>
-                                <input type="number" id="splitBDO" min="0" step="0.01" placeholder="0.00">
-                            </div>
-                        </label>
-                        <label>BIBO
-                            <div class="split-input">
-                                <span>₱</span>
-                                <input type="number" id="splitBIBO" min="0" step="0.01" placeholder="0.00">
-                            </div>
-                        </label>
-                    </div>
-                    <div class="split-summary">
-                        <div>
-                            <span>Total Paid</span>
-                            <strong id="splitTotalPaid">₱0.00</strong>
-                        </div>
-                        <div>
-                            <span>Remaining</span>
-                            <strong id="splitRemaining">₱0.00</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="change-box">
-                    <span>Change</span>
-                    <strong id="changeAmount">₱0.00</strong>
-                </div>
-                <p class="payment-error" id="paymentError"></p>
-                <button type="button" class="complete-payment" id="completePayment">Complete Sale</button>
-            </div>
-        </div>
-    </div>
-    <div class="modal-overlay" id="receiptModal">
-        <div class="receipt-modal">
-            <div class="receipt-success">
-                <div class="success-icon">✓</div>
-                <h2>Sale Completed</h2>
-                <p>Transaction has been recorded successfully.</p>
-            </div>
-            <div class="receipt" id="receipt">
-                <div class="receipt-brand">
-                    <h2>StockMaster</h2>
-                    <p>Management Suite</p>
-                </div>
-                <div class="receipt-line"></div>
-                <div class="receipt-info">
-                    <div><span>Transaction</span><strong id="receiptTransaction">—</strong></div>
-                    <div><span>Date</span><strong id="receiptDate">—</strong></div>
-                    <div><span>Customer</span><strong id="receiptCustomer">Walk-in Customer</strong></div>
-                </div>
-                <div class="receipt-line"></div>
-                <div class="receipt-items" id="receiptItems"></div>
-                <div class="receipt-line"></div>
-                <div class="receipt-total">
-                    <div><span>Subtotal</span><strong id="receiptSubtotal">₱0.00</strong></div>
-                    <div><span>Discount</span><strong id="receiptDiscount">-₱0.00</strong></div>
-                    <div class="receipt-grand-total"><span>TOTAL</span><strong id="receiptTotal">₱0.00</strong></div>
-                    <div><span>Payment</span><strong id="receiptPayment">—</strong></div>
-                    <div id="receiptCashRow"><span>Cash Received</span><strong id="receiptCash">—</strong></div>
-                    <div id="receiptSplitRow" style="display:none"><span>Split Payment</span><strong
-                            id="receiptSplit">—</strong></div>
-                    <div><span>Change</span><strong id="receiptChange">—</strong></div>
-                </div>
-                <div class="receipt-line"></div>
-                <div class="receipt-thankyou">Thank you for your purchase!</div>
-            </div>
-            <div class="receipt-actions">
-                <button type="button" class="close-receipt" id="closeReceipt">Close</button>
-                <button type="button" class="print-receipt" id="printReceipt">Print Receipt</button>
-            </div>
-        </div>
-    </div>
-    <script type="module" src="ADMIN/JS/pos.js?v=21"></script>
+<div class="app-shell">
+<div id="sidebar-container"></div>
+<main class="pos-main">
+<header class="topbar">
+<div class="search-box">
+<span>⌕</span>
+<input type="text" id="globalSearch" placeholder="Search products, packages, insurance...">
+<small>⌘</small>
+<small>K</small>
+</div>
+<div class="profile">
+<span class="notification">♧</span>
+<div class="profile-name">
+<strong id="profileName">Loading...</strong>
+<small id="profileRole">Loading...</small>
+</div>
+<div class="avatar" id="profileAvatar">U</div>
+</div>
+</header>
+<section class="pos-content">
+<div class="pos-header">
+<div>
+<h1>POS Terminal</h1>
+<p>Process customer transactions and sales.</p>
+</div>
+<div class="transaction-info">
+<span>Transaction</span>
+<strong id="transactionNumber">Pending</strong>
+</div>
+</div>
+<div class="pos-workspace">
+<section class="products-panel">
+<div class="product-search">
+<span>⌕</span>
+<input type="text" id="productSearch" placeholder="Search product, package, insurance or SKU...">
+</div>
+<div class="pos-type-tabs" id="posTypeTabs">
+<button type="button" class="pos-type-tab active" data-type="all">All</button>
+<button type="button" class="pos-type-tab" data-type="product">Products</button>
+<button type="button" class="pos-type-tab" data-type="package">Packages</button>
+<button type="button" class="pos-type-tab" data-type="insurance">Insurance</button>
+</div>
+<div class="category-buttons" id="categoryButtons">
+<button type="button" class="category-btn active" data-category="all">All Categories</button>
+</div>
+<div class="product-grid" id="productGrid"></div>
+<div class="empty-products" id="emptyProducts">
+<div>▣</div>
+<h3>No items found</h3>
+<p>Products, packages and insurance from Firebase will appear here.</p>
+</div>
+</section>
+<aside class="cart-panel">
+<div class="cart-header">
+<div>
+<h2>Current Sale</h2>
+<span id="cartItemCount">0 items</span>
+</div>
+<button type="button" id="clearCart" class="clear-cart">Clear</button>
+</div>
+<div class="cart-items" id="cartItems">
+<div class="empty-cart" id="emptyCart">
+<div class="cart-empty-icon">🛒</div>
+<h3>Cart is empty</h3>
+<p>Select a product, package or insurance.</p>
+</div>
+</div>
+<div class="customer-section">
+<label for="customerName">Customer</label>
+<input type="text" id="customerName" placeholder="Optional customer name">
+</div>
+<div class="cart-totals">
+<div>
+<span>Subtotal</span>
+<strong id="subtotal">₱0.00</strong>
+</div>
+<div class="total-row">
+<span>TOTAL</span>
+<strong id="total">₱0.00</strong>
+</div>
+</div>
+<button type="button" class="checkout-btn" id="checkoutButton" disabled>Proceed to Payment</button>
+</aside>
+</div>
+</section>
+</main>
+</div>
+<div class="modal-overlay" id="paymentModal">
+<div class="payment-modal">
+<div class="modal-header">
+<div>
+<h2>Payment</h2>
+<p>Complete the customer's payment.</p>
+</div>
+<button type="button" class="close-modal" id="closePayment">×</button>
+</div>
+<div class="payment-content">
+<div class="payment-total">
+<span>Amount Due</span>
+<strong id="paymentTotal">₱0.00</strong>
+</div>
+<label class="payment-label">Payment Method</label>
+<div class="payment-methods">
+<button type="button" class="payment-method active" data-method="Cash"><span>₱</span>Cash</button>
+<button type="button" class="payment-method" data-method="GCash"><span>G</span>GCash</button>
+<button type="button" class="payment-method" data-method="BDO"><span>B</span>BDO</button>
+<button type="button" class="payment-method" data-method="BIBO"><span>B</span>BIBO</button>
+<button type="button" class="payment-method" data-method="BPI"><span>B</span>BPI</button>
+<button type="button" class="payment-method split-method" data-method="Split"><span>+</span>Split Payment</button>
+</div>
+<div class="payment-discount-field" id="paymentDiscountField">
+<label for="paymentDiscount">Discount Amount</label>
+<div class="payment-discount-input">
+<span>₱</span>
+<input type="text" id="paymentDiscount" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="0" placeholder="0">
+</div>
+<small>Enter the discount amount in pesos.</small>
+</div>
+<div class="cash-field" id="cashField">
+<label for="cashReceived">Cash Received</label>
+<div class="cash-input">
+<span>₱</span>
+<input type="number" id="cashReceived" min="0" step="0.01" placeholder="0.00">
+</div>
+</div>
+<div class="split-payment-fields" id="splitPaymentFields">
+<div class="split-payment-title">Split Payment Amounts</div>
+<div class="split-payment-grid">
+<label>Cash
+<div class="split-input">
+<span>₱</span>
+<input type="number" id="splitCash" min="0" step="0.01" placeholder="0.00">
+</div>
+</label>
+<label>GCash
+<div class="split-input">
+<span>₱</span>
+<input type="number" id="splitGCash" min="0" step="0.01" placeholder="0.00">
+</div>
+</label>
+<label>BDO
+<div class="split-input">
+<span>₱</span>
+<input type="number" id="splitBDO" min="0" step="0.01" placeholder="0.00">
+</div>
+</label>
+<label>BIBO
+<div class="split-input">
+<span>₱</span>
+<input type="number" id="splitBIBO" min="0" step="0.01" placeholder="0.00">
+</div>
+</label>
+<label>BPI
+<div class="split-input">
+<span>₱</span>
+<input type="number" id="splitBPI" min="0" step="0.01" placeholder="0.00">
+</div>
+</label>
+</div>
+<div class="split-summary">
+<div>
+<span>Total Paid</span>
+<strong id="splitTotalPaid">₱0.00</strong>
+</div>
+<div>
+<span>Remaining</span>
+<strong id="splitRemaining">₱0.00</strong>
+</div>
+</div>
+</div>
+<div class="change-box">
+<span>Change</span>
+<strong id="changeAmount">₱0.00</strong>
+</div>
+<p class="payment-error" id="paymentError"></p>
+<button type="button" class="complete-payment" id="completePayment">Complete Sale</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="receiptModal">
+<div class="receipt-modal">
+<div class="receipt-success">
+<div class="success-icon">✓</div>
+<h2>Sale Completed</h2>
+<p>Transaction has been recorded successfully.</p>
+</div>
+<div class="receipt" id="receipt">
+<div class="receipt-brand">
+<h2>StockMaster</h2>
+<p>Management Suite</p>
+</div>
+<div class="receipt-line"></div>
+<div class="receipt-info">
+<div><span>Transaction</span><strong id="receiptTransaction">—</strong></div>
+<div><span>Date</span><strong id="receiptDate">—</strong></div>
+<div><span>Customer</span><strong id="receiptCustomer">Walk-in Customer</strong></div>
+</div>
+<div class="receipt-line"></div>
+<div class="receipt-items" id="receiptItems"></div>
+<div class="receipt-line"></div>
+<div class="receipt-total">
+<div><span>Subtotal</span><strong id="receiptSubtotal">₱0.00</strong></div>
+<div><span>Discount</span><strong id="receiptDiscount">-₱0.00</strong></div>
+<div class="receipt-grand-total"><span>TOTAL</span><strong id="receiptTotal">₱0.00</strong></div>
+<div><span>Payment</span><strong id="receiptPayment">—</strong></div>
+<div id="receiptCashRow"><span>Cash Received</span><strong id="receiptCash">—</strong></div>
+<div id="receiptSplitRow" style="display:none"><span>Split Payment</span><strong id="receiptSplit">—</strong></div>
+<div><span>Change</span><strong id="receiptChange">—</strong></div>
+</div>
+<div class="receipt-line"></div>
+<div class="receipt-thankyou">Thank you for your purchase!</div>
+</div>
+<div class="receipt-actions">
+<button type="button" class="close-receipt" id="closeReceipt">Close</button>
+<button type="button" class="print-receipt" id="printReceipt">Print Receipt</button>
+</div>
+</div>
+</div>
+<script type="module" src="ADMIN/JS/pos.js?v=22"></script>
 </body>
-
 </html>

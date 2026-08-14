@@ -90,7 +90,9 @@ async function loadUserProfile(user) {
     if (user) {
         try {
             const snapshot = await getDoc(doc(db, "users", user.uid));
-            if (snapshot.exists()) currentUserProfile = snapshot.data();
+            if (snapshot.exists()) {
+                currentUserProfile = snapshot.data();
+            }
         } catch (error) {
             console.error("User profile error:", error);
         }
@@ -120,6 +122,7 @@ function normalizePaymentMethod(value) {
     if (method === "gcash") return "GCash";
     if (method === "bdo") return "BDO";
     if (method === "bibo") return "BIBO";
+    if (method === "bpi") return "BPI";
     if (method === "split") return "Split";
     return String(value || "").trim();
 }
@@ -141,7 +144,8 @@ function normalizeSale(snapshot) {
         Cash: Number(data.paymentBreakdown?.Cash) || 0,
         GCash: Number(data.paymentBreakdown?.GCash) || 0,
         BDO: Number(data.paymentBreakdown?.BDO) || 0,
-        BIBO: Number(data.paymentBreakdown?.BIBO) || 0
+        BIBO: Number(data.paymentBreakdown?.BIBO) || 0,
+        BPI: Number(data.paymentBreakdown?.BPI) || 0
     };
 
     const splitPayments = Array.isArray(data.splitPayments)
@@ -178,21 +182,33 @@ function getPaymentAmounts(sale) {
         Cash: 0,
         GCash: 0,
         BDO: 0,
-        BIBO: 0
+        BIBO: 0,
+        BPI: 0
     };
 
     const payment = normalizePaymentMethod(sale.payment);
 
-    if (payment === "Cash" || payment === "GCash" || payment === "BDO" || payment === "BIBO") {
+    if (
+        payment === "Cash" ||
+        payment === "GCash" ||
+        payment === "BDO" ||
+        payment === "BIBO" ||
+        payment === "BPI"
+    ) {
         amounts[payment] = Number(sale.total) || 0;
         return amounts;
     }
 
     const breakdown = sale.paymentBreakdown || {};
-
     let hasBreakdown = false;
 
-    ["Cash", "GCash", "BDO", "BIBO"].forEach(method => {
+    [
+        "Cash",
+        "GCash",
+        "BDO",
+        "BIBO",
+        "BPI"
+    ].forEach(method => {
         const amount = Number(breakdown[method]) || 0;
         if (amount > 0) {
             amounts[method] += amount;
@@ -200,13 +216,18 @@ function getPaymentAmounts(sale) {
         }
     });
 
-    if (hasBreakdown) return amounts;
+    if (hasBreakdown) {
+        return amounts;
+    }
 
     if (Array.isArray(sale.splitPayments)) {
         sale.splitPayments.forEach(item => {
             const method = normalizePaymentMethod(item.method);
             const amount = Number(item.amount) || 0;
-            if (amount > 0 && Object.prototype.hasOwnProperty.call(amounts, method)) {
+            if (
+                amount > 0 &&
+                Object.prototype.hasOwnProperty.call(amounts, method)
+            ) {
                 amounts[method] += amount;
             }
         });
@@ -221,18 +242,23 @@ function getPaymentTransactions(sale) {
         Cash: 0,
         GCash: 0,
         BDO: 0,
-        BIBO: 0
+        BIBO: 0,
+        BPI: 0
     };
 
     Object.keys(amounts).forEach(method => {
-        if (amounts[method] > 0) transactions[method] = 1;
+        if (amounts[method] > 0) {
+            transactions[method] = 1;
+        }
     });
 
     return transactions;
 }
 
 function startSalesListener() {
-    if (unsubscribeSales) unsubscribeSales();
+    if (unsubscribeSales) {
+        unsubscribeSales();
+    }
 
     emptyState.classList.remove("show");
     emptyTitle.textContent = "Loading sales...";
@@ -275,6 +301,7 @@ function buildFilters() {
         <option value="GCash">GCash</option>
         <option value="BDO">BDO</option>
         <option value="BIBO">BIBO</option>
+        <option value="BPI">BPI</option>
     `;
 
     const statuses = [...new Set(
@@ -294,7 +321,8 @@ function buildFilters() {
         selectedPayment === "Cash" ||
         selectedPayment === "GCash" ||
         selectedPayment === "BDO" ||
-        selectedPayment === "BIBO"
+        selectedPayment === "BIBO" ||
+        selectedPayment === "BPI"
     ) {
         paymentFilter.value = selectedPayment;
     } else {
@@ -321,7 +349,9 @@ function isDateMatch(date, filter) {
     const now = new Date();
     if (!date) return false;
 
-    if (filter === "today") return sameDay(date, now);
+    if (filter === "today") {
+        return sameDay(date, now);
+    }
 
     if (filter === "yesterday") {
         const yesterday = new Date();
@@ -426,40 +456,40 @@ function render() {
                 : "no-discount";
 
             row.innerHTML = `
-<td>
-<div class="transaction-id">${escapeHTML(sale.id)}</div>
-</td>
-<td>
-<div class="transaction-date">${escapeHTML(formatDate(sale.date))}</div>
-</td>
-<td>
-<div class="customer-name">${escapeHTML(sale.customer || "Walk-in Customer")}</div>
-</td>
-<td>
-<div class="transaction-items">${getItemCount(sale)} item(s)</div>
-</td>
-<td>
-<span class="payment-badge payment-${escapeHTML(paymentClass)}">${escapeHTML(sale.payment || "—")}</span>
-</td>
-<td>
-<div class="sales-subtotal">${money(sale.subtotal)}</div>
-</td>
-<td>
-<div class="sales-discount ${discountClass}">${sale.discount > 0 ? `-${money(sale.discount)}` : money(0)}</div>
-</td>
-<td>
-<div class="sales-total">${money(sale.total)}</div>
-</td>
-<td>
-<div class="customer-name">${escapeHTML(sale.cashier || "—")}</div>
-</td>
-<td>
-<span class="status-badge status-${escapeHTML(statusClass)}">${escapeHTML(sale.status || "—")}</span>
-</td>
-<td>
-<button class="view-btn" data-id="${escapeHTML(sale.firestoreId)}" type="button">View</button>
-</td>
-`;
+                <td>
+                    <div class="transaction-id">${escapeHTML(sale.id)}</div>
+                </td>
+                <td>
+                    <div class="transaction-date">${escapeHTML(formatDate(sale.date))}</div>
+                </td>
+                <td>
+                    <div class="customer-name">${escapeHTML(sale.customer || "Walk-in Customer")}</div>
+                </td>
+                <td>
+                    <div class="transaction-items">${getItemCount(sale)} item(s)</div>
+                </td>
+                <td>
+                    <span class="payment-badge payment-${escapeHTML(paymentClass)}">${escapeHTML(sale.payment || "—")}</span>
+                </td>
+                <td>
+                    <div class="sales-subtotal">${money(sale.subtotal)}</div>
+                </td>
+                <td>
+                    <div class="sales-discount ${discountClass}">${sale.discount > 0 ? `-${money(sale.discount)}` : money(0)}</div>
+                </td>
+                <td>
+                    <div class="sales-total">${money(sale.total)}</div>
+                </td>
+                <td>
+                    <div class="customer-name">${escapeHTML(sale.cashier || "—")}</div>
+                </td>
+                <td>
+                    <span class="status-badge status-${escapeHTML(statusClass)}">${escapeHTML(sale.status || "—")}</span>
+                </td>
+                <td>
+                    <button class="view-btn" data-id="${escapeHTML(sale.firestoreId)}" type="button">View</button>
+                </td>
+            `;
 
             tableBody.appendChild(row);
         });
@@ -535,6 +565,12 @@ function renderBreakdown() {
             transactions: 0,
             icon: "B",
             className: "bibo"
+        },
+        BPI: {
+            total: 0,
+            transactions: 0,
+            icon: "B",
+            className: "bpi"
         }
     };
 
@@ -542,7 +578,13 @@ function renderBreakdown() {
         const amounts = getPaymentAmounts(sale);
         const transactions = getPaymentTransactions(sale);
 
-        ["Cash", "GCash", "BDO", "BIBO"].forEach(method => {
+        [
+            "Cash",
+            "GCash",
+            "BDO",
+            "BIBO",
+            "BPI"
+        ].forEach(method => {
             const amount = Number(amounts[method]) || 0;
 
             if (amount > 0) {
@@ -572,6 +614,11 @@ function renderBreakdown() {
             name: "BIBO",
             icon: "B",
             className: "bibo"
+        },
+        {
+            name: "BPI",
+            icon: "B",
+            className: "bpi"
         }
     ];
 
@@ -582,15 +629,15 @@ function renderBreakdown() {
         card.className = "breakdown-card";
 
         card.innerHTML = `
-<div class="breakdown-icon ${method.className}">
-${method.icon}
-</div>
-<div>
-<span>${method.name}</span>
-<strong>${money(data.total)}</strong>
-<small>${data.transactions} transaction(s)</small>
-</div>
-`;
+            <div class="breakdown-icon ${method.className}">
+                ${method.icon}
+            </div>
+            <div class="breakdown-information">
+                <span>${method.name}</span>
+                <strong>${money(data.total)}</strong>
+                <small>${data.transactions} transaction(s)</small>
+            </div>
+        `;
 
         breakdownGrid.appendChild(card);
     });
@@ -628,7 +675,8 @@ function openTransaction(id) {
             amounts.Cash > 0 ? `Cash ${money(amounts.Cash)}` : "",
             amounts.GCash > 0 ? `GCash ${money(amounts.GCash)}` : "",
             amounts.BDO > 0 ? `BDO ${money(amounts.BDO)}` : "",
-            amounts.BIBO > 0 ? `BIBO ${money(amounts.BIBO)}` : ""
+            amounts.BIBO > 0 ? `BIBO ${money(amounts.BIBO)}` : "",
+            amounts.BPI > 0 ? `BPI ${money(amounts.BPI)}` : ""
         ].filter(Boolean).join(" + ");
 
         detailPayment.textContent = splitText || "Split";
@@ -646,12 +694,12 @@ function openTransaction(id) {
             div.className = "detail-item";
 
             div.innerHTML = `
-<div>
-<div class="detail-item-name">${escapeHTML(item.name || "Product")}</div>
-<div class="detail-item-qty">${item.quantity} × ${money(item.price)}</div>
-</div>
-<div class="detail-item-total">${money(item.total)}</div>
-`;
+                <div>
+                    <div class="detail-item-name">${escapeHTML(item.name || "Product")}</div>
+                    <div class="detail-item-qty">${item.quantity} × ${money(item.price)}</div>
+                </div>
+                <div class="detail-item-total">${money(item.total)}</div>
+            `;
 
             items.appendChild(div);
         });
@@ -783,13 +831,13 @@ document.getElementById("printTransaction").addEventListener("click", () => {
     const sale = selectedSale;
 
     const itemRows = sale.items.map(item => `
-<tr>
-<td>${escapeHTML(item.name)}</td>
-<td>${item.quantity}</td>
-<td>${money(item.price)}</td>
-<td>${money(item.total)}</td>
-</tr>
-`).join("");
+        <tr>
+            <td>${escapeHTML(item.name)}</td>
+            <td>${item.quantity}</td>
+            <td>${money(item.price)}</td>
+            <td>${money(item.total)}</td>
+        </tr>
+    `).join("");
 
     const paymentAmounts = getPaymentAmounts(sale);
 
@@ -811,6 +859,10 @@ document.getElementById("printTransaction").addEventListener("click", () => {
         paymentDetails += `<div><span>BIBO</span><strong>${money(paymentAmounts.BIBO)}</strong></div>`;
     }
 
+    if (paymentAmounts.BPI > 0) {
+        paymentDetails += `<div><span>BPI</span><strong>${money(paymentAmounts.BPI)}</strong></div>`;
+    }
+
     if (!paymentDetails) {
         paymentDetails = `<div><span>Payment</span><strong>${escapeHTML(sale.payment || "—")}</strong></div>`;
     }
@@ -827,63 +879,63 @@ document.getElementById("printTransaction").addEventListener("click", () => {
     }
 
     printWindow.document.write(`
-<!DOCTYPE html>
-<html>
-<head>
-<title>${escapeHTML(sale.id)}</title>
-<style>
-body{font-family:Arial,sans-serif;width:420px;margin:30px auto;font-size:12px;color:#222}
-h2{text-align:center;margin:0}
-p{text-align:center;color:#666}
-hr{border:0;border-top:1px dashed #888;margin:15px 0}
-.info div,.totals div{display:flex;justify-content:space-between;margin:7px 0}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th,td{text-align:left;padding:6px 3px;border-bottom:1px solid #eee}
-th:last-child,td:last-child{text-align:right}
-.total{font-weight:bold;font-size:14px;border-top:1px solid #222;padding-top:8px}
-.discount{color:#d74343}
-.thanks{text-align:center;margin-top:20px}
-</style>
-</head>
-<body>
-<h2>StockMaster</h2>
-<p>Sales Receipt</p>
-<hr>
-<div class="info">
-<div><span>Transaction</span><strong>${escapeHTML(sale.id)}</strong></div>
-<div><span>Date</span><strong>${escapeHTML(formatDate(sale.date))}</strong></div>
-<div><span>Customer</span><strong>${escapeHTML(sale.customer || "Walk-in Customer")}</strong></div>
-<div><span>Cashier</span><strong>${escapeHTML(sale.cashier || "—")}</strong></div>
-</div>
-<hr>
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>Qty</th>
-<th>Price</th>
-<th>Total</th>
-</tr>
-</thead>
-<tbody>${itemRows}</tbody>
-</table>
-<hr>
-<div class="totals">
-<div><span>Subtotal</span><strong>${money(sale.subtotal)}</strong></div>
-<div class="discount"><span>Discount</span><strong>-${money(sale.discount)}</strong></div>
-<div class="total"><span>Total</span><strong>${money(sale.total)}</strong></div>
-${paymentDetails}
-<div><span>Cash Received</span><strong>${money(sale.cash)}</strong></div>
-<div><span>Change</span><strong>${money(sale.change)}</strong></div>
-</div>
-<hr>
-<div class="thanks">Thank you for your purchase.</div>
-<script>
-window.onload=function(){window.print();}
-<\/script>
-</body>
-</html>
-`);
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>${escapeHTML(sale.id)}</title>
+        <style>
+        body{font-family:Arial,sans-serif;width:420px;margin:30px auto;font-size:12px;color:#222}
+        h2{text-align:center;margin:0}
+        p{text-align:center;color:#666}
+        hr{border:0;border-top:1px dashed #888;margin:15px 0}
+        .info div,.totals div{display:flex;justify-content:space-between;margin:7px 0}
+        table{width:100%;border-collapse:collapse;margin-top:10px}
+        th,td{text-align:left;padding:6px 3px;border-bottom:1px solid #eee}
+        th:last-child,td:last-child{text-align:right}
+        .total{font-weight:bold;font-size:14px;border-top:1px solid #222;padding-top:8px}
+        .discount{color:#d74343}
+        .thanks{text-align:center;margin-top:20px}
+        </style>
+        </head>
+        <body>
+        <h2>StockMaster</h2>
+        <p>Sales Receipt</p>
+        <hr>
+        <div class="info">
+        <div><span>Transaction</span><strong>${escapeHTML(sale.id)}</strong></div>
+        <div><span>Date</span><strong>${escapeHTML(formatDate(sale.date))}</strong></div>
+        <div><span>Customer</span><strong>${escapeHTML(sale.customer || "Walk-in Customer")}</strong></div>
+        <div><span>Cashier</span><strong>${escapeHTML(sale.cashier || "—")}</strong></div>
+        </div>
+        <hr>
+        <table>
+        <thead>
+        <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+        </table>
+        <hr>
+        <div class="totals">
+        <div><span>Subtotal</span><strong>${money(sale.subtotal)}</strong></div>
+        <div class="discount"><span>Discount</span><strong>-${money(sale.discount)}</strong></div>
+        <div class="total"><span>Total</span><strong>${money(sale.total)}</strong></div>
+        ${paymentDetails}
+        <div><span>Cash Received</span><strong>${money(sale.cash)}</strong></div>
+        <div><span>Change</span><strong>${money(sale.change)}</strong></div>
+        </div>
+        <hr>
+        <div class="thanks">Thank you for your purchase.</div>
+        <script>
+        window.onload=function(){window.print();}
+        <\/script>
+        </body>
+        </html>
+    `);
 
     printWindow.document.close();
 });

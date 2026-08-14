@@ -891,7 +891,7 @@ select:focus {
 
 .payment-methods {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     padding: 0 16px;
     margin-bottom: 13px
@@ -1063,6 +1063,28 @@ select:focus {
 
 .split-summary strong {
     font-size: 9px
+}
+
+.payment-destination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 16px 8px;
+    padding: 9px 10px;
+    border: 1px solid #dbe4ed;
+    border-radius: 4px;
+    background: #f7fafc;
+}
+
+.payment-destination span {
+    color: #63717e;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.payment-destination strong {
+    color: var(--blue);
+    font-size: 10px;
 }
 
 .change-box {

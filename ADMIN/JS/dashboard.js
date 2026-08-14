@@ -297,6 +297,21 @@ function getFlowPaymentMethod(data) {
    PAYMENT BREAKDOWN
    ========================================================= */
 
+/* =========================================================
+   PAYMENT BREAKDOWN
+   =========================================================
+   IMPORTANT:
+   Only ONE payment source should be used.
+
+   Priority:
+   1. paymentBreakdown
+   2. paymentDetails
+   3. splitPayments
+   4. payments
+   5. normal paymentMethod
+   6. direct payment fields
+   ========================================================= */
+
 function getPaymentBreakdown(data) {
 
     const result = {
@@ -308,162 +323,252 @@ function getPaymentBreakdown(data) {
     };
 
 
-    /* PAYMENT BREAKDOWN */
+    /* =====================================================
+       1. PAYMENT BREAKDOWN
+       ===================================================== */
 
     if (
         data.paymentBreakdown &&
         typeof data.paymentBreakdown === "object"
     ) {
 
+        let hasValue = false;
+
         PAYMENT_METHODS.forEach(method => {
 
-            result[method] += getNumber(
-                data.paymentBreakdown[method]
-            );
+            const value =
+                getNumber(
+                    data.paymentBreakdown[method]
+                );
 
+            if (value > 0) {
+                hasValue = true;
+            }
+
+            result[method] = value;
         });
+
+        if (hasValue) {
+            return result;
+        }
     }
 
 
-    /* PAYMENT DETAILS */
+    /* =====================================================
+       2. PAYMENT DETAILS
+       ===================================================== */
 
     if (
         data.paymentDetails &&
         typeof data.paymentDetails === "object"
     ) {
 
+        let hasValue = false;
+
         PAYMENT_METHODS.forEach(method => {
 
-            result[method] += getNumber(
-                data.paymentDetails[method]
-            );
+            const value =
+                getNumber(
+                    data.paymentDetails[method]
+                );
 
+            if (value > 0) {
+                hasValue = true;
+            }
+
+            result[method] = value;
         });
+
+        if (hasValue) {
+            return result;
+        }
     }
 
 
-    /* SPLIT PAYMENTS */
+    /* =====================================================
+       3. SPLIT PAYMENTS
+       ===================================================== */
 
     if (Array.isArray(data.splitPayments)) {
 
+        let hasValue = false;
+
         data.splitPayments.forEach(item => {
 
-            const method = normalizePayment(
-                item.method ||
-                item.paymentMethod ||
-                item.type ||
-                item.name
-            );
+            const method =
+                normalizePayment(
+                    item.method ||
+                    item.paymentMethod ||
+                    item.type ||
+                    item.name
+                );
 
-            const amount = getNumber(
-                item.amount ||
-                item.value ||
-                item.paymentAmount
-            );
+            const amount =
+                getNumber(
+                    item.amount ||
+                    item.value ||
+                    item.paymentAmount
+                );
 
-            if (method && amount > 0) {
+            if (
+                method &&
+                amount > 0
+            ) {
+
                 result[method] += amount;
+                hasValue = true;
             }
-
         });
+
+        if (hasValue) {
+            return result;
+        }
     }
 
 
-    /* PAYMENTS */
+    /* =====================================================
+       4. PAYMENTS ARRAY
+       ===================================================== */
 
     if (Array.isArray(data.payments)) {
 
+        let hasValue = false;
+
         data.payments.forEach(item => {
 
-            const method = normalizePayment(
-                item.method ||
-                item.paymentMethod ||
-                item.type ||
-                item.name
-            );
+            const method =
+                normalizePayment(
+                    item.method ||
+                    item.paymentMethod ||
+                    item.type ||
+                    item.name
+                );
 
-            const amount = getNumber(
-                item.amount ||
-                item.value ||
-                item.paymentAmount
-            );
+            const amount =
+                getNumber(
+                    item.amount ||
+                    item.value ||
+                    item.paymentAmount
+                );
 
-            if (method && amount > 0) {
+            if (
+                method &&
+                amount > 0
+            ) {
+
                 result[method] += amount;
+                hasValue = true;
             }
-
         });
+
+        if (hasValue) {
+            return result;
+        }
     }
 
 
-    /* NORMAL PAYMENT METHOD */
+    /* =====================================================
+       5. NORMAL PAYMENT METHOD
+       ===================================================== */
 
-    const normalMethod = normalizePayment(
-        data.paymentMethod ||
-        data.payment ||
-        data.method
-    );
+    const normalMethod =
+        normalizePayment(
+            data.paymentMethod ||
+            data.payment ||
+            data.method
+        );
 
-    const currentTotal = Object.values(result)
-        .reduce((total, value) => total + value, 0);
-
-    if (
-        normalMethod &&
-        currentTotal <= 0
-    ) {
+    if (normalMethod) {
 
         result[normalMethod] =
             getSaleTotal(data);
+
+        return result;
     }
 
 
-    /* DIRECT CASH FIELDS */
+    /* =====================================================
+       6. DIRECT CASH
+       ===================================================== */
 
-    if (result.Cash <= 0) {
+    const cashAmount =
+        getNumber(data.cashAmount) ||
+        getNumber(data.cashReceived);
+
+    if (cashAmount > 0) {
 
         result.Cash =
-            getNumber(data.cashAmount) ||
-            getNumber(data.cashReceived);
+            cashAmount;
+
+        return result;
     }
 
 
-    /* DIRECT GCASH FIELDS */
+    /* =====================================================
+       7. DIRECT GCASH
+       ===================================================== */
 
-    if (result.GCash <= 0) {
+    const gcashAmount =
+        getNumber(data.gcashAmount) ||
+        getNumber(data.gcash);
+
+    if (gcashAmount > 0) {
 
         result.GCash =
-            getNumber(data.gcashAmount) ||
-            getNumber(data.gcash);
+            gcashAmount;
+
+        return result;
     }
 
 
-    /* DIRECT BDO FIELDS */
+    /* =====================================================
+       8. DIRECT BDO
+       ===================================================== */
 
-    if (result.BDO <= 0) {
+    const bdoAmount =
+        getNumber(data.bdoAmount) ||
+        getNumber(data.bdo);
+
+    if (bdoAmount > 0) {
 
         result.BDO =
-            getNumber(data.bdoAmount) ||
-            getNumber(data.bdo);
+            bdoAmount;
+
+        return result;
     }
 
 
-    /* DIRECT BIBO FIELDS */
+    /* =====================================================
+       9. DIRECT BIBO
+       ===================================================== */
 
-    if (result.BIBO <= 0) {
+    const biboAmount =
+        getNumber(data.biboAmount) ||
+        getNumber(data.bibo);
+
+    if (biboAmount > 0) {
 
         result.BIBO =
-            getNumber(data.biboAmount) ||
-            getNumber(data.bibo);
+            biboAmount;
+
+        return result;
     }
 
 
-    /* DIRECT BPI FIELDS */
+    /* =====================================================
+       10. DIRECT BPI
+       ===================================================== */
 
-    if (result.BPI <= 0) {
+    const bpiAmount =
+        getNumber(data.bpiAmount) ||
+        getNumber(data.bpi);
+
+    if (bpiAmount > 0) {
 
         result.BPI =
-            getNumber(data.bpiAmount) ||
-            getNumber(data.bpi);
+            bpiAmount;
+
+        return result;
     }
 
 
@@ -531,14 +636,137 @@ function flowType(data) {
    SALE FLOW
    ========================================================= */
 
+/* =========================================================
+   SALE FLOW
+   =========================================================
+   POS sales are already read from the "sales" collection.
+   Their corresponding cash-flow records must NOT be
+   counted again as manual Cash In.
+   ========================================================= */
+
 function isSaleFlow(data) {
 
-    return [
-        "sale",
-        "sales",
-        "pos sale",
-        "pos_sale"
-    ].includes(flowType(data));
+    const type = String(
+        data.type ||
+        data.transactionType ||
+        data.flowType ||
+        ""
+    )
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]/g, " ");
+
+    const category = String(
+        data.category ||
+        data.cashFlowCategory ||
+        ""
+    )
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]/g, " ");
+
+    const description = String(
+        data.description ||
+        data.details ||
+        data.note ||
+        data.notes ||
+        data.reason ||
+        ""
+    )
+        .trim()
+        .toLowerCase();
+
+    const source = String(
+        data.source ||
+        data.origin ||
+        data.sourceType ||
+        ""
+    )
+        .trim()
+        .toLowerCase();
+
+    /*
+     * Direct sale types
+     */
+    if (
+        [
+            "sale",
+            "sales",
+            "pos sale",
+            "pos sales"
+        ].includes(type)
+    ) {
+        return true;
+    }
+
+    /*
+     * Your POS cash-flow records can have:
+     *
+     * Type     = Cash In
+     * Category = Sale
+     *
+     * Therefore category "sale" must also identify
+     * the record as a POS sale.
+     */
+    if (
+        category === "sale" ||
+        category === "sales" ||
+        category === "pos sale" ||
+        category === "pos sales"
+    ) {
+        return true;
+    }
+
+    /*
+     * POS descriptions such as:
+     *
+     * POS Sale - Split Payment - Walk-In Customer
+     * POS Sale - BIBO - Walk-In Customer
+     */
+    if (
+        description.includes("pos sale") ||
+        description.includes("point of sale")
+    ) {
+        return true;
+    }
+
+    /*
+     * Some systems store the origin/source.
+     */
+    if (
+        source === "pos" ||
+        source === "point of sale" ||
+        source === "sales"
+    ) {
+        return true;
+    }
+
+    /*
+     * Check common transaction/reference fields.
+     */
+    const reference = String(
+        data.transactionId ||
+        data.transactionID ||
+        data.saleId ||
+        data.saleID ||
+        data.reference ||
+        data.referenceId ||
+        data.refId ||
+        ""
+    )
+        .trim()
+        .toLowerCase();
+
+    if (
+        reference.startsWith("sale-") ||
+        reference.startsWith("sale_") ||
+        reference.startsWith("txn-") ||
+        reference.startsWith("tx-")
+    ) {
+        return true;
+    }
+
+    return false;
 }
 
 

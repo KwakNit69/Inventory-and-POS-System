@@ -141,6 +141,11 @@
                     <strong>BIBO</strong>
                     <small>BIBO payment</small>
                 </button>
+                <button class="payment-method" type="button" data-method="BPI">
+                    <span>B</span>
+                    <strong>BPI</strong>
+                    <small>BPI payment</small>
+                </button>
                 <button class="payment-method split-method" type="button" data-method="Split">
                     <span>+</span>
                     <strong>Split Payment</strong>
@@ -184,6 +189,12 @@
                             <input type="number" id="splitBIBO" min="0" step="0.01" placeholder="0.00">
                         </div>
                     </label>
+                    <label for="splitBPI">BPI
+                        <div class="split-input">
+                            <span>₱</span>
+                            <input type="number" id="splitBPI" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </label>
                 </div>
                 <div class="split-summary">
                     <div>
@@ -195,6 +206,10 @@
                         <strong id="splitRemaining">₱0.00</strong>
                     </div>
                 </div>
+            </div>
+            <div class="payment-destination">
+                <span>Funds Destination</span>
+                <strong id="paymentDestination">Cash</strong>
             </div>
             <div class="change-box">
                 <span>Change</span>

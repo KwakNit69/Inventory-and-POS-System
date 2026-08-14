@@ -446,6 +446,21 @@ button {
     color: var(--purple)
 }
 
+.payment-bdo {
+    background: var(--blue-light);
+    color: var(--blue)
+}
+
+.payment-bibo {
+    background: var(--orange-bg);
+    color: var(--orange)
+}
+
+.payment-split {
+    background: #f1f3f5;
+    color: #68737f
+}
+
 .status-completed {
     background: var(--green-bg);
     color: var(--green)
@@ -580,7 +595,7 @@ button {
 
 .breakdown-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
     padding: 18px
 }
@@ -592,7 +607,15 @@ button {
     padding: 17px;
     border: 1px solid #e0e5ea;
     border-radius: 8px;
-    background: #fff
+    background: #fff;
+    min-width: 0;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease
+}
+
+.breakdown-card:hover {
+    border-color: #cbd7e2;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, .06);
+    transform: translateY(-1px)
 }
 
 .breakdown-icon {
@@ -619,6 +642,16 @@ button {
 .breakdown-icon.gcash {
     background: var(--purple-bg);
     color: var(--purple)
+}
+
+.breakdown-icon.bdo {
+    background: var(--blue-light);
+    color: var(--blue)
+}
+
+.breakdown-icon.bibo {
+    background: var(--orange-bg);
+    color: var(--orange)
 }
 
 .breakdown-card span {
@@ -851,7 +884,7 @@ button {
     background: var(--blue-dark)
 }
 
-@media(max-width:1200px) {
+@media(max-width:1400px) {
     .sales-content {
         padding: 24px
     }
@@ -867,6 +900,29 @@ button {
     .sales-search {
         flex: 1;
         min-width: 300px
+    }
+
+    .breakdown-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+    }
+}
+
+@media(max-width:1200px) {
+    .sales-summary {
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .sales-toolbar {
+        flex-wrap: wrap
+    }
+
+    .sales-search {
+        flex: 1;
+        min-width: 300px
+    }
+
+    .sales-toolbar select {
+        flex: 1
     }
 }
 

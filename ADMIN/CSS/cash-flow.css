@@ -1,5 +1,3 @@
-
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -790,5 +788,53 @@ button {
 
   .profile-name {
     display: none;
+  }
+}
+
+.cashflow-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.add-cash-in-btn,
+.add-expense-btn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-cash-in-btn {
+  border: 1px solid var(--green);
+  background: var(--green);
+  color: #fff;
+}
+
+.add-cash-in-btn:hover {
+  background: #116b31;
+}
+
+.add-expense-btn {
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: #fff;
+}
+
+.add-expense-btn:hover {
+  background: var(--blue-dark);
+}
+
+@media(max-width:600px) {
+  .cashflow-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .add-cash-in-btn,
+  .add-expense-btn {
+    flex: 1;
   }
 }

@@ -85,18 +85,6 @@
                                 <span>Subtotal</span>
                                 <strong id="subtotal">₱0.00</strong>
                             </div>
-                            <div class="discount-row">
-                                <label for="discount">Discount</label>
-                                <div class="discount-input">
-                                    <span>₱</span>
-                                    <input type="number" id="discount" min="0" step="1" inputmode="numeric"
-                                        pattern="[0-9]*" value="0" placeholder="0">
-                                </div>
-                            </div>
-                            <div class="summary-row discount-summary">
-                                <span>Discount</span>
-                                <strong id="discountTotal">-₱0.00</strong>
-                            </div>
                             <div class="summary-row total-row">
                                 <span>Total</span>
                                 <strong id="total">₱0.00</strong>
@@ -122,22 +110,41 @@
                 <span>Amount Due</span>
                 <strong id="paymentTotal">₱0.00</strong>
             </div>
+            <div class="payment-discount-area">
+                <label for="discount">Discount Amount</label>
+                <div class="payment-discount-input">
+                    <span>₱</span>
+                    <input type="number" id="discount" min="0" step="1" inputmode="numeric" pattern="[0-9]*" value="0"
+                        placeholder="0">
+                </div>
+                <small>Enter the discount amount before completing the payment.</small>
+            </div>
             <div class="payment-method-title">Payment Method</div>
             <div class="payment-methods">
                 <button class="payment-method active" type="button" data-method="Cash">
                     <span>₱</span>
                     <strong>Cash</strong>
-                    <small>Cash</small>
-                </button>
-                <button class="payment-method" type="button" data-method="Card">
-                    <span>▣</span>
-                    <strong>Card</strong>
-                    <small>Card</small>
+                    <small>Cash payment</small>
                 </button>
                 <button class="payment-method" type="button" data-method="GCash">
                     <span>G</span>
                     <strong>GCash</strong>
-                    <small>GCash</small>
+                    <small>GCash payment</small>
+                </button>
+                <button class="payment-method" type="button" data-method="BDO">
+                    <span>B</span>
+                    <strong>BDO</strong>
+                    <small>BDO payment</small>
+                </button>
+                <button class="payment-method" type="button" data-method="BIBO">
+                    <span>B</span>
+                    <strong>BIBO</strong>
+                    <small>BIBO payment</small>
+                </button>
+                <button class="payment-method split-method" type="button" data-method="Split">
+                    <span>+</span>
+                    <strong>Split Payment</strong>
+                    <small>Multiple methods</small>
                 </button>
             </div>
             <div id="cashPaymentArea" class="cash-payment-area">
@@ -150,6 +157,45 @@
                     <button type="button" data-cash="1000">₱1,000</button>
                 </div>
             </div>
+            <div id="splitPaymentArea" class="split-payment-area">
+                <div class="split-payment-title">Split Payment Amounts</div>
+                <div class="split-payment-grid">
+                    <label for="splitCash">Cash
+                        <div class="split-input">
+                            <span>₱</span>
+                            <input type="number" id="splitCash" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </label>
+                    <label for="splitGCash">GCash
+                        <div class="split-input">
+                            <span>₱</span>
+                            <input type="number" id="splitGCash" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </label>
+                    <label for="splitBDO">BDO
+                        <div class="split-input">
+                            <span>₱</span>
+                            <input type="number" id="splitBDO" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </label>
+                    <label for="splitBIBO">BIBO
+                        <div class="split-input">
+                            <span>₱</span>
+                            <input type="number" id="splitBIBO" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </label>
+                </div>
+                <div class="split-summary">
+                    <div>
+                        <span>Total Paid</span>
+                        <strong id="splitTotalPaid">₱0.00</strong>
+                    </div>
+                    <div>
+                        <span>Remaining</span>
+                        <strong id="splitRemaining">₱0.00</strong>
+                    </div>
+                </div>
+            </div>
             <div class="change-box">
                 <span>Change</span>
                 <strong id="changeAmount">₱0.00</strong>
@@ -157,6 +203,7 @@
             <div id="paymentError" class="payment-error"></div>
             <button id="completeSale" class="complete-sale" type="button">Complete Sale</button>
         </div>
+    </div>
     </div>
     <div id="successModal" class="modal">
         <div class="success-box">

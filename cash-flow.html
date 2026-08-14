@@ -5,35 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>StockMaster - Cash Flow</title>
-<link
-    rel="stylesheet"
-    href="ADMIN/CSS/cash-flow.css"
->
-
-<link
-    rel="stylesheet"
-    href="sidebar.css"
->
+    <link rel="stylesheet" href="ADMIN/CSS/cash-flow.css">
+    <link rel="stylesheet" href="sidebar.css">
 </head>
 
 <body>
-<div class="app-shell">
-    <div id="sidebar-container"></div>
-    <main class="cashflow-main">
+    <div class="app-shell">
+        <div id="sidebar-container"></div>
+        <main class="cashflow-main">
             <header class="topbar">
                 <div class="search-box">
                     <span>⌕</span>
-                    <input type="text" id="globalSearch" placeholder="Search products, orders, customers...">
+                    <input type="text" id="globalSearch" placeholder="Search transactions, categories, descriptions...">
                     <small>⌘</small>
                     <small>K</small>
                 </div>
                 <div class="profile">
                     <span class="notification">♧</span>
                     <div class="profile-name">
-                        <strong id="profileName">Loading...</strong>
-                        <small id="profileRole">Loading...</small>
+                        <strong id="currentUserName"></strong>
+                        <small id="currentUserRole"></small>
                     </div>
-                    <div class="avatar" id="profileAvatar">--</div>
+                    <div class="avatar" id="currentUserAvatar"></div>
                 </div>
             </header>
             <section class="cashflow-content">
@@ -42,7 +35,10 @@
                         <h1>Cash Flow</h1>
                         <p>Monitor your business cash inflows, outflows, and balance.</p>
                     </div>
-                    <button class="add-expense-btn" id="addExpenseButton">+ Add Cash Out</button>
+                    <div class="cashflow-actions">
+                        <button class="add-cash-in-btn" id="addCashInButton" type="button">+ Add Cash In</button>
+                        <button class="add-expense-btn" id="addExpenseButton" type="button">+ Add Cash Out</button>
+                    </div>
                 </div>
                 <div class="cash-summary">
                     <div class="summary-card">
@@ -151,7 +147,7 @@
                     <select id="categoryFilter">
                         <option value="all">All Categories</option>
                     </select>
-                    <button class="reset-btn" id="resetFilters">Reset</button>
+                    <button class="reset-btn" id="resetFilters" type="button">Reset</button>
                 </div>
                 <div class="table-container">
                     <table class="cashflow-table">
@@ -178,9 +174,9 @@
                 <div class="pagination">
                     <span id="paginationInfo">Showing 0-0 of 0 transactions</span>
                     <div class="pagination-buttons">
-                        <button id="previousPage">‹</button>
+                        <button id="previousPage" type="button">‹</button>
                         <span id="currentPage">1</span>
-                        <button id="nextPage">›</button>
+                        <button id="nextPage" type="button">›</button>
                     </div>
                 </div>
             </section>
@@ -193,7 +189,7 @@
                     <h2>Add Cash Out</h2>
                     <p>Record a business expense or cash out.</p>
                 </div>
-                <button class="close-modal" id="closeExpenseModal">×</button>
+                <button class="close-modal" id="closeExpenseModal" type="button">×</button>
             </div>
             <form id="expenseForm" class="expense-form">
                 <div class="form-group">
@@ -230,8 +226,53 @@
             </form>
         </div>
     </div>
+    <div class="modal-overlay" id="cashInModal">
+        <div class="expense-modal">
+            <div class="modal-header">
+                <div>
+                    <h2>Add Cash In</h2>
+                    <p>Record additional money received by the business.</p>
+                </div>
+                <button class="close-modal" id="closeCashInModal" type="button">×</button>
+            </div>
+            <form id="cashInForm" class="expense-form">
+                <div class="form-group">
+                    <label for="cashInCategory">Category</label>
+                    <input type="text" id="cashInCategory" placeholder="Enter category" required>
+                </div>
+                <div class="form-group">
+                    <label for="cashInDescription">Description</label>
+                    <input type="text" id="cashInDescription" placeholder="Enter description" required>
+                </div>
+                <div class="form-group">
+                    <label for="cashInAmount">Amount</label>
+                    <div class="amount-input">
+                        <span>₱</span>
+                        <input type="number" id="cashInAmount" min="0.01" step="0.01" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cashInDate">Date</label>
+                    <input type="datetime-local" id="cashInDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="cashInReference">Reference Number</label>
+                    <input type="text" id="cashInReference" placeholder="Optional reference">
+                </div>
+                <div class="form-group">
+                    <label for="cashInNotes">Notes</label>
+                    <textarea id="cashInNotes" rows="3" placeholder="Additional notes..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelCashIn">Cancel</button>
+                    <button type="submit" class="save-expense-btn">Save Cash In</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="sidebar.js"></script>
-<script type="module" src="ADMIN/JS/cash-flow.js"></script>
+    <script src="sidebar.js"></script>
+    <script type="module" src="ADMIN/JS/cash-flow.js"></script>
 </body>
+
 </html>

@@ -1,13 +1,6 @@
 import { db, auth } from "../../Firebase/firebase-config.js";
-import {
-    collection,
-    doc,
-    getDoc,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import { collection, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
 let sales = [];
 let filteredSales = [];
@@ -28,18 +21,28 @@ const breakdownGrid = document.getElementById("breakdownGrid");
 const transactionModal = document.getElementById("transactionModal");
 
 function money(value) {
-    return new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value) || 0);
+    return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP"
+    }).format(Number(value) || 0);
 }
 
 function escapeHTML(value) {
-    return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 function dateValue(value) {
     if (!value) return null;
     if (typeof value.toDate === "function") return value.toDate();
     if (value instanceof Date) return value;
-    if (typeof value === "object" && typeof value.seconds === "number") return new Date(value.seconds * 1000);
+    if (typeof value === "object" && typeof value.seconds === "number") {
+        return new Date(value.seconds * 1000);
+    }
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -47,7 +50,10 @@ function dateValue(value) {
 function formatDate(value) {
     const date = dateValue(value);
     if (!date) return "—";
-    return date.toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" });
+    return date.toLocaleString("en-PH", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    });
 }
 
 function getUserName() {
@@ -108,49 +114,142 @@ async function loadSidebar() {
     }
 }
 
+function normalizePaymentMethod(value) {
+    const method = String(value || "").trim().toLowerCase();
+    if (method === "cash") return "Cash";
+    if (method === "gcash") return "GCash";
+    if (method === "bdo") return "BDO";
+    if (method === "bibo") return "BIBO";
+    if (method === "split") return "Split";
+    return String(value || "").trim();
+}
+
 function normalizeSale(snapshot) {
     const data = snapshot.data();
-    const items = Array.isArray(data.items) ? data.items.map(item => ({
-        name: String(item.name || item.productName || ""),
-        sku: String(item.sku || item.productSku || ""),
-        productId: String(item.productId || ""),
-        quantity: Number(item.quantity) || 0,
-        price: Number(item.price) || 0,
-        total: Number(item.total) || ((Number(item.price) || 0) * (Number(item.quantity) || 0))
-    })) : [];
+    const items = Array.isArray(data.items)
+        ? data.items.map(item => ({
+            name: String(item.name || item.productName || ""),
+            sku: String(item.sku || item.productSku || ""),
+            productId: String(item.productId || ""),
+            quantity: Number(item.quantity) || 0,
+            price: Number(item.price) || 0,
+            total: Number(item.total) || ((Number(item.price) || 0) * (Number(item.quantity) || 0))
+        }))
+        : [];
+
+    const paymentBreakdown = {
+        Cash: Number(data.paymentBreakdown?.Cash) || 0,
+        GCash: Number(data.paymentBreakdown?.GCash) || 0,
+        BDO: Number(data.paymentBreakdown?.BDO) || 0,
+        BIBO: Number(data.paymentBreakdown?.BIBO) || 0
+    };
+
+    const splitPayments = Array.isArray(data.splitPayments)
+        ? data.splitPayments.map(item => ({
+            method: normalizePaymentMethod(item.method),
+            amount: Number(item.amount) || 0
+        }))
+        : [];
+
     return {
         id: String(data.transactionNumber || data.transactionId || snapshot.id),
         firestoreId: snapshot.id,
         date: data.createdAt || data.date || data.timestamp || null,
         customer: String(data.customerName || data.customer || ""),
         items,
-        payment: String(data.paymentMethod || data.payment || ""),
+        payment: normalizePaymentMethod(data.paymentMethod || data.payment || ""),
         subtotal: Number(data.subtotal) || 0,
         discount: Number(data.discount) || 0,
         total: Number(data.total) || 0,
         cash: Number(data.cashReceived ?? data.cash) || 0,
         change: Number(data.change) || 0,
-        cashier: String(data.staffName || data.cashier || ""),
+        cashier: String(data.staffName || data.cashier || data.cashierName || ""),
         status: String(data.status || ""),
+        paymentBreakdown,
+        splitPayment: data.splitPayment === true,
+        splitPaymentType: String(data.splitPaymentType || ""),
+        splitPayments,
         raw: data
     };
 }
 
+function getPaymentAmounts(sale) {
+    const amounts = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0
+    };
+
+    const payment = normalizePaymentMethod(sale.payment);
+
+    if (payment === "Cash" || payment === "GCash" || payment === "BDO" || payment === "BIBO") {
+        amounts[payment] = Number(sale.total) || 0;
+        return amounts;
+    }
+
+    const breakdown = sale.paymentBreakdown || {};
+
+    let hasBreakdown = false;
+
+    ["Cash", "GCash", "BDO", "BIBO"].forEach(method => {
+        const amount = Number(breakdown[method]) || 0;
+        if (amount > 0) {
+            amounts[method] += amount;
+            hasBreakdown = true;
+        }
+    });
+
+    if (hasBreakdown) return amounts;
+
+    if (Array.isArray(sale.splitPayments)) {
+        sale.splitPayments.forEach(item => {
+            const method = normalizePaymentMethod(item.method);
+            const amount = Number(item.amount) || 0;
+            if (amount > 0 && Object.prototype.hasOwnProperty.call(amounts, method)) {
+                amounts[method] += amount;
+            }
+        });
+    }
+
+    return amounts;
+}
+
+function getPaymentTransactions(sale) {
+    const amounts = getPaymentAmounts(sale);
+    const transactions = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0
+    };
+
+    Object.keys(amounts).forEach(method => {
+        if (amounts[method] > 0) transactions[method] = 1;
+    });
+
+    return transactions;
+}
+
 function startSalesListener() {
     if (unsubscribeSales) unsubscribeSales();
+
     emptyState.classList.remove("show");
     emptyTitle.textContent = "Loading sales...";
     emptyMessage.textContent = "Loading transactions from Firebase.";
     emptyState.classList.add("show");
+
     unsubscribeSales = onSnapshot(
         collection(db, "sales"),
         snapshot => {
             sales = snapshot.docs.map(normalizeSale);
+
             sales.sort((a, b) => {
                 const da = dateValue(a.date)?.getTime() || 0;
                 const db = dateValue(b.date)?.getTime() || 0;
                 return db - da;
             });
+
             buildFilters();
             filterSales();
         },
@@ -167,51 +266,87 @@ function startSalesListener() {
 }
 
 function buildFilters() {
-    const payments = [...new Set(sales.map(s => s.payment).filter(Boolean))].sort();
-    const statuses = [...new Set(sales.map(s => s.status).filter(Boolean))].sort();
-    paymentFilter.innerHTML = '<option value="all">All Payment Methods</option>';
+    const selectedPayment = paymentFilter.value;
+    const selectedStatus = statusFilter.value;
+
+    paymentFilter.innerHTML = `
+        <option value="all">All Payment Methods</option>
+        <option value="Cash">Cash</option>
+        <option value="GCash">GCash</option>
+        <option value="BDO">BDO</option>
+        <option value="BIBO">BIBO</option>
+    `;
+
+    const statuses = [...new Set(
+        sales.map(s => s.status).filter(Boolean)
+    )].sort();
+
     statusFilter.innerHTML = '<option value="all">All Status</option>';
-    payments.forEach(payment => {
-        const option = document.createElement("option");
-        option.value = payment;
-        option.textContent = payment;
-        paymentFilter.appendChild(option);
-    });
+
     statuses.forEach(status => {
         const option = document.createElement("option");
         option.value = status;
         option.textContent = status;
         statusFilter.appendChild(option);
     });
+
+    if (
+        selectedPayment === "Cash" ||
+        selectedPayment === "GCash" ||
+        selectedPayment === "BDO" ||
+        selectedPayment === "BIBO"
+    ) {
+        paymentFilter.value = selectedPayment;
+    } else {
+        paymentFilter.value = "all";
+    }
+
+    if ([...statusFilter.options].some(option => option.value === selectedStatus)) {
+        statusFilter.value = selectedStatus;
+    } else {
+        statusFilter.value = "all";
+    }
 }
 
 function sameDay(a, b) {
-    return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    return a &&
+        b &&
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate();
 }
 
 function isDateMatch(date, filter) {
     if (filter === "all") return true;
     const now = new Date();
     if (!date) return false;
+
     if (filter === "today") return sameDay(date, now);
+
     if (filter === "yesterday") {
         const yesterday = new Date();
         yesterday.setDate(now.getDate() - 1);
         return sameDay(date, yesterday);
     }
+
     if (filter === "month") {
-        return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+        return date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth();
     }
+
     if (filter === "week") {
         const start = new Date(now);
         const day = start.getDay();
         const difference = day === 0 ? -6 : 1 - day;
         start.setDate(now.getDate() + difference);
         start.setHours(0, 0, 0, 0);
+
         const end = new Date(start);
         end.setDate(start.getDate() + 7);
+
         return date >= start && date < end;
     }
+
     return true;
 }
 
@@ -220,6 +355,7 @@ function filterSales() {
     const dateFilter = document.getElementById("dateFilter").value;
     const payment = paymentFilter.value;
     const status = statusFilter.value;
+
     filteredSales = sales.filter(sale => {
         const searchable = [
             sale.id,
@@ -227,39 +363,68 @@ function filterSales() {
             sale.cashier,
             sale.payment,
             sale.status,
-            ...sale.items.map(item => item.name)
+            ...sale.items.map(item => item.name),
+            ...sale.items.map(item => item.sku)
         ].join(" ").toLowerCase();
+
+        let paymentMatch = true;
+
+        if (payment !== "all") {
+            const paymentAmounts = getPaymentAmounts(sale);
+            paymentMatch = Number(paymentAmounts[payment]) > 0;
+        }
+
         return (
             (!search || searchable.includes(search)) &&
             isDateMatch(dateValue(sale.date), dateFilter) &&
-            (payment === "all" || sale.payment === payment) &&
+            paymentMatch &&
             (status === "all" || sale.status === status)
         );
     });
+
     currentPage = 1;
     render();
 }
 
 function getItemCount(sale) {
-    return sale.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+    return sale.items.reduce(
+        (sum, item) => sum + (Number(item.quantity) || 0),
+        0
+    );
 }
 
 function render() {
     tableBody.innerHTML = "";
+
     const total = filteredSales.length;
+
     if (total === 0) {
         emptyState.classList.add("show");
         emptyTitle.textContent = sales.length ? "No sales found" : "No sales recorded";
-        emptyMessage.textContent = sales.length ? "Try changing your filters." : "Sales created through the POS will appear here.";
+        emptyMessage.textContent = sales.length
+            ? "Try changing your filters."
+            : "Sales created through the POS will appear here.";
     } else {
         emptyState.classList.remove("show");
+
         const start = (currentPage - 1) * salesPerPage;
         const pageItems = filteredSales.slice(start, start + salesPerPage);
+
         pageItems.forEach(sale => {
             const row = document.createElement("tr");
-            const paymentClass = sale.payment.toLowerCase().replaceAll(" ", "-");
-            const statusClass = sale.status.toLowerCase().replaceAll(" ", "-");
-            const discountClass = sale.discount > 0 ? "has-discount" : "no-discount";
+
+            const paymentClass = sale.payment
+                .toLowerCase()
+                .replaceAll(" ", "-");
+
+            const statusClass = sale.status
+                .toLowerCase()
+                .replaceAll(" ", "-");
+
+            const discountClass = sale.discount > 0
+                ? "has-discount"
+                : "no-discount";
+
             row.innerHTML = `
 <td>
 <div class="transaction-id">${escapeHTML(sale.id)}</div>
@@ -295,25 +460,48 @@ function render() {
 <button class="view-btn" data-id="${escapeHTML(sale.firestoreId)}" type="button">View</button>
 </td>
 `;
+
             tableBody.appendChild(row);
         });
     }
-    const totalPages = Math.max(1, Math.ceil(total / salesPerPage));
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(total / salesPerPage)
+    );
+
     document.getElementById("currentPage").textContent = currentPage;
-    document.getElementById("paginationInfo").textContent = total ? `Showing ${(currentPage - 1) * salesPerPage + 1}-${Math.min(currentPage * salesPerPage, total)} of ${total} transactions` : "Showing 0 of 0 transactions";
+
+    document.getElementById("paginationInfo").textContent = total
+        ? `Showing ${(currentPage - 1) * salesPerPage + 1}-${Math.min(currentPage * salesPerPage, total)} of ${total} transactions`
+        : "Showing 0 of 0 transactions";
+
     document.getElementById("previousPage").disabled = currentPage <= 1;
     document.getElementById("nextPage").disabled = currentPage >= totalPages;
+
     updateSummary();
     renderBreakdown();
 }
 
 function updateSummary() {
-    const completed = sales.filter(s => !s.status || s.status.toLowerCase() === "completed");
-    const total = completed.reduce((sum, s) => sum + s.total, 0);
+    const completed = sales.filter(
+        s => !s.status || s.status.toLowerCase() === "completed"
+    );
+
+    const total = completed.reduce(
+        (sum, s) => sum + s.total,
+        0
+    );
+
     const count = completed.length;
     const average = count ? total / count : 0;
+
     const now = new Date();
-    const today = completed.filter(s => sameDay(dateValue(s.date), now)).reduce((sum, s) => sum + s.total, 0);
+
+    const today = completed
+        .filter(s => sameDay(dateValue(s.date), now))
+        .reduce((sum, s) => sum + s.total, 0);
+
     document.getElementById("totalSales").textContent = money(total);
     document.getElementById("totalTransactions").textContent = count;
     document.getElementById("averageTransaction").textContent = money(average);
@@ -322,33 +510,101 @@ function updateSummary() {
 
 function renderBreakdown() {
     breakdownGrid.innerHTML = "";
-    const methods = [...new Set(sales.map(s => s.payment).filter(Boolean))];
-    if (!methods.length) {
-        breakdownGrid.innerHTML = `<div class="breakdown-empty">No payment data available.</div>`;
-        return;
-    }
+
+    const breakdown = {
+        Cash: {
+            total: 0,
+            transactions: 0,
+            icon: "C",
+            className: "cash"
+        },
+        GCash: {
+            total: 0,
+            transactions: 0,
+            icon: "G",
+            className: "gcash"
+        },
+        BDO: {
+            total: 0,
+            transactions: 0,
+            icon: "B",
+            className: "bdo"
+        },
+        BIBO: {
+            total: 0,
+            transactions: 0,
+            icon: "B",
+            className: "bibo"
+        }
+    };
+
+    sales.forEach(sale => {
+        const amounts = getPaymentAmounts(sale);
+        const transactions = getPaymentTransactions(sale);
+
+        ["Cash", "GCash", "BDO", "BIBO"].forEach(method => {
+            const amount = Number(amounts[method]) || 0;
+
+            if (amount > 0) {
+                breakdown[method].total += amount;
+                breakdown[method].transactions += transactions[method];
+            }
+        });
+    });
+
+    const methods = [
+        {
+            name: "Cash",
+            icon: "C",
+            className: "cash"
+        },
+        {
+            name: "GCash",
+            icon: "G",
+            className: "gcash"
+        },
+        {
+            name: "BDO",
+            icon: "B",
+            className: "bdo"
+        },
+        {
+            name: "BIBO",
+            icon: "B",
+            className: "bibo"
+        }
+    ];
+
     methods.forEach(method => {
-        const methodSales = sales.filter(s => s.payment === method);
-        const total = methodSales.reduce((sum, s) => sum + s.total, 0);
+        const data = breakdown[method.name];
+
         const card = document.createElement("div");
-        const className = method.toLowerCase().replaceAll(" ", "-");
         card.className = "breakdown-card";
+
         card.innerHTML = `
-<div class="breakdown-icon ${escapeHTML(className)}">${escapeHTML(method.substring(0, 1).toUpperCase())}</div>
+<div class="breakdown-icon ${method.className}">
+${method.icon}
+</div>
 <div>
-<span>${escapeHTML(method)}</span>
-<strong>${money(total)}</strong>
-<small>${methodSales.length} transaction(s)</small>
+<span>${method.name}</span>
+<strong>${money(data.total)}</strong>
+<small>${data.transactions} transaction(s)</small>
 </div>
 `;
+
         breakdownGrid.appendChild(card);
     });
 }
 
 function openTransaction(id) {
-    const sale = sales.find(item => item.firestoreId === id);
+    const sale = sales.find(
+        item => item.firestoreId === id
+    );
+
     if (!sale) return;
+
     selectedSale = sale;
+
     document.getElementById("detailTransaction").textContent = sale.id;
     document.getElementById("detailStatus").textContent = sale.status || "—";
     document.getElementById("detailDate").textContent = formatDate(sale.date);
@@ -356,18 +612,39 @@ function openTransaction(id) {
     document.getElementById("detailCashier").textContent = sale.cashier || "—";
     document.getElementById("detailPayment").textContent = sale.payment || "—";
     document.getElementById("detailSubtotal").textContent = money(sale.subtotal);
-    document.getElementById("detailDiscount").textContent = sale.discount > 0 ? `-${money(sale.discount)}` : money(0);
+    document.getElementById("detailDiscount").textContent = sale.discount > 0
+        ? `-${money(sale.discount)}`
+        : money(0);
     document.getElementById("detailTotal").textContent = money(sale.total);
     document.getElementById("detailCash").textContent = money(sale.cash);
     document.getElementById("detailChange").textContent = money(sale.change);
+
+    const detailPayment = document.getElementById("detailPayment");
+
+    if (sale.payment === "Split") {
+        const amounts = getPaymentAmounts(sale);
+
+        const splitText = [
+            amounts.Cash > 0 ? `Cash ${money(amounts.Cash)}` : "",
+            amounts.GCash > 0 ? `GCash ${money(amounts.GCash)}` : "",
+            amounts.BDO > 0 ? `BDO ${money(amounts.BDO)}` : "",
+            amounts.BIBO > 0 ? `BIBO ${money(amounts.BIBO)}` : ""
+        ].filter(Boolean).join(" + ");
+
+        detailPayment.textContent = splitText || "Split";
+    }
+
     const items = document.getElementById("detailItems");
     items.innerHTML = "";
+
     if (!sale.items.length) {
         items.innerHTML = '<div class="detail-empty">No item details stored for this transaction.</div>';
     } else {
         sale.items.forEach(item => {
             const div = document.createElement("div");
+
             div.className = "detail-item";
+
             div.innerHTML = `
 <div>
 <div class="detail-item-name">${escapeHTML(item.name || "Product")}</div>
@@ -375,9 +652,11 @@ function openTransaction(id) {
 </div>
 <div class="detail-item-total">${money(item.total)}</div>
 `;
+
             items.appendChild(div);
         });
     }
+
     transactionModal.classList.add("show");
 }
 
@@ -396,7 +675,9 @@ document.getElementById("closeDetailButton").addEventListener("click", () => {
 });
 
 transactionModal.addEventListener("click", event => {
-    if (event.target === transactionModal) transactionModal.classList.remove("show");
+    if (event.target === transactionModal) {
+        transactionModal.classList.remove("show");
+    }
 });
 
 document.getElementById("salesSearch").addEventListener("input", filterSales);
@@ -427,7 +708,11 @@ document.getElementById("previousPage").addEventListener("click", () => {
 });
 
 document.getElementById("nextPage").addEventListener("click", () => {
-    const totalPages = Math.max(1, Math.ceil(filteredSales.length / salesPerPage));
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredSales.length / salesPerPage)
+    );
+
     if (currentPage < totalPages) {
         currentPage++;
         render();
@@ -439,6 +724,7 @@ document.getElementById("exportSales").addEventListener("click", () => {
         alert("There are no Firebase sales to export.");
         return;
     }
+
     const headers = [
         "Transaction",
         "Date",
@@ -451,6 +737,7 @@ document.getElementById("exportSales").addEventListener("click", () => {
         "Cashier",
         "Status"
     ];
+
     const rows = filteredSales.map(sale => [
         sale.id,
         formatDate(sale.date),
@@ -463,21 +750,38 @@ document.getElementById("exportSales").addEventListener("click", () => {
         sale.cashier,
         sale.status
     ]);
-    const csv = [headers, ...rows].map(row => row.map(value => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    const csv = [headers, ...rows]
+        .map(row =>
+            row.map(value =>
+                `"${String(value ?? "").replaceAll('"', '""')}"`
+            ).join(",")
+        )
+        .join("\n");
+
+    const blob = new Blob(
+        [csv],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+
     link.href = url;
     link.download = "sales-export.csv";
+
     document.body.appendChild(link);
     link.click();
     link.remove();
+
     URL.revokeObjectURL(url);
 });
 
 document.getElementById("printTransaction").addEventListener("click", () => {
     if (!selectedSale) return;
+
     const sale = selectedSale;
+
     const itemRows = sale.items.map(item => `
 <tr>
 <td>${escapeHTML(item.name)}</td>
@@ -486,11 +790,42 @@ document.getElementById("printTransaction").addEventListener("click", () => {
 <td>${money(item.total)}</td>
 </tr>
 `).join("");
-    const printWindow = window.open("", "_blank", "width=500,height=700");
+
+    const paymentAmounts = getPaymentAmounts(sale);
+
+    let paymentDetails = "";
+
+    if (paymentAmounts.Cash > 0) {
+        paymentDetails += `<div><span>Cash</span><strong>${money(paymentAmounts.Cash)}</strong></div>`;
+    }
+
+    if (paymentAmounts.GCash > 0) {
+        paymentDetails += `<div><span>GCash</span><strong>${money(paymentAmounts.GCash)}</strong></div>`;
+    }
+
+    if (paymentAmounts.BDO > 0) {
+        paymentDetails += `<div><span>BDO</span><strong>${money(paymentAmounts.BDO)}</strong></div>`;
+    }
+
+    if (paymentAmounts.BIBO > 0) {
+        paymentDetails += `<div><span>BIBO</span><strong>${money(paymentAmounts.BIBO)}</strong></div>`;
+    }
+
+    if (!paymentDetails) {
+        paymentDetails = `<div><span>Payment</span><strong>${escapeHTML(sale.payment || "—")}</strong></div>`;
+    }
+
+    const printWindow = window.open(
+        "",
+        "_blank",
+        "width=500,height=700"
+    );
+
     if (!printWindow) {
         alert("Please allow pop-ups to print the receipt.");
         return;
     }
+
     printWindow.document.write(`
 <!DOCTYPE html>
 <html>
@@ -537,7 +872,7 @@ th:last-child,td:last-child{text-align:right}
 <div><span>Subtotal</span><strong>${money(sale.subtotal)}</strong></div>
 <div class="discount"><span>Discount</span><strong>-${money(sale.discount)}</strong></div>
 <div class="total"><span>Total</span><strong>${money(sale.total)}</strong></div>
-<div><span>Payment</span><strong>${escapeHTML(sale.payment || "—")}</strong></div>
+${paymentDetails}
 <div><span>Cash Received</span><strong>${money(sale.cash)}</strong></div>
 <div><span>Change</span><strong>${money(sale.change)}</strong></div>
 </div>
@@ -549,25 +884,33 @@ window.onload=function(){window.print();}
 </body>
 </html>
 `);
+
     printWindow.document.close();
 });
 
 onAuthStateChanged(auth, async user => {
     currentUser = user;
+
     await loadUserProfile(user);
+
     if (!user) {
         if (unsubscribeSales) {
             unsubscribeSales();
             unsubscribeSales = null;
         }
+
         sales = [];
         filteredSales = [];
+
         render();
+
         emptyState.classList.add("show");
         emptyTitle.textContent = "Sign in required";
         emptyMessage.textContent = "Please sign in to view sales from Firebase.";
+
         return;
     }
+
     startSalesListener();
 });
 

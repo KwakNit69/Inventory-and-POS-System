@@ -44,13 +44,13 @@ const initials = name => {
     return String(name || "ST").substring(0, 2).toUpperCase();
 };
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
-const getName = product => String(product.name ?? product.productName ?? product.title ?? "Unnamed Product");
-const getSku = product => String(product.sku ?? product.SKU ?? product.productCode ?? "—");
-const getPrice = product => Number(product.sellingPrice ?? product.price ?? product.salePrice ?? product.unitPrice ?? 0);
-const getStock = product => Number(product.stock ?? product.currentStock ?? product.quantity ?? 0);
-const getCategory = product => String(product.categoryName ?? product.category ?? product.categoryId ?? "Uncategorized");
+const getName = product => String(product.name ?? "Unnamed Product");
+const getSku = product => String(product.sku ?? "—");
+const getPrice = product => Number(product.price ?? 0);
+const getStock = product => Number(product.stock ?? 0);
+const getCategory = product => String(product.category ?? "Uncategorized");
 const getCategoryId = product => String(product.categoryId ?? "");
-const getThreshold = product => Number(product.lowStockAlert ?? product.lowStockThreshold ?? product.reorderLevel ?? 10);
+const getThreshold = product => Number(product.lowStock ?? 10);
 const getStatus = product => {
     const stock = getStock(product);
     const threshold = getThreshold(product);
@@ -60,14 +60,16 @@ const getStatus = product => {
 };
 const showError = error => {
     console.error("Products error:", error);
-    productsError.classList.add("show");
-    productsErrorMessage.textContent = error?.message || "Unable to load products from Firebase.";
+    if (productsError) productsError.classList.add("show");
+    if (productsErrorMessage) productsErrorMessage.textContent = error?.message || "Unable to load products from Firebase.";
 };
-const hideError = () => productsError.classList.remove("show");
+const hideError = () => {
+    if (productsError) productsError.classList.remove("show");
+};
 const loadStaffInfo = user => {
     const name = sessionStorage.getItem("userName") || user.displayName || user.email?.split("@")[0] || "Staff";
-    staffName.textContent = name;
-    staffAvatar.textContent = initials(name);
+    if (staffName) staffName.textContent = name;
+    if (staffAvatar) staffAvatar.textContent = initials(name);
 };
 const loadCategories = async () => {
     const snapshot = await getDocs(collection(db, "categories"));
@@ -75,25 +77,41 @@ const loadCategories = async () => {
     snapshot.forEach(document => {
         categories.push({ id: document.id, ...document.data() });
     });
+    categories = categories.filter(category => String(category.status ?? "active").toLowerCase() !== "inactive");
     categories.sort((a, b) => {
         const nameA = a.name ?? a.categoryName ?? a.title ?? a.id;
         const nameB = b.name ?? b.categoryName ?? b.title ?? b.id;
         return String(nameA).localeCompare(String(nameB));
     });
+    if (!categoryFilter) return;
     categoryFilter.innerHTML = '<option value="all">All Categories</option>';
     categories.forEach(category => {
         const option = document.createElement("option");
-        option.value = category.id;
-        option.textContent = category.name ?? category.categoryName ?? category.title ?? category.id;
+        option.value = String(category.name ?? category.categoryName ?? category.title ?? category.id);
+        option.textContent = String(category.name ?? category.categoryName ?? category.title ?? category.id);
         categoryFilter.appendChild(option);
     });
 };
 const loadProducts = async () => {
-    productsBody.innerHTML = '<tr><td colspan="7" class="empty-cell">Loading products...</td></tr>';
+    if (productsBody) productsBody.innerHTML = '<tr><td colspan="7" class="empty-cell">Loading products...</td></tr>';
     const snapshot = await getDocs(collection(db, "products"));
     products = [];
     snapshot.forEach(document => {
-        products.push({ id: document.id, ...document.data() });
+        const data = document.data();
+        products.push({
+            id: document.id,
+            name: data.name ?? "",
+            sku: data.sku ?? "",
+            category: data.category ?? "",
+            price: Number(data.price) || 0,
+            stock: Number(data.stock) || 0,
+            lowStock: Number(data.lowStock) || 10,
+            description: data.description ?? "",
+            imageUrl: data.imageUrl ?? data.image ?? "",
+            imagePublicId: data.imagePublicId ?? "",
+            createdAt: data.createdAt ?? null,
+            updatedAt: data.updatedAt ?? null
+        });
     });
     products.sort((a, b) => getName(a).localeCompare(getName(b)));
     updateSummary();
@@ -109,20 +127,22 @@ const updateSummary = () => {
         if (status === "low") low++;
         if (status === "out") out++;
     });
-    totalProducts.textContent = products.length;
-    availableProducts.textContent = available;
-    lowStockProducts.textContent = low;
-    outOfStockProducts.textContent = out;
+    if (totalProducts) totalProducts.textContent = products.length;
+    if (availableProducts) availableProducts.textContent = available;
+    if (lowStockProducts) lowStockProducts.textContent = low;
+    if (outOfStockProducts) outOfStockProducts.textContent = out;
 };
 const applyFilters = () => {
+    if (!productSearch || !categoryFilter || !stockFilter) return;
     const search = productSearch.value.trim().toLowerCase();
     const category = categoryFilter.value;
     const stock = stockFilter.value;
     filteredProducts = products.filter(product => {
         const name = getName(product).toLowerCase();
         const sku = getSku(product).toLowerCase();
-        const matchesSearch = !search || name.includes(search) || sku.includes(search);
-        const matchesCategory = category === "all" || getCategoryId(product) === category || String(product.category ?? "") === category;
+        const productCategory = getCategory(product);
+        const matchesSearch = !search || name.includes(search) || sku.toLowerCase().includes(search);
+        const matchesCategory = category === "all" || productCategory === category || getCategoryId(product) === category;
         const matchesStock = stock === "all" || getStatus(product) === stock;
         return matchesSearch && matchesCategory && matchesStock;
     });
@@ -134,10 +154,11 @@ const renderTable = () => {
     if (currentPage > totalPages) currentPage = totalPages;
     const start = (currentPage - 1) * pageSize;
     const rows = filteredProducts.slice(start, start + pageSize);
-    pageNumber.textContent = currentPage;
-    previousPage.disabled = currentPage <= 1;
-    nextPage.disabled = currentPage >= totalPages;
-    resultCount.textContent = `Showing ${filteredProducts.length ? start + 1 : 0}-${Math.min(start + pageSize, filteredProducts.length)} of ${filteredProducts.length} product${filteredProducts.length === 1 ? "" : "s"}`;
+    if (pageNumber) pageNumber.textContent = currentPage;
+    if (previousPage) previousPage.disabled = currentPage <= 1;
+    if (nextPage) nextPage.disabled = currentPage >= totalPages;
+    if (resultCount) resultCount.textContent = `Showing ${filteredProducts.length ? start + 1 : 0}-${Math.min(start + pageSize, filteredProducts.length)} of ${filteredProducts.length} product${filteredProducts.length === 1 ? "" : "s"}`;
+    if (!productsBody) return;
     if (!rows.length) {
         productsBody.innerHTML = '<tr><td colspan="7" class="empty-cell">No products found.</td></tr>';
         return;
@@ -167,17 +188,19 @@ const openProduct = id => {
     if (!product) return;
     const status = getStatus(product);
     const statusText = status === "available" ? "Available" : status === "low" ? "Low Stock" : "Out of Stock";
-    modalProductId.textContent = `Product ID: ${product.id}`;
-    modalProductName.textContent = getName(product);
-    modalProductSku.textContent = getSku(product);
-    modalCategory.textContent = getCategory(product);
-    modalPrice.textContent = money(getPrice(product));
-    modalStock.textContent = getStock(product);
-    modalThreshold.textContent = getThreshold(product);
-    modalStatus.textContent = statusText;
-    modalStatusBox.style.background = status === "available" ? "#eaf7ef" : status === "low" ? "#fff4df" : "#fdecec";
-    modalStatusBox.style.color = status === "available" ? "#16803c" : status === "low" ? "#d98200" : "#d74343";
-    productModal.classList.add("show");
+    if (modalProductId) modalProductId.textContent = `Product ID: ${product.id}`;
+    if (modalProductName) modalProductName.textContent = getName(product);
+    if (modalProductSku) modalProductSku.textContent = getSku(product);
+    if (modalCategory) modalCategory.textContent = getCategory(product);
+    if (modalPrice) modalPrice.textContent = money(getPrice(product));
+    if (modalStock) modalStock.textContent = getStock(product);
+    if (modalThreshold) modalThreshold.textContent = getThreshold(product);
+    if (modalStatus) modalStatus.textContent = statusText;
+    if (modalStatusBox) {
+        modalStatusBox.style.background = status === "available" ? "#eaf7ef" : status === "low" ? "#fff4df" : "#fdecec";
+        modalStatusBox.style.color = status === "available" ? "#16803c" : status === "low" ? "#d98200" : "#d74343";
+    }
+    if (productModal) productModal.classList.add("show");
 };
 const refresh = async () => {
     if (!currentUser) return;
@@ -189,32 +212,34 @@ const refresh = async () => {
         showError(error);
     }
 };
-productSearch.addEventListener("input", applyFilters);
-categoryFilter.addEventListener("change", applyFilters);
-stockFilter.addEventListener("change", applyFilters);
-resetFilters.addEventListener("click", () => {
-    productSearch.value = "";
-    categoryFilter.value = "all";
-    stockFilter.value = "all";
+productSearch?.addEventListener("input", applyFilters);
+categoryFilter?.addEventListener("change", applyFilters);
+stockFilter?.addEventListener("change", applyFilters);
+resetFilters?.addEventListener("click", () => {
+    if (productSearch) productSearch.value = "";
+    if (categoryFilter) categoryFilter.value = "all";
+    if (stockFilter) stockFilter.value = "all";
     applyFilters();
 });
-refreshProducts.addEventListener("click", refresh);
-retryButton.addEventListener("click", refresh);
-previousPage.addEventListener("click", () => {
+refreshProducts?.addEventListener("click", refresh);
+retryButton?.addEventListener("click", refresh);
+previousPage?.addEventListener("click", () => {
     if (currentPage > 1) {
         currentPage--;
         renderTable();
     }
 });
-nextPage.addEventListener("click", () => {
+nextPage?.addEventListener("click", () => {
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
     if (currentPage < totalPages) {
         currentPage++;
         renderTable();
     }
 });
-closeModal.addEventListener("click", () => productModal.classList.remove("show"));
-productModal.addEventListener("click", event => {
+closeModal?.addEventListener("click", () => {
+    if (productModal) productModal.classList.remove("show");
+});
+productModal?.addEventListener("click", event => {
     if (event.target === productModal) productModal.classList.remove("show");
 });
 onAuthStateChanged(auth, async user => {

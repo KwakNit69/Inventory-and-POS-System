@@ -1,50 +1,17 @@
-import {
-    db,
-    auth
-} from "../../Firebase/firebase-config.js";
+import { db, auth } from "../../Firebase/firebase-config.js";
+import { collection, getDocs, getDoc, doc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
-import {
-    collection,
-    getDocs,
-    getDoc,
-    doc,
-    writeBatch,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-
-fetch("sidebar.html")
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Could not load sidebar.html");
-        }
-
-        return response.text();
-    })
-    .then(html => {
-        document.getElementById("sidebar-container").innerHTML = html;
-
-        const script = document.createElement("script");
-        script.src = "sidebar.js?v=20";
-
-        document.body.appendChild(script);
-    })
-    .catch(error => {
-        console.error("Sidebar Error:", error);
-    });
+fetch("sidebar.html").then(r => { if (!r.ok) throw new Error("Could not load sidebar.html"); return r.text() }).then(html => { document.getElementById("sidebar-container").innerHTML = html; const script = document.createElement("script"); script.src = "sidebar.js?v=20"; document.body.appendChild(script) }).catch(console.error);
 
 let products = [];
 let packages = [];
 let insurances = [];
 let cart = [];
-
 let selectedType = "all";
 let selectedCategory = "all";
 let selectedPaymentMethod = "Cash";
-
+let splitPayments = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0 };
 let currentUser = null;
 let currentStaffName = "Unknown Staff";
 let currentStaffStatus = "Active";
@@ -57,830 +24,226 @@ const emptyCart = document.getElementById("emptyCart");
 const paymentModal = document.getElementById("paymentModal");
 const receiptModal = document.getElementById("receiptModal");
 
-function formatMoney(value) {
-    return new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP"
-    }).format(Number(value) || 0);
+const money = value => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value) || 0);
+
+const esc = value => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+
+const generateTransactionNumber = () => `#TRX-${Math.floor(100000 + Math.random() * 900000)}`;
+
+document.getElementById("transactionNumber").textContent = generateTransactionNumber();
+
+const discountInput = () => document.getElementById("paymentDiscount");
+
+const subtotal = () => cart.reduce((sum, item) => {
+    const data = getItemData(item);
+    return sum + (data ? Number(data.price) * item.quantity : 0);
+}, 0);
+
+const discount = () => {
+    const value = parseInt(String(discountInput()?.value || 0).replace(/\D/g, ""), 10) || 0;
+    return Math.min(value, subtotal());
+};
+
+const total = () => Math.max(0, subtotal() - discount());
+
+function getItemData(item) {
+    if (item.type === "product") return products.find(product => product.id === item.itemId);
+    if (item.type === "package") return packages.find(pkg => pkg.id === item.itemId);
+    if (item.type === "insurance") return insurances.find(insurance => insurance.id === item.itemId);
+    return null;
 }
 
-function escapeHTML(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+function getPackageAvailability(pkg) {
+    if (!pkg.items?.length) return 0;
+    return Math.max(0, ...pkg.items.map(item => {
+        const product = products.find(product => product.id === item.productId);
+        return product ? Math.floor(product.stock / Math.max(1, Number(item.quantity) || 1)) : 0;
+    }));
 }
 
-function generateTransactionNumber() {
-    const number = Math.floor(
-        100000 + Math.random() * 900000
-    );
-
-    return `#TRX-${number}`;
-}
-
-document.getElementById("transactionNumber").textContent =
-    generateTransactionNumber();
-
-function getDiscountElement() {
-    return document.getElementById("discount");
-}
-
-function getPaymentDiscountElement() {
-    return document.getElementById("paymentDiscount");
-}
-
-function sanitizeIntegerDiscount(value) {
-    let cleaned = String(value ?? "").replace(/\D/g, "");
-
-    if (cleaned === "") {
-        return 0;
-    }
-
-    return parseInt(cleaned, 10) || 0;
-}
-
-function getSubtotal() {
-    let subtotal = 0;
-
-    cart.forEach(cartItem => {
-        const item = getCartItemData(cartItem);
-
-        if (!item) {
-            return;
-        }
-
-        subtotal +=
-            item.price *
-            cartItem.quantity;
-    });
-
-    return subtotal;
-}
-
-function getDiscount() {
-    const paymentField = getPaymentDiscountElement();
-    const cartField = getDiscountElement();
-
-    let value = paymentField
-        ? sanitizeIntegerDiscount(paymentField.value)
-        : cartField
-            ? sanitizeIntegerDiscount(cartField.value)
-            : 0;
-
-    const subtotal = getSubtotal();
-
-    if (value > subtotal) {
-        value = Math.floor(subtotal);
-    }
-
-    return value;
-}
-
-function setDiscount(value) {
-    const subtotal = getSubtotal();
-
-    let discount =
-        sanitizeIntegerDiscount(value);
-
-    if (discount > subtotal) {
-        discount = Math.floor(subtotal);
-    }
-
-    const cartField =
-        getDiscountElement();
-
-    const paymentField =
-        getPaymentDiscountElement();
-
-    if (cartField) {
-        cartField.value = discount;
-    }
-
-    if (paymentField) {
-        paymentField.value = discount;
-    }
+function getPackageContents(pkg) {
+    if (!pkg.items?.length) return "No products";
+    return pkg.items.map(item => {
+        const product = products.find(product => product.id === item.productId);
+        return product ? `${item.quantity} × ${product.name}` : "Missing product";
+    }).join(", ");
 }
 
 async function loadProfile(user) {
     try {
-        const userRef =
-            doc(db, "users", user.uid);
-
-        const snapshot =
-            await getDoc(userRef);
-
-        let name =
-            user.displayName ||
-            user.email?.split("@")[0] ||
-            "User";
-
-        let role = "User";
-        let status = "Active";
-
-        if (snapshot.exists()) {
-            const data = snapshot.data();
-
-            name =
-                data.name ||
-                name;
-
-            role =
-                data.role ||
-                role;
-
-            status =
-                data.status ||
-                "Active";
-        }
-
-        currentStaffName = name;
-
-        currentStaffStatus =
-            String(status).trim() ||
-            "Active";
-
-        const profileName =
-            document.getElementById("profileName");
-
-        const profileRole =
-            document.getElementById("profileRole");
-
-        const profileAvatar =
-            document.getElementById("profileAvatar");
-
-        if (profileName) {
-            profileName.textContent =
-                name;
-        }
-
-        if (profileRole) {
-            profileRole.textContent =
-                role;
-        }
-
-        if (profileAvatar) {
-            const initials =
-                name
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map(item => item[0])
-                    .join("")
-                    .toUpperCase();
-
-            profileAvatar.textContent =
-                initials || "U";
-        }
+        const snapshot = await getDoc(doc(db, "users", user.uid));
+        const data = snapshot.exists() ? snapshot.data() : {};
+        currentStaffName = data.name || user.displayName || user.email?.split("@")[0] || "User";
+        currentStaffStatus = String(data.status || "Active").trim() || "Active";
+        document.getElementById("profileName").textContent = currentStaffName;
+        document.getElementById("profileRole").textContent = data.role || "User";
+        document.getElementById("profileAvatar").textContent = currentStaffName.split(" ").filter(Boolean).slice(0, 2).map(name => name[0]).join("").toUpperCase() || "U";
     } catch (error) {
-        console.error(
-            "Profile Error:",
-            error
-        );
+        console.error(error);
     }
 }
 
-async function loadProducts() {
-    const snapshot =
-        await getDocs(
-            collection(
-                db,
-                "products"
-            )
-        );
+async function loadData() {
+    const [productSnapshot, packageSnapshot, insuranceSnapshot] = await Promise.all([
+        getDocs(collection(db, "products")),
+        getDocs(collection(db, "packages")),
+        getDocs(collection(db, "insurances"))
+    ]);
 
-    products =
-        snapshot.docs.map(item => {
-            const data =
-                item.data();
+    products = productSnapshot.docs.map(snapshot => {
+        const data = snapshot.data();
+        return {
+            id: snapshot.id,
+            type: "product",
+            name: data.name || "",
+            sku: data.sku || "",
+            category: data.category || "Uncategorized",
+            price: Number(data.price) || 0,
+            stock: Number(data.stock) || 0,
+            lowStock: Number(data.lowStock) || 10,
+            description: data.description || "",
+            image: data.imageUrl || data.image || ""
+        };
+    });
 
-            return {
-                id: item.id,
-                type: "product",
-                name: data.name || "",
-                sku: data.sku || "",
-                category:
-                    data.category ||
-                    "Uncategorized",
-                price:
-                    Number(data.price) ||
-                    0,
-                cost:
-                    Number(data.cost) ||
-                    0,
-                stock:
-                    Number(data.stock) ||
-                    0,
-                lowStock:
-                    Number(data.lowStock) ||
-                    10,
-                description:
-                    data.description ||
-                    "",
-                image:
-                    data.imageUrl ||
-                    data.image ||
-                    ""
-            };
-        });
-}
+    packages = packageSnapshot.docs.map(snapshot => {
+        const data = snapshot.data();
+        return {
+            id: snapshot.id,
+            type: "package",
+            name: data.name || "",
+            sku: data.sku || "",
+            price: Number(data.price) || 0,
+            description: data.description || "",
+            image: data.imageUrl || data.image || "",
+            items: Array.isArray(data.items) ? data.items : []
+        };
+    });
 
-async function loadPackages() {
-    const snapshot =
-        await getDocs(
-            collection(
-                db,
-                "packages"
-            )
-        );
+    insurances = insuranceSnapshot.docs.map(snapshot => {
+        const data = snapshot.data();
+        return {
+            id: snapshot.id,
+            type: "insurance",
+            name: data.name || "",
+            sku: data.sku || "",
+            price: Number(data.price) || 0,
+            description: data.description || "",
+            status: String(data.status || "active").toLowerCase(),
+            image: data.imageUrl || data.image || ""
+        };
+    });
 
-    packages =
-        snapshot.docs.map(item => {
-            const data =
-                item.data();
-
-            return {
-                id: item.id,
-                type: "package",
-                name: data.name || "",
-                sku: data.sku || "",
-                price:
-                    Number(data.price) ||
-                    0,
-                description:
-                    data.description ||
-                    "",
-                image:
-                    data.imageUrl ||
-                    data.image ||
-                    "",
-                items:
-                    Array.isArray(data.items)
-                        ? data.items
-                        : []
-            };
-        });
-}
-
-async function loadInsurance() {
-    const snapshot =
-        await getDocs(
-            collection(
-                db,
-                "insurances"
-            )
-        );
-
-    insurances =
-        snapshot.docs.map(item => {
-            const data =
-                item.data();
-
-            return {
-                id: item.id,
-                type: "insurance",
-                name: data.name || "",
-                sku: data.sku || "",
-                price:
-                    Number(data.price) ||
-                    0,
-                description:
-                    data.description ||
-                    "",
-                status:
-                    String(
-                        data.status ||
-                        "active"
-                    )
-                        .trim()
-                        .toLowerCase(),
-                image:
-                    data.imageUrl ||
-                    data.image ||
-                    "",
-                imageUrl:
-                    data.imageUrl ||
-                    data.image ||
-                    "",
-                imagePublicId:
-                    data.imagePublicId ||
-                    ""
-            };
-        });
-}
-
-async function loadPOSData() {
-    try {
-        await Promise.all([
-            loadProducts(),
-            loadPackages(),
-            loadInsurance()
-        ]);
-
-        buildCategories();
-        renderProducts();
-    } catch (error) {
-        console.error(
-            "POS Firebase Error:",
-            error
-        );
-
-        emptyProducts.classList.add(
-            "show"
-        );
-
-        const title =
-            emptyProducts.querySelector(
-                "h3"
-            );
-
-        const message =
-            emptyProducts.querySelector(
-                "p"
-            );
-
-        if (title) {
-            title.textContent =
-                "Unable to load POS items";
-        }
-
-        if (message) {
-            message.textContent =
-                error.message ||
-                "Check your Firebase connection.";
-        }
-    }
+    buildCategories();
+    renderProducts();
 }
 
 function buildCategories() {
-    const categories = [
-        ...new Set(
-            products
-                .map(product =>
-                    product.category
-                )
-                .filter(Boolean)
-        )
-    ].sort(
-        (a, b) =>
-            a.localeCompare(b)
-    );
+    const categories = [...new Set(products.map(product => product.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
-    categoryButtons.innerHTML = "";
+    categoryButtons.innerHTML = '<button type="button" class="category-btn active" data-category="all">All Categories</button>';
 
-    const allButton =
-        document.createElement(
-            "button"
-        );
-
-    allButton.type = "button";
-    allButton.className =
-        "category-btn active";
-
-    allButton.dataset.category =
-        "all";
-
-    allButton.textContent =
-        "All Categories";
-
-    categoryButtons.appendChild(
-        allButton
-    );
-
-    categories.forEach(
-        category => {
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-            button.type = "button";
-            button.className =
-                "category-btn";
-
-            button.dataset.category =
-                category;
-
-            button.textContent =
-                category;
-
-            categoryButtons.appendChild(
-                button
-            );
-        }
-    );
-}
-
-function getPackageAvailability(
-    packageItem
-) {
-    if (
-        !packageItem.items ||
-        packageItem.items.length === 0
-    ) {
-        return 0;
-    }
-
-    const availability =
-        packageItem.items.map(
-            item => {
-                const product =
-                    products.find(
-                        product =>
-                            product.id ===
-                            item.productId
-                    );
-
-                if (!product) {
-                    return 0;
-                }
-
-                const quantity =
-                    Math.max(
-                        1,
-                        Number(
-                            item.quantity
-                        ) || 1
-                    );
-
-                return Math.floor(
-                    product.stock /
-                    quantity
-                );
-            }
-        );
-
-    return Math.max(
-        0,
-        Math.min(...availability)
-    );
-}
-
-function getPackageContents(
-    packageItem
-) {
-    if (
-        !packageItem.items ||
-        packageItem.items.length === 0
-    ) {
-        return "No products";
-    }
-
-    return packageItem.items
-        .map(item => {
-            const product =
-                products.find(
-                    product =>
-                        product.id ===
-                        item.productId
-                );
-
-            if (!product) {
-                return "Missing product";
-            }
-
-            return `${item.quantity} × ${product.name}`;
-        })
-        .join(", ");
+    categories.forEach(category => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "category-btn";
+        button.dataset.category = category;
+        button.textContent = category;
+        categoryButtons.appendChild(button);
+    });
 }
 
 function renderProducts() {
-    const searchInput =
-        document.getElementById(
-            "productSearch"
-        );
-
-    const search =
-        searchInput
-            ? searchInput.value
-                .trim()
-                .toLowerCase()
-            : "";
+    const search = (document.getElementById("productSearch")?.value || "").trim().toLowerCase();
 
     let items = [];
 
-    if (
-        selectedType === "all" ||
-        selectedType === "product"
-    ) {
-        products.forEach(
-            product => {
-                items.push({
-                    ...product
-                });
-            }
+    if (selectedType === "all" || selectedType === "product") items.push(...products);
+    if (selectedType === "all" || selectedType === "package") items.push(...packages);
+    if (selectedType === "all" || selectedType === "insurance") items.push(...insurances.filter(item => item.status === "active"));
+
+    items = items
+        .filter(item =>
+            (item.name || "").toLowerCase().includes(search) ||
+            (item.sku || "").toLowerCase().includes(search)
+        )
+        .filter(item =>
+            item.type !== "product" ||
+            selectedCategory === "all" ||
+            item.category === selectedCategory
         );
-    }
-
-    if (
-        selectedType === "all" ||
-        selectedType === "package"
-    ) {
-        packages.forEach(
-            packageItem => {
-                items.push({
-                    ...packageItem
-                });
-            }
-        );
-    }
-
-    if (
-        selectedType === "all" ||
-        selectedType === "insurance"
-    ) {
-        insurances
-            .filter(
-                insurance =>
-                    insurance.status ===
-                    "active"
-            )
-            .forEach(
-                insurance => {
-                    items.push({
-                        ...insurance
-                    });
-                }
-            );
-    }
-
-    items =
-        items.filter(item => {
-            const matchesSearch =
-                item.name
-                    .toLowerCase()
-                    .includes(search) ||
-                item.sku
-                    .toLowerCase()
-                    .includes(search);
-
-            const matchesCategory =
-                item.type !== "product" ||
-                selectedCategory ===
-                "all" ||
-                item.category ===
-                selectedCategory;
-
-            return (
-                matchesSearch &&
-                matchesCategory
-            );
-        });
 
     productGrid.innerHTML = "";
+    emptyProducts.classList.toggle("show", !items.length);
 
-    if (items.length === 0) {
-        emptyProducts.classList.add(
-            "show"
-        );
-
-        return;
-    }
-
-    emptyProducts.classList.remove(
-        "show"
-    );
-
-    items.forEach(
-        item => {
-            renderPOSCard(item);
-        }
-    );
+    items.forEach(renderProductCard);
 }
 
-function renderPOSCard(item) {
-    const card =
-        document.createElement(
-            "button"
-        );
-
-    card.type = "button";
-    card.className =
-        "product-card";
-
+function renderProductCard(item) {
     let availability = null;
-    let typeLabel = "";
-    let typeClass = "";
+    let stockText = "";
 
     if (item.type === "product") {
-        typeLabel = "PRODUCT";
-        typeClass = "product-type";
         availability = item.stock;
-
-        if (item.stock <= 0) {
-            card.classList.add(
-                "out-of-stock"
-            );
-        }
+        stockText = item.stock <= 0 ? "Out of stock" : `${item.stock} in stock`;
+    } else if (item.type === "package") {
+        availability = getPackageAvailability(item);
+        stockText = availability <= 0 ? "Unavailable" : `${availability} available`;
+    } else {
+        stockText = "Available";
     }
 
-    if (item.type === "package") {
-        typeLabel = "PACKAGE";
-        typeClass = "package-type";
+    const button = document.createElement("button");
 
-        availability =
-            getPackageAvailability(
-                item
-            );
+    button.type = "button";
+    button.className = `product-card${availability !== null && availability <= 0 ? " out-of-stock" : ""}`;
 
-        if (availability <= 0) {
-            card.classList.add(
-                "out-of-stock"
-            );
-        }
-    }
+    const image = item.image
+        ? `<img src="${esc(item.image)}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='▣'">`
+        : `<div class="pos-card-icon">▣</div>`;
 
-    if (item.type === "insurance") {
-        typeLabel = "INSURANCE";
-        typeClass =
-            "insurance-type";
-    }
-
-    let imageHTML =
-        `<div class="pos-card-icon">▣</div>`;
-
-    if (item.image) {
-        imageHTML = `
-            <img
-                src="${escapeHTML(item.image)}"
-                alt="${escapeHTML(item.name)}"
-                loading="lazy"
-                onerror="this.style.display='none';this.parentElement.innerHTML='<div class=&quot;pos-card-icon&quot;>▣</div>';"
-            >
-        `;
-    }
-
-    let availabilityHTML = "";
-
-    if (item.type === "product") {
-        availabilityHTML = `
-            <span class="product-stock ${item.stock <= 0
-                ? "out"
-                : item.stock <= item.lowStock
-                    ? "low"
-                    : ""
-            }">
-                ${item.stock <= 0
-                ? "Out of stock"
-                : `${item.stock} in stock`
-            }
-            </span>
-        `;
-    }
-
-    if (item.type === "package") {
-        availabilityHTML = `
-            <span class="product-stock ${availability <= 0
-                ? "out"
-                : availability <= 5
-                    ? "low"
-                    : ""
-            }">
-                ${availability <= 0
-                ? "Unavailable"
-                : `${availability} package${availability === 1
-                    ? ""
-                    : "s"
-                } available`
-            }
-            </span>
-        `;
-    }
-
-    if (item.type === "insurance") {
-        availabilityHTML = `
-            <span class="product-stock insurance-stock">
-                No stock required
-            </span>
-        `;
-    }
-
-    const contents =
-        item.type === "package"
-            ? `
-                <div class="package-contents">
-                    ${escapeHTML(
-                getPackageContents(
-                    item
-                )
-            )}
-                </div>
-            `
-            : "";
-
-    card.innerHTML = `
-        <div class="product-image">
-            ${imageHTML}
-        </div>
-
-        <span class="pos-item-type ${typeClass}">
-            ${typeLabel}
-        </span>
-
-        <div class="product-card-name">
-            ${escapeHTML(item.name)}
-        </div>
-
-        <div class="product-card-sku">
-            ${escapeHTML(item.sku)}
-        </div>
-
-        ${contents}
-
+    button.innerHTML = `
+        <div class="product-image">${image}</div>
+        <span class="pos-item-type ${item.type}-type">${item.type.toUpperCase()}</span>
+        <div class="product-card-name">${esc(item.name)}</div>
+        <div class="product-card-sku">${esc(item.sku)}</div>
+        ${item.type === "package" ? `<div class="package-contents">${esc(getPackageContents(item))}</div>` : ""}
         <div class="product-card-bottom">
-            <span class="product-price">
-                ${formatMoney(item.price)}
-            </span>
-
-            ${availabilityHTML}
+            <span class="product-price">${money(item.price)}</span>
+            <span class="product-stock ${availability !== null && availability <= 0 ? "out" : availability !== null && availability <= 5 ? "low" : ""}">${stockText}</span>
         </div>
     `;
 
-    card.addEventListener(
-        "click",
-        () => {
-            addItemToCart(item);
-        }
-    );
-
-    productGrid.appendChild(
-        card
-    );
+    button.addEventListener("click", () => addToCart(item));
+    productGrid.appendChild(button);
 }
 
-function addItemToCart(item) {
-    if (
-        item.type === "product" &&
-        item.stock <= 0
-    ) {
-        alert(
-            "This product is out of stock."
-        );
-
+function addToCart(item) {
+    if (item.type === "product" && item.stock <= 0) {
+        alert("This product is out of stock.");
         return;
     }
 
-    if (item.type === "package") {
-        const available =
-            getPackageAvailability(
-                item
-            );
-
-        if (available <= 0) {
-            alert(
-                "This package is currently unavailable."
-            );
-
-            return;
-        }
-    }
-
-    if (
-        item.type === "insurance" &&
-        item.status !== "active"
-    ) {
-        alert(
-            "This insurance option is inactive."
-        );
-
+    if (item.type === "package" && getPackageAvailability(item) <= 0) {
+        alert("This package is currently unavailable.");
         return;
     }
 
-    const existing =
-        cart.find(
-            cartItem =>
-                cartItem.itemId ===
-                item.id &&
-                cartItem.type ===
-                item.type
-        );
+    if (item.type === "insurance" && item.status !== "active") {
+        alert("This insurance option is inactive.");
+        return;
+    }
+
+    const existing = cart.find(cartItem => cartItem.itemId === item.id && cartItem.type === item.type);
 
     if (existing) {
-        if (
-            item.type === "product" &&
-            existing.quantity >=
-            item.stock
-        ) {
-            alert(
-                `Only ${item.stock} units are available.`
-            );
-
+        if (item.type === "product" && existing.quantity >= item.stock) {
+            alert(`Only ${item.stock} units are available.`);
             return;
         }
 
-        if (
-            item.type === "package" &&
-            existing.quantity >=
-            getPackageAvailability(
-                item
-            )
-        ) {
-            alert(
-                "There are not enough products to create another package."
-            );
-
+        if (item.type === "package" && existing.quantity >= getPackageAvailability(item)) {
+            alert("There are not enough component products for another package.");
             return;
         }
 
@@ -893,1677 +256,635 @@ function addItemToCart(item) {
             name: item.name,
             sku: item.sku,
             price: item.price,
-            image: item.image || ""
+            image: item.image
         });
     }
 
     renderCart();
 }
 
-function getCartItemData(
-    cartItem
-) {
-    if (
-        cartItem.type ===
-        "product"
-    ) {
-        return products.find(
-            product =>
-                product.id ===
-                cartItem.itemId
-        );
-    }
-
-    if (
-        cartItem.type ===
-        "package"
-    ) {
-        return packages.find(
-            packageItem =>
-                packageItem.id ===
-                cartItem.itemId
-        );
-    }
-
-    if (
-        cartItem.type ===
-        "insurance"
-    ) {
-        return insurances.find(
-            insurance =>
-                insurance.id ===
-                cartItem.itemId
-        );
-    }
-
-    return null;
-}
-
 function renderCart() {
-    const currentDiscount =
-        getDiscount();
-
     cartItems.innerHTML = "";
+    emptyCart.classList.toggle("show", cart.length === 0);
 
-    if (cart.length === 0) {
-        cartItems.appendChild(
-            emptyCart
-        );
-
-        emptyCart.style.display =
-            "block";
+    if (!cart.length) {
+        cartItems.appendChild(emptyCart);
     } else {
-        emptyCart.style.display =
-            "none";
+        cart.forEach(item => {
+            const data = getItemData(item);
+            if (!data) return;
 
-        cart.forEach(
-            cartItem => {
-                const item =
-                    getCartItemData(
-                        cartItem
-                    );
+            const element = document.createElement("div");
+            element.className = "cart-item";
 
-                if (!item) {
-                    return;
-                }
-
-                const itemTotal =
-                    item.price *
-                    cartItem.quantity;
-
-                const element =
-                    document.createElement(
-                        "div"
-                    );
-
-                element.className =
-                    "cart-item";
-
-                const typeLabel =
-                    cartItem.type ===
-                        "package"
-                        ? "Package"
-                        : cartItem.type ===
-                            "insurance"
-                            ? "Insurance"
-                            : "Product";
-
-                element.innerHTML = `
-                    <div class="cart-item-image">
-                        ${item.image
-                        ? `
-                                    <img
-                                        src="${escapeHTML(item.image)}"
-                                        alt="${escapeHTML(item.name)}"
-                                        loading="lazy"
-                                        onerror="this.style.display='none';this.parentElement.textContent='▣';"
-                                    >
-                                `
-                        : "▣"
-                    }
+            element.innerHTML = `
+                <div class="cart-item-image">
+                    ${data.image ? `<img src="${esc(data.image)}" alt="${esc(data.name)}">` : "▣"}
+                </div>
+                <div class="cart-item-details">
+                    <div class="cart-item-name">${esc(data.name)}</div>
+                    <div class="cart-item-price">${item.type} · ${money(data.price)} each</div>
+                    <div class="cart-item-controls">
+                        <button type="button" class="quantity-btn" data-action="decrease" data-id="${data.id}" data-type="${item.type}">−</button>
+                        <span class="quantity">${item.quantity}</span>
+                        <button type="button" class="quantity-btn" data-action="increase" data-id="${data.id}" data-type="${item.type}">+</button>
+                        <button type="button" class="remove-item" data-action="remove" data-id="${data.id}" data-type="${item.type}">×</button>
                     </div>
+                </div>
+                <div class="cart-item-total">${money(data.price * item.quantity)}</div>
+            `;
 
-                    <div class="cart-item-details">
-                        <div class="cart-item-name">
-                            ${escapeHTML(item.name)}
-                        </div>
-
-                        <div class="cart-item-price">
-                            ${typeLabel}
-                            ·
-                            ${formatMoney(item.price)}
-                            each
-                        </div>
-
-                        <div class="cart-item-controls">
-                            <button
-                                type="button"
-                                class="quantity-btn"
-                                data-action="decrease"
-                                data-id="${item.id}"
-                                data-type="${cartItem.type}"
-                            >
-                                −
-                            </button>
-
-                            <span class="quantity">
-                                ${cartItem.quantity}
-                            </span>
-
-                            <button
-                                type="button"
-                                class="quantity-btn"
-                                data-action="increase"
-                                data-id="${item.id}"
-                                data-type="${cartItem.type}"
-                            >
-                                +
-                            </button>
-
-                            <button
-                                type="button"
-                                class="remove-item"
-                                data-action="remove"
-                                data-id="${item.id}"
-                                data-type="${cartItem.type}"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="cart-item-total">
-                        ${formatMoney(itemTotal)}
-                    </div>
-                `;
-
-                cartItems.appendChild(
-                    element
-                );
-            }
-        );
+            cartItems.appendChild(element);
+        });
     }
-
-    setDiscount(
-        currentDiscount
-    );
 
     updateTotals();
 }
 
-cartItems.addEventListener(
-    "click",
-    event => {
-        const button =
-            event.target.closest(
-                "button[data-action]"
-            );
-
-        if (!button) {
-            return;
-        }
-
-        const itemId =
-            button.dataset.id;
-
-        const type =
-            button.dataset.type;
-
-        const action =
-            button.dataset.action;
-
-        const cartItem =
-            cart.find(
-                item =>
-                    item.itemId ===
-                    itemId &&
-                    item.type ===
-                    type
-            );
-
-        if (!cartItem) {
-            return;
-        }
-
-        const item =
-            getCartItemData(
-                cartItem
-            );
-
-        if (!item) {
-            return;
-        }
-
-        if (action === "increase") {
-            if (
-                type === "product" &&
-                cartItem.quantity >=
-                item.stock
-            ) {
-                alert(
-                    `Only ${item.stock} units are available.`
-                );
-
-                return;
-            }
-
-            if (
-                type === "package" &&
-                cartItem.quantity >=
-                getPackageAvailability(
-                    item
-                )
-            ) {
-                alert(
-                    "There are not enough component products for another package."
-                );
-
-                return;
-            }
-
-            cartItem.quantity++;
-        }
-
-        if (action === "decrease") {
-            cartItem.quantity--;
-
-            if (
-                cartItem.quantity <= 0
-            ) {
-                cart =
-                    cart.filter(
-                        item =>
-                            !(
-                                item.itemId ===
-                                itemId &&
-                                item.type ===
-                                type
-                            )
-                    );
-            }
-        }
-
-        if (action === "remove") {
-            cart =
-                cart.filter(
-                    item =>
-                        !(
-                            item.itemId ===
-                            itemId &&
-                            item.type ===
-                            type
-                        )
-                );
-        }
-
-        renderCart();
-    }
-);
-
 function updateTotals() {
-    let subtotal =
-        getSubtotal();
+    const subtotalAmount = subtotal();
+    const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const finalTotal = Math.max(0, subtotalAmount - discount());
 
-    let itemCount = 0;
-
-    cart.forEach(
-        cartItem => {
-            itemCount +=
-                cartItem.quantity;
-        }
-    );
-
-    let discount =
-        sanitizeIntegerDiscount(
-            getDiscountElement()
-                ?.value || 0
-        );
-
-    if (discount > subtotal) {
-        discount =
-            Math.floor(subtotal);
-    }
-
-    if (getDiscountElement()) {
-        getDiscountElement().value =
-            discount;
-    }
-
-    const paymentField =
-        getPaymentDiscountElement();
-
-    if (paymentField) {
-        paymentField.value =
-            discount;
-    }
-
-    const total =
-        Math.max(
-            0,
-            subtotal - discount
-        );
-
-    document.getElementById(
-        "cartItemCount"
-    ).textContent =
-        `${itemCount} ${itemCount === 1
-            ? "item"
-            : "items"
-        }`;
-
-    document.getElementById(
-        "subtotal"
-    ).textContent =
-        formatMoney(subtotal);
-
-    document.getElementById(
-        "discountTotal"
-    ).textContent =
-        `-${formatMoney(discount)}`;
-
-    document.getElementById(
-        "total"
-    ).textContent =
-        formatMoney(total);
-
-    document.getElementById(
-        "checkoutButton"
-    ).disabled =
-        cart.length === 0;
+    document.getElementById("cartItemCount").textContent = `${itemCount} ${itemCount === 1 ? "item" : "items"}`;
+    document.getElementById("subtotal").textContent = money(subtotalAmount);
+    document.getElementById("total").textContent = money(finalTotal);
+    document.getElementById("checkoutButton").disabled = !cart.length;
 }
 
-document
-    .getElementById(
-        "productSearch"
-    )
-    .addEventListener(
-        "input",
-        renderProducts
+cartItems.addEventListener("click", event => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const item = cart.find(cartItem =>
+        cartItem.itemId === button.dataset.id &&
+        cartItem.type === button.dataset.type
     );
 
-document
-    .getElementById(
-        "globalSearch"
-    )
-    .addEventListener(
-        "input",
-        event => {
-            document.getElementById(
-                "productSearch"
-            ).value =
-                event.target.value;
+    if (!item) return;
 
-            renderProducts();
-        }
-    );
+    const data = getItemData(item);
 
-const posTypeTabs =
-    document.getElementById(
-        "posTypeTabs"
-    );
-
-if (posTypeTabs) {
-    posTypeTabs.addEventListener(
-        "click",
-        event => {
-            const button =
-                event.target.closest(
-                    ".pos-type-tab"
-                );
-
-            if (!button) {
-                return;
-            }
-
-            document
-                .querySelectorAll(
-                    ".pos-type-tab"
-                )
-                .forEach(
-                    tab =>
-                        tab.classList.remove(
-                            "active"
-                        )
-                );
-
-            button.classList.add(
-                "active"
-            );
-
-            selectedType =
-                button.dataset.type;
-
-            if (
-                selectedType !==
-                "product"
-            ) {
-                selectedCategory =
-                    "all";
-
-                document
-                    .querySelectorAll(
-                        ".category-btn"
-                    )
-                    .forEach(
-                        button =>
-                            button.classList.remove(
-                                "active"
-                            )
-                    );
-
-                document
-                    .querySelector(
-                        '.category-btn[data-category="all"]'
-                    )
-                    ?.classList.add(
-                        "active"
-                    );
-            }
-
-            renderProducts();
-        }
-    );
-}
-
-categoryButtons.addEventListener(
-    "click",
-    event => {
-        const button =
-            event.target.closest(
-                ".category-btn"
-            );
-
-        if (!button) {
+    if (button.dataset.action === "increase") {
+        if (item.type === "product" && item.quantity >= data.stock) {
+            alert(`Only ${data.stock} units are available.`);
             return;
         }
 
-        document
-            .querySelectorAll(
-                ".category-btn"
-            )
-            .forEach(
-                btn =>
-                    btn.classList.remove(
-                        "active"
-                    )
-            );
-
-        button.classList.add(
-            "active"
-        );
-
-        selectedCategory =
-            button.dataset.category;
-
-        if (
-            selectedCategory !==
-            "all"
-        ) {
-            selectedType =
-                "product";
+        if (item.type === "package" && item.quantity >= getPackageAvailability(data)) {
+            alert("There are not enough component products for another package.");
+            return;
         }
 
-        const activeTab =
-            document.querySelector(
-                `.pos-type-tab[data-type="${selectedType}"]`
-            );
+        item.quantity++;
+    } else if (button.dataset.action === "decrease") {
+        item.quantity--;
 
-        if (activeTab) {
-            document
-                .querySelectorAll(
-                    ".pos-type-tab"
-                )
-                .forEach(
-                    tab =>
-                        tab.classList.remove(
-                            "active"
-                        )
-                );
-
-            activeTab.classList.add(
-                "active"
-            );
+        if (item.quantity <= 0) {
+            cart = cart.filter(cartItem => cartItem !== item);
         }
-
-        renderProducts();
-    }
-);
-
-const cartDiscount =
-    document.getElementById(
-        "discount"
-    );
-
-if (cartDiscount) {
-    cartDiscount.type = "text";
-    cartDiscount.inputMode =
-        "numeric";
-    cartDiscount.pattern =
-        "[0-9]*";
-    cartDiscount.min = "0";
-    cartDiscount.step = "1";
-
-    cartDiscount.addEventListener(
-        "input",
-        function () {
-            let value =
-                this.value.replace(
-                    /\D/g,
-                    ""
-                );
-
-            const subtotal =
-                getSubtotal();
-
-            if (
-                value !== "" &&
-                Number(value) >
-                subtotal
-            ) {
-                value =
-                    String(
-                        Math.floor(
-                            subtotal
-                        )
-                    );
-            }
-
-            this.value =
-                value;
-
-            updateTotals();
-            updatePaymentAmount();
-            updateChange();
-        }
-    );
-}
-
-function createPaymentDiscountField() {
-    if (
-        document.getElementById(
-            "paymentDiscount"
-        )
-    ) {
-        return;
-    }
-
-    const paymentContent =
-        document.querySelector(
-            "#paymentModal .payment-content"
-        );
-
-    if (!paymentContent) {
-        return;
-    }
-
-    const wrapper =
-        document.createElement(
-            "div"
-        );
-
-    wrapper.className =
-        "payment-discount-field";
-
-    wrapper.innerHTML = `
-        <label for="paymentDiscount">
-            Discount Amount
-        </label>
-
-        <div class="payment-discount-input">
-            <span>₱</span>
-
-            <input
-                type="text"
-                id="paymentDiscount"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                autocomplete="off"
-                value="0"
-                placeholder="0"
-            >
-        </div>
-
-        <small>
-            Enter the discount amount in pesos.
-        </small>
-    `;
-
-    const paymentTotal =
-        document.querySelector(
-            ".payment-total"
-        );
-
-    if (paymentTotal) {
-        paymentTotal.insertAdjacentElement(
-            "afterend",
-            wrapper
-        );
     } else {
-        paymentContent.prepend(
-            wrapper
-        );
+        cart = cart.filter(cartItem => cartItem !== item);
     }
 
-    const input =
-        document.getElementById(
-            "paymentDiscount"
-        );
+    renderCart();
+});
 
-    input.addEventListener(
-        "input",
-        function () {
-            let value =
-                this.value.replace(
-                    /\D/g,
-                    ""
-                );
+document.getElementById("productSearch").addEventListener("input", renderProducts);
 
-            const subtotal =
-                getSubtotal();
+document.getElementById("globalSearch").addEventListener("input", event => {
+    document.getElementById("productSearch").value = event.target.value;
+    renderProducts();
+});
 
-            if (
-                value !== "" &&
-                Number(value) >
-                subtotal
-            ) {
-                value =
-                    String(
-                        Math.floor(
-                            subtotal
-                        )
-                    );
-            }
+document.getElementById("posTypeTabs").addEventListener("click", event => {
+    const button = event.target.closest(".pos-type-tab");
+    if (!button) return;
 
-            this.value =
-                value;
+    document.querySelectorAll(".pos-type-tab").forEach(item => item.classList.remove("active"));
+    button.classList.add("active");
 
-            setDiscount(
-                value
-            );
+    selectedType = button.dataset.type;
 
-            updateTotals();
-            updatePaymentAmount();
-            updateChange();
+    if (selectedType !== "product") {
+        selectedCategory = "all";
+    }
+
+    document.querySelectorAll(".category-btn").forEach(item => {
+        item.classList.toggle("active", item.dataset.category === selectedCategory);
+    });
+
+    renderProducts();
+});
+
+categoryButtons.addEventListener("click", event => {
+    const button = event.target.closest(".category-btn");
+    if (!button) return;
+
+    document.querySelectorAll(".category-btn").forEach(item => item.classList.remove("active"));
+    button.classList.add("active");
+
+    selectedCategory = button.dataset.category;
+
+    if (selectedCategory !== "all") {
+        selectedType = "product";
+    }
+
+    document.querySelectorAll(".pos-type-tab").forEach(item => {
+        item.classList.toggle("active", item.dataset.type === selectedType);
+    });
+
+    renderProducts();
+});
+
+function bindDiscount() {
+    const input = discountInput();
+
+    if (!input || input.dataset.bound) return;
+
+    input.dataset.bound = "1";
+
+    input.addEventListener("input", () => {
+        let value = input.value.replace(/\D/g, "");
+
+        if (Number(value) > subtotal()) {
+            value = String(Math.floor(subtotal()));
         }
-    );
+
+        input.value = value;
+        updateTotals();
+        updatePayment();
+    });
 }
 
-function updatePaymentAmount() {
-    const paymentTotal =
-        document.getElementById(
-            "paymentTotal"
-        );
+function resetSplit() {
+    splitPayments = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0
+    };
 
-    if (paymentTotal) {
-        paymentTotal.textContent =
-            formatMoney(
-                getCartTotal()
-            );
-    }
+    ["splitCash", "splitGCash", "splitBDO", "splitBIBO"].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = "";
+    });
+
+    updateSplit();
 }
 
-function updateChange() {
-    const changeElement =
-        document.getElementById(
-            "changeAmount"
-        );
+function splitTotal() {
+    return Object.values(splitPayments).reduce((sum, value) => sum + Number(value || 0), 0);
+}
 
-    if (!changeElement) {
+function updateSplit() {
+    const amountDue = total();
+    const amountPaid = splitTotal();
+
+    document.getElementById("splitTotalPaid").textContent = money(amountPaid);
+    document.getElementById("splitRemaining").textContent = money(Math.max(0, amountDue - amountPaid));
+    document.getElementById("changeAmount").textContent = money(Math.max(0, amountPaid - amountDue));
+}
+
+function updatePayment() {
+    document.getElementById("paymentTotal").textContent = money(total());
+
+    if (selectedPaymentMethod === "Split") {
+        updateSplit();
         return;
     }
 
-    const total =
-        getCartTotal();
-
-    if (
-        selectedPaymentMethod !==
-        "Cash"
-    ) {
-        changeElement.textContent =
-            formatMoney(0);
-
-        return;
+    if (selectedPaymentMethod === "Cash") {
+        const cash = Number(document.getElementById("cashReceived").value) || 0;
+        document.getElementById("changeAmount").textContent = money(Math.max(0, cash - total()));
+    } else {
+        document.getElementById("changeAmount").textContent = money(0);
     }
-
-    const cash =
-        Number(
-            document.getElementById(
-                "cashReceived"
-            )?.value
-        ) || 0;
-
-    changeElement.textContent =
-        formatMoney(
-            Math.max(
-                0,
-                cash - total
-            )
-        );
 }
-
-document
-    .getElementById(
-        "clearCart"
-    )
-    .addEventListener(
-        "click",
-        () => {
-            if (
-                cart.length === 0
-            ) {
-                return;
-            }
-
-            if (
-                confirm(
-                    "Clear all items from the cart?"
-                )
-            ) {
-                cart = [];
-
-                setDiscount(0);
-
-                renderCart();
-            }
-        }
-    );
-
-document
-    .getElementById(
-        "checkoutButton"
-    )
-    .addEventListener(
-        "click",
-        openPayment
-    );
 
 function openPayment() {
-    createPaymentDiscountField();
+    bindDiscount();
 
-    const subtotal =
-        getSubtotal();
+    if (!cart.length) return;
 
-    if (subtotal <= 0) {
-        return;
-    }
+    document.getElementById("paymentDiscount").value = discount();
+    document.getElementById("cashReceived").value = "";
+    document.getElementById("paymentError").textContent = "";
 
-    setDiscount(
-        getDiscount()
-    );
+    selectedPaymentMethod = "Cash";
 
-    const total =
-        getCartTotal();
+    resetSplit();
 
-    document.getElementById(
-        "paymentTotal"
-    ).textContent =
-        formatMoney(total);
+    document.querySelectorAll(".payment-method").forEach(button => {
+        button.classList.toggle("active", button.dataset.method === "Cash");
+    });
 
-    document.getElementById(
-        "cashReceived"
-    ).value = "";
+    document.getElementById("cashField").style.display = "block";
+    document.getElementById("splitPaymentFields").style.display = "none";
 
-    document.getElementById(
-        "changeAmount"
-    ).textContent =
-        formatMoney(0);
+    updatePayment();
 
-    document.getElementById(
-        "paymentError"
-    ).textContent = "";
-
-    const paymentDiscount =
-        document.getElementById(
-            "paymentDiscount"
-        );
-
-    if (paymentDiscount) {
-        paymentDiscount.value =
-            getDiscount();
-    }
-
-    selectedPaymentMethod =
-        "Cash";
-
-    document
-        .querySelectorAll(
-            ".payment-method"
-        )
-        .forEach(
-            button => {
-                button.classList.toggle(
-                    "active",
-                    button.dataset.method ===
-                    "Cash"
-                );
-            }
-        );
-
-    document.getElementById(
-        "cashField"
-    ).style.display =
-        "block";
-
-    paymentModal.classList.add(
-        "show"
-    );
+    paymentModal.classList.add("show");
 }
 
-function getCartTotal() {
-    const subtotal =
-        getSubtotal();
+document.getElementById("checkoutButton").addEventListener("click", openPayment);
 
-    const discount =
-        Math.min(
-            getDiscount(),
-            subtotal
-        );
+document.querySelectorAll(".payment-method").forEach(button => {
+    button.addEventListener("click", () => {
+        document.querySelectorAll(".payment-method").forEach(item => item.classList.remove("active"));
 
-    return Math.max(
-        0,
-        subtotal - discount
-    );
-}
+        button.classList.add("active");
 
-document
-    .querySelectorAll(
-        ".payment-method"
-    )
-    .forEach(
-        button => {
-            button.addEventListener(
-                "click",
-                function () {
-                    document
-                        .querySelectorAll(
-                            ".payment-method"
-                        )
-                        .forEach(
-                            btn =>
-                                btn.classList.remove(
-                                    "active"
-                                )
-                        );
+        selectedPaymentMethod = button.dataset.method;
 
-                    this.classList.add(
-                        "active"
-                    );
+        document.getElementById("cashField").style.display = selectedPaymentMethod === "Cash" ? "block" : "none";
+        document.getElementById("splitPaymentFields").style.display = selectedPaymentMethod === "Split" ? "block" : "none";
 
-                    selectedPaymentMethod =
-                        this.dataset.method;
+        document.getElementById("paymentError").textContent = "";
 
-                    const cashField =
-                        document.getElementById(
-                            "cashField"
-                        );
+        updatePayment();
+    });
+});
 
-                    if (
-                        selectedPaymentMethod ===
-                        "Cash"
-                    ) {
-                        cashField.style.display =
-                            "block";
-                    } else {
-                        cashField.style.display =
-                            "none";
+document.getElementById("cashReceived").addEventListener("input", event => {
+    event.target.value = event.target.value.replace(/[^\d.]/g, "");
+    updatePayment();
+});
 
-                        document.getElementById(
-                            "changeAmount"
-                        ).textContent =
-                            formatMoney(0);
-                    }
-                }
+[
+    ["splitCash", "Cash"],
+    ["splitGCash", "GCash"],
+    ["splitBDO", "BDO"],
+    ["splitBIBO", "BIBO"]
+].forEach(([id, method]) => {
+    document.getElementById(id).addEventListener("input", event => {
+        event.target.value = event.target.value.replace(/[^\d.]/g, "");
+        splitPayments[method] = Number(event.target.value) || 0;
+        updateSplit();
+    });
+});
+
+document.getElementById("clearCart").addEventListener("click", () => {
+    if (cart.length && confirm("Clear all items from the cart?")) {
+        cart = [];
+        renderCart();
+    }
+});
+
+function inventoryRequirements() {
+    const requirements = new Map();
+
+    cart.forEach(item => {
+        if (item.type === "product") {
+            requirements.set(
+                item.itemId,
+                (requirements.get(item.itemId) || 0) + item.quantity
             );
         }
-    );
 
-document
-    .getElementById(
-        "cashReceived"
-    )
-    .addEventListener(
-        "input",
-        function () {
-            this.value =
-                this.value.replace(
-                    /[^\d.]/g,
-                    ""
-                );
+        if (item.type === "package") {
+            const pkg = getItemData(item);
 
-            updateChange();
-        }
-    );
-
-function calculateInventoryRequirements() {
-    const requirements =
-        new Map();
-
-    cart.forEach(
-        cartItem => {
-            if (
-                cartItem.type ===
-                "product"
-            ) {
-                const current =
-                    requirements.get(
-                        cartItem.itemId
-                    ) || 0;
-
+            pkg.items.forEach(packageItem => {
                 requirements.set(
-                    cartItem.itemId,
-                    current +
-                    cartItem.quantity
+                    packageItem.productId,
+                    (requirements.get(packageItem.productId) || 0) +
+                    ((Number(packageItem.quantity) || 1) * item.quantity)
                 );
-            }
-
-            if (
-                cartItem.type ===
-                "package"
-            ) {
-                const packageItem =
-                    packages.find(
-                        packageItem =>
-                            packageItem.id ===
-                            cartItem.itemId
-                    );
-
-                if (!packageItem) {
-                    return;
-                }
-
-                packageItem.items.forEach(
-                    component => {
-                        const quantity =
-                            Number(
-                                component.quantity
-                            ) || 0;
-
-                        const current =
-                            requirements.get(
-                                component.productId
-                            ) || 0;
-
-                        requirements.set(
-                            component.productId,
-                            current +
-                            quantity *
-                            cartItem.quantity
-                        );
-                    }
-                );
-            }
+            });
         }
-    );
+    });
 
     return requirements;
 }
 
 function validateInventory() {
-    const requirements =
-        calculateInventoryRequirements();
-
-    for (
-        const [
-            productId,
-            requiredQuantity
-        ] of requirements
-    ) {
-        const product =
-            products.find(
-                item =>
-                    item.id ===
-                    productId
-            );
+    for (const [id, quantity] of inventoryRequirements()) {
+        const product = products.find(item => item.id === id);
 
         if (!product) {
             return {
                 valid: false,
-                message:
-                    "A product required by this sale no longer exists."
+                message: "A product required by this sale no longer exists."
             };
         }
 
-        if (
-            product.stock <
-            requiredQuantity
-        ) {
+        if (product.stock < quantity) {
             return {
                 valid: false,
-                message:
-                    `${product.name} only has ${product.stock} in stock, but ${requiredQuantity} is required.`
+                message: `${product.name} only has ${product.stock} in stock, but ${quantity} is required.`
             };
         }
     }
 
-    return {
-        valid: true
-    };
+    return { valid: true };
 }
 
-document
-    .getElementById(
-        "completePayment"
-    )
-    .addEventListener(
-        "click",
-        completeSale
-    );
-
 async function completeSale() {
-    const total =
-        getCartTotal();
+    if (!cart.length) return;
 
-    if (
-        cart.length === 0
-    ) {
-        return;
-    }
+    const amountDue = total();
+    const subtotalAmount = subtotal();
+    const discountAmount = discount();
+    const cash = Number(document.getElementById("cashReceived").value) || 0;
 
-    const subtotal =
-        getSubtotal();
-
-    const discount =
-        Math.min(
-            getDiscount(),
-            subtotal
-        );
-
-    const cash =
-        Number(
-            document.getElementById(
-                "cashReceived"
-            ).value
-        ) || 0;
-
+    let amountPaid = amountDue;
     let change = 0;
 
-    if (
-        selectedPaymentMethod ===
-        "Cash"
-    ) {
-        if (cash < total) {
-            document.getElementById(
-                "paymentError"
-            ).textContent =
-                `Insufficient payment. Amount due is ${formatMoney(total)}.`;
-
+    if (selectedPaymentMethod === "Cash") {
+        if (cash < amountDue) {
+            document.getElementById("paymentError").textContent = `Insufficient payment. Amount due is ${money(amountDue)}.`;
             return;
         }
 
-        change =
-            cash - total;
+        amountPaid = cash;
+        change = cash - amountDue;
+    } else if (selectedPaymentMethod === "Split") {
+        amountPaid = splitTotal();
+
+        if (amountPaid < amountDue) {
+            document.getElementById("paymentError").textContent = `Insufficient split payment. Remaining amount is ${money(amountDue - amountPaid)}.`;
+            return;
+        }
+
+        change = amountPaid - amountDue;
     }
 
-    const inventory =
-        validateInventory();
+    const inventoryCheck = validateInventory();
 
-    if (!inventory.valid) {
-        document.getElementById(
-            "paymentError"
-        ).textContent =
-            inventory.message;
-
+    if (!inventoryCheck.valid) {
+        document.getElementById("paymentError").textContent = inventoryCheck.message;
         return;
     }
 
-    const button =
-        document.getElementById(
-            "completePayment"
-        );
+    const button = document.getElementById("completePayment");
+
+    button.disabled = true;
+    button.textContent = "Processing...";
 
     try {
-        button.disabled = true;
-        button.textContent =
-            "Processing...";
+        const transactionNumber = document.getElementById("transactionNumber").textContent;
+        const customer = document.getElementById("customerName").value.trim() || "Walk-in Customer";
+        const batch = writeBatch(db);
+        const requirements = inventoryRequirements();
 
-        const transactionNumber =
-            document.getElementById(
-                "transactionNumber"
-            ).textContent;
-
-        const customer =
-            document.getElementById(
-                "customerName"
-            ).value.trim() ||
-            "Walk-in Customer";
-
-        const batch =
-            writeBatch(db);
-
-        const requirements =
-            calculateInventoryRequirements();
-
-        for (
-            const [
-                productId,
-                requiredQuantity
-            ] of requirements
-        ) {
-            const productRef =
-                doc(
-                    db,
-                    "products",
-                    productId
-                );
-
-            const product =
-                products.find(
-                    item =>
-                        item.id ===
-                        productId
-                );
-
-            if (!product) {
-                throw new Error(
-                    "A product required by this sale could not be found."
-                );
-            }
+        for (const [id, quantity] of requirements) {
+            const product = products.find(item => item.id === id);
 
             batch.update(
-                productRef,
+                doc(db, "products", id),
                 {
-                    stock:
-                        product.stock -
-                        requiredQuantity,
-
-                    updatedAt:
-                        serverTimestamp()
+                    stock: product.stock - quantity,
+                    updatedAt: serverTimestamp()
                 }
             );
         }
 
-        const saleItems =
-            cart.map(
-                cartItem => {
-                    const item =
-                        getCartItemData(
-                            cartItem
-                        );
+        const saleItems = cart.map(item => {
+            const data = getItemData(item);
 
-                    return {
-                        itemId:
-                            cartItem.itemId,
+            return {
+                itemId: item.itemId,
+                type: item.type,
+                name: data?.name || item.name,
+                sku: data?.sku || item.sku,
+                price: Number(data?.price ?? item.price),
+                quantity: item.quantity,
+                total: Number(data?.price ?? item.price) * item.quantity,
+                image: data?.image || item.image || ""
+            };
+        });
 
-                        type:
-                            cartItem.type,
-
-                        name:
-                            item?.name ||
-                            cartItem.name,
-
-                        sku:
-                            item?.sku ||
-                            cartItem.sku,
-
-                        price:
-                            Number(
-                                item?.price ??
-                                cartItem.price
-                            ),
-
-                        quantity:
-                            cartItem.quantity,
-
-                        total:
-                            Number(
-                                item?.price ??
-                                cartItem.price
-                            ) *
-                            cartItem.quantity,
-
-                        image:
-                            item?.image ||
-                            cartItem.image ||
-                            ""
-                    };
-                }
-            );
-
-        const saleRef =
-            doc(
-                collection(
-                    db,
-                    "sales"
-                )
-            );
+        const paymentBreakdown = selectedPaymentMethod === "Split"
+            ? {
+                Cash: Number(splitPayments.Cash || 0),
+                GCash: Number(splitPayments.GCash || 0),
+                BDO: Number(splitPayments.BDO || 0),
+                BIBO: Number(splitPayments.BIBO || 0)
+            }
+            : null;
 
         batch.set(
-            saleRef,
+            doc(collection(db, "sales")),
             {
                 transactionNumber,
                 customer,
                 items: saleItems,
-
-                subtotal,
-
-                discount,
-
-                total,
-
-                paymentMethod:
-                    selectedPaymentMethod,
-
-                cashReceived:
-                    selectedPaymentMethod ===
-                        "Cash"
-                        ? cash
+                subtotal: subtotalAmount,
+                discount: discountAmount,
+                total: amountDue,
+                paymentMethod: selectedPaymentMethod === "Split" ? "Split Payment" : selectedPaymentMethod,
+                paymentBreakdown,
+                cashReceived: selectedPaymentMethod === "Cash"
+                    ? cash
+                    : selectedPaymentMethod === "Split"
+                        ? Number(splitPayments.Cash || 0)
                         : null,
-
-                change:
-                    selectedPaymentMethod ===
-                        "Cash"
-                        ? change
-                        : 0,
-
-                cashierId:
-                    currentUser?.uid ||
-                    null,
-
-                cashierEmail:
-                    currentUser?.email ||
-                    null,
-
-                staffName:
-                    currentStaffName,
-
-                cashier:
-                    currentStaffName,
-
-                staffStatus:
-                    currentStaffStatus,
-
-                status:
-                    "Completed",
-
-                createdAt:
-                    serverTimestamp()
+                totalPaid: amountPaid,
+                change,
+                cashierId: currentUser?.uid || null,
+                cashierEmail: currentUser?.email || null,
+                staffName: currentStaffName,
+                cashier: currentStaffName,
+                staffStatus: currentStaffStatus,
+                status: "Completed",
+                createdAt: serverTimestamp()
             }
         );
 
-        const movementRef =
-            doc(
-                collection(
-                    db,
-                    "inventoryMovements"
-                )
-            );
-
         batch.set(
-            movementRef,
+            doc(collection(db, "inventoryMovements")),
             {
                 type: "sale",
-
                 transactionNumber,
-
                 items: saleItems,
-
-                createdBy:
-                    currentUser?.uid ||
-                    null,
-
-                staffName:
-                    currentStaffName,
-
-                staffStatus:
-                    currentStaffStatus,
-
-                createdAt:
-                    serverTimestamp()
+                createdBy: currentUser?.uid || null,
+                staffName: currentStaffName,
+                staffStatus: currentStaffStatus,
+                createdAt: serverTimestamp()
             }
         );
 
         await batch.commit();
 
-        requirements.forEach(
-            (
-                requiredQuantity,
-                productId
-            ) => {
-                const product =
-                    products.find(
-                        item =>
-                            item.id ===
-                            productId
-                    );
-
-                if (product) {
-                    product.stock -=
-                        requiredQuantity;
-                }
-            }
-        );
+        requirements.forEach((quantity, id) => {
+            const product = products.find(item => item.id === id);
+            if (product) product.stock -= quantity;
+        });
 
         generateReceipt(
-            total,
-            discount,
+            amountDue,
+            discountAmount,
             cash,
             change,
             transactionNumber,
             customer,
-            subtotal
+            subtotalAmount,
+            paymentBreakdown,
+            amountPaid
         );
 
-        paymentModal.classList.remove(
-            "show"
-        );
-
-        receiptModal.classList.add(
-            "show"
-        );
+        paymentModal.classList.remove("show");
+        receiptModal.classList.add("show");
 
         cart = [];
 
-        setDiscount(0);
+        document.getElementById("paymentDiscount").value = "0";
+        document.getElementById("customerName").value = "";
+        document.getElementById("transactionNumber").textContent = generateTransactionNumber();
 
-        document.getElementById(
-            "customerName"
-        ).value = "";
-
-        document.getElementById(
-            "transactionNumber"
-        ).textContent =
-            generateTransactionNumber();
-
+        resetSplit();
         renderCart();
         renderProducts();
     } catch (error) {
-        console.error(
-            "Complete Sale Error:",
-            error
-        );
-
-        document.getElementById(
-            "paymentError"
-        ).textContent =
-            error.message ||
-            "Unable to complete sale.";
+        console.error(error);
+        document.getElementById("paymentError").textContent = error.message || "Unable to complete sale.";
     } finally {
         button.disabled = false;
-        button.textContent =
-            "Complete Sale";
+        button.textContent = "Complete Sale";
     }
 }
 
-function generateReceipt(
-    total,
-    discount,
-    cash,
-    change,
-    transactionNumber,
-    customer,
-    subtotal
-) {
-    document.getElementById(
-        "receiptTransaction"
-    ).textContent =
-        transactionNumber;
+document.getElementById("completePayment").addEventListener("click", completeSale);
 
-    document.getElementById(
-        "receiptDate"
-    ).textContent =
-        new Date().toLocaleString(
-            "en-PH",
-            {
-                dateStyle: "medium",
-                timeStyle: "short"
-            }
-        );
+function generateReceipt(amountDue, discountAmount, cash, change, transactionNumber, customer, subtotalAmount, paymentBreakdown, amountPaid) {
+    document.getElementById("receiptTransaction").textContent = transactionNumber;
 
-    document.getElementById(
-        "receiptCustomer"
-    ).textContent =
-        customer;
+    document.getElementById("receiptDate").textContent =
+        new Date().toLocaleString("en-PH", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
 
-    document.getElementById(
-        "receiptSubtotal"
-    ).textContent =
-        formatMoney(subtotal);
+    document.getElementById("receiptCustomer").textContent = customer;
+    document.getElementById("receiptSubtotal").textContent = money(subtotalAmount);
+    document.getElementById("receiptDiscount").textContent = `-${money(discountAmount)}`;
+    document.getElementById("receiptTotal").textContent = money(amountDue);
 
-    document.getElementById(
-        "receiptDiscount"
-    ).textContent =
-        `-${formatMoney(discount)}`;
+    document.getElementById("receiptPayment").textContent =
+        selectedPaymentMethod === "Split"
+            ? "Split Payment"
+            : selectedPaymentMethod;
 
-    document.getElementById(
-        "receiptTotal"
-    ).textContent =
-        formatMoney(total);
+    const cashRow = document.getElementById("receiptCashRow");
+    const splitRow = document.getElementById("receiptSplitRow");
 
-    document.getElementById(
-        "receiptPayment"
-    ).textContent =
-        selectedPaymentMethod;
+    if (selectedPaymentMethod === "Split") {
+        cashRow.style.display = "none";
+        splitRow.style.display = "flex";
 
-    document.getElementById(
-        "receiptCash"
-    ).textContent =
-        selectedPaymentMethod ===
-            "Cash"
-            ? formatMoney(cash)
-            : "N/A";
+        document.getElementById("receiptSplit").textContent =
+            `Cash ${money(paymentBreakdown?.Cash || 0)} | GCash ${money(paymentBreakdown?.GCash || 0)} | BDO ${money(paymentBreakdown?.BDO || 0)} | BIBO ${money(paymentBreakdown?.BIBO || 0)}`;
+    } else {
+        cashRow.style.display = "flex";
+        splitRow.style.display = "none";
 
-    document.getElementById(
-        "receiptChange"
-    ).textContent =
-        selectedPaymentMethod ===
-            "Cash"
-            ? formatMoney(change)
-            : formatMoney(0);
+        document.getElementById("receiptCash").textContent =
+            selectedPaymentMethod === "Cash"
+                ? money(cash)
+                : money(amountPaid);
+    }
 
-    const receiptItems =
-        document.getElementById(
-            "receiptItems"
-        );
+    document.getElementById("receiptChange").textContent = money(change);
+
+    const receiptItems = document.getElementById("receiptItems");
 
     receiptItems.innerHTML = "";
 
-    cart.forEach(
-        cartItem => {
-            const item =
-                getCartItemData(
-                    cartItem
-                );
+    cart.forEach(item => {
+        const data = getItemData(item);
 
-            if (!item) {
-                return;
-            }
+        if (!data) return;
 
-            const itemTotal =
-                item.price *
-                cartItem.quantity;
+        const element = document.createElement("div");
 
-            const row =
-                document.createElement(
-                    "div"
-                );
+        element.className = "receipt-item";
 
-            row.className =
-                "receipt-item";
+        element.innerHTML = `
+            <div>
+                <div class="receipt-item-name">${esc(data.name)}</div>
+                <div class="receipt-item-qty">${item.type.toUpperCase()} · ${item.quantity} × ${money(data.price)}</div>
+            </div>
+            <div class="receipt-item-total">${money(data.price * item.quantity)}</div>
+        `;
 
-            const typeLabel =
-                cartItem.type ===
-                    "package"
-                    ? "PACKAGE"
-                    : cartItem.type ===
-                        "insurance"
-                        ? "INSURANCE"
-                        : "PRODUCT";
-
-            row.innerHTML = `
-                <div>
-                    <div class="receipt-item-name">
-                        ${escapeHTML(item.name)}
-                    </div>
-
-                    <div class="receipt-item-qty">
-                        ${typeLabel}
-                        ·
-                        ${cartItem.quantity}
-                        ×
-                        ${formatMoney(item.price)}
-                    </div>
-                </div>
-
-                <div class="receipt-item-total">
-                    ${formatMoney(itemTotal)}
-                </div>
-            `;
-
-            receiptItems.appendChild(
-                row
-            );
-        }
-    );
+        receiptItems.appendChild(element);
+    });
 }
 
-document
-    .getElementById(
-        "closePayment"
-    )
-    .addEventListener(
-        "click",
-        () => {
-            paymentModal.classList.remove(
-                "show"
-            );
-        }
+document.getElementById("closePayment").addEventListener("click", () => {
+    paymentModal.classList.remove("show");
+});
+
+document.getElementById("closeReceipt").addEventListener("click", () => {
+    receiptModal.classList.remove("show");
+});
+
+document.getElementById("printReceipt").addEventListener("click", () => {
+    const receipt = document.getElementById("receipt").innerHTML;
+
+    const printWindow = window.open(
+        "",
+        "_blank",
+        "width=450,height=700"
     );
 
-document
-    .getElementById(
-        "closeReceipt"
-    )
-    .addEventListener(
-        "click",
-        () => {
-            receiptModal.classList.remove(
-                "show"
-            );
-        }
-    );
-
-document
-    .getElementById(
-        "printReceipt"
-    )
-    .addEventListener(
-        "click",
-        () => {
-            const receipt =
-                document.getElementById(
-                    "receipt"
-                ).innerHTML;
-
-            const printWindow =
-                window.open(
-                    "",
-                    "_blank",
-                    "width=450,height=700"
-                );
-
-            if (!printWindow) {
-                alert(
-                    "Please allow pop-ups to print the receipt."
-                );
-
-                return;
-            }
-
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>
-                        StockMaster Receipt
-                    </title>
-
-                    <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            width: 300px;
-                            margin: 20px auto;
-                            font-size: 12px;
-                        }
-
-                        * {
-                            box-sizing: border-box;
-                        }
-
-                        .receipt {
-                            width: 100%;
-                        }
-
-                        .receipt-brand {
-                            text-align: center;
-                            margin-bottom: 15px;
-                        }
-
-                        .receipt-brand h2 {
-                            margin: 0;
-                        }
-
-                        .receipt-brand p {
-                            margin: 4px 0;
-                        }
-
-                        .receipt-line {
-                            border-top: 1px dashed #777;
-                            margin: 10px 0;
-                        }
-
-                        .receipt-info > div,
-                        .receipt-total > div {
-                            display: flex;
-                            justify-content: space-between;
-                            margin-bottom: 6px;
-                        }
-
-                        .receipt-item {
-                            display: flex;
-                            justify-content: space-between;
-                            margin-bottom: 7px;
-                        }
-
-                        .receipt-item-qty {
-                            color: #666;
-                            font-size: 10px;
-                        }
-
-                        .receipt-grand-total {
-                            border-top: 1px solid #000;
-                            padding-top: 7px;
-                        }
-
-                        .receipt-thankyou {
-                            text-align: center;
-                            margin-top: 15px;
-                        }
-
-                        img {
-                            max-width: 100%;
-                        }
-                    </style>
-                </head>
-
-                <body>
-                    <div class="receipt">
-                        ${receipt}
-                    </div>
-
-                    <script>
-                        window.onload = function () {
-                            window.print();
-                        };
-                    <\/script>
-                </body>
-                </html>
-            `);
-
-            printWindow.document.close();
-        }
-    );
-
-onAuthStateChanged(
-    auth,
-    async user => {
-        if (!user) {
-            console.error(
-                "No authenticated user."
-            );
-
-            return;
-        }
-
-        currentUser = user;
-
-        await loadProfile(
-            user
-        );
-
-        await loadPOSData();
-
-        createPaymentDiscountField();
-
-        renderCart();
+    if (!printWindow) {
+        alert("Please allow pop-ups to print the receipt.");
+        return;
     }
-);
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>StockMaster Receipt</title>
+        <style>
+        body{font-family:Arial,sans-serif;width:300px;margin:20px auto;font-size:12px}
+        *{box-sizing:border-box}
+        .receipt{width:100%}
+        .receipt-brand{text-align:center;margin-bottom:15px}
+        .receipt-brand h2{margin:0}
+        .receipt-brand p{margin:4px 0}
+        .receipt-line{border-top:1px dashed #777;margin:10px 0}
+        .receipt-info>div,.receipt-total>div{display:flex;justify-content:space-between;margin-bottom:6px}
+        .receipt-item{display:flex;justify-content:space-between;margin-bottom:7px}
+        .receipt-item-qty{color:#666;font-size:10px}
+        .receipt-grand-total{border-top:1px solid #000;padding-top:7px}
+        .receipt-thankyou{text-align:center;margin-top:15px}
+        </style>
+        </head>
+        <body>
+        <div class="receipt">${receipt}</div>
+        <script>
+        window.onload=function(){window.print()}
+        <\/script>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+});
+
+onAuthStateChanged(auth, async user => {
+    if (!user) return;
+
+    currentUser = user;
+
+    await loadProfile(user);
+
+    try {
+        await loadData();
+    } catch (error) {
+        console.error(error);
+
+        emptyProducts.classList.add("show");
+
+        emptyProducts.querySelector("h3").textContent = "Unable to load POS items";
+        emptyProducts.querySelector("p").textContent =
+            error.message || "Check your Firebase connection.";
+    }
+
+    bindDiscount();
+    renderCart();
+});

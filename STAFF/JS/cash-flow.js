@@ -1,10 +1,11 @@
 import { auth, db } from "../../Firebase/firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 const cashflowBody = document.getElementById("cashflowBody");
 const cashflowSearch = document.getElementById("cashflowSearch");
 const periodFilter = document.getElementById("periodFilter");
 const typeFilter = document.getElementById("typeFilter");
+const accountFilter = document.getElementById("accountFilter");
 const resetFilters = document.getElementById("resetFilters");
 const refreshCashflow = document.getElementById("refreshCashflow");
 const cashIn = document.getElementById("cashIn");
@@ -29,10 +30,26 @@ const modalDescription = document.getElementById("modalDescription");
 const modalType = document.getElementById("modalType");
 const modalPayment = document.getElementById("modalPayment");
 const modalAmount = document.getElementById("modalAmount");
+const openCashIn = document.getElementById("openCashIn");
+const openCashOut = document.getElementById("openCashOut");
+const cashMovementModal = document.getElementById("cashMovementModal");
+const closeMovementModal = document.getElementById("closeMovementModal");
+const cashMovementForm = document.getElementById("cashMovementForm");
+const movementTitle = document.getElementById("movementTitle");
+const movementSubtitle = document.getElementById("movementSubtitle");
+const movementInButton = document.getElementById("movementInButton");
+const movementOutButton = document.getElementById("movementOutButton");
+const movementAccount = document.getElementById("movementAccount");
+const movementAmount = document.getElementById("movementAmount");
+const movementDescription = document.getElementById("movementDescription");
+const movementError = document.getElementById("movementError");
+const cancelMovement = document.getElementById("cancelMovement");
+const saveMovement = document.getElementById("saveMovement");
 let currentUser = null;
 let records = [];
 let filteredRecords = [];
 let currentPage = 1;
+let movementType = "in";
 const pageSize = 10;
 const money = value => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value) || 0);
 const initials = name => {
@@ -60,7 +77,7 @@ const getType = record => {
     return "in";
 };
 const getDescription = record => String(record.description ?? record.note ?? record.details ?? record.reason ?? "Sale");
-const getPayment = record => String(record.paymentMethod ?? record.payment ?? record.method ?? "—");
+const getPayment = record => String(record.paymentMethod ?? record.payment ?? record.method ?? record.account ?? "—");
 const getReference = record => String(record.transactionId ?? record.transactionNumber ?? record.referenceNumber ?? record.saleId ?? record.id);
 const getUser = record => String(record.userId ?? record.uid ?? record.createdBy ?? record.cashierUid ?? record.staffUid ?? "");
 const showError = error => {
@@ -123,17 +140,20 @@ const applyFilters = () => {
     const search = cashflowSearch.value.trim().toLowerCase();
     const period = periodFilter.value;
     const type = typeFilter.value;
+    const account = accountFilter.value;
     filteredRecords = records.filter(record => {
         const reference = getReference(record).toLowerCase();
         const description = getDescription(record).toLowerCase();
+        const payment = getPayment(record).toLowerCase();
         const date = getDate(record);
-        const matchesSearch = !search || reference.includes(search) || description.includes(search);
+        const matchesSearch = !search || reference.includes(search) || description.includes(search) || payment.includes(search);
         let matchesPeriod = true;
         if (period === "today") matchesPeriod = isToday(date);
         if (period === "week") matchesPeriod = isThisWeek(date);
         if (period === "month") matchesPeriod = isThisMonth(date);
         const matchesType = type === "all" || getType(record) === type;
-        return matchesSearch && matchesPeriod && matchesType;
+        const matchesAccount = account === "all" || getPayment(record).toLowerCase() === account.toLowerCase();
+        return matchesSearch && matchesPeriod && matchesType && matchesAccount;
     });
     currentPage = 1;
     renderTable();
@@ -190,6 +210,89 @@ const openRecord = id => {
     modalAmount.style.color = type === "in" ? "#16803c" : "#d74343";
     cashflowModal.classList.add("show");
 };
+const openMovement = type => {
+    movementType = type;
+    movementTitle.textContent = type === "in" ? "Cash In" : "Cash Out";
+    movementSubtitle.textContent = type === "in" ? "Add money to a selected account." : "Remove money from a selected account.";
+    movementInButton.classList.toggle("active", type === "in");
+    movementOutButton.classList.toggle("active", type === "out");
+    saveMovement.textContent = type === "in" ? "Save Cash In" : "Save Cash Out";
+    movementError.textContent = "";
+    movementAccount.value = "";
+    movementAmount.value = "";
+    movementDescription.value = "";
+    cashMovementModal.classList.add("show");
+    setTimeout(() => movementAccount.focus(), 100);
+};
+const closeMovement = () => {
+    cashMovementModal.classList.remove("show");
+    movementError.textContent = "";
+};
+const generateReference = type => {
+    const now = new Date();
+    const date = now.toISOString().replace(/\D/g, "").substring(0, 14);
+    const random = Math.floor(1000 + Math.random() * 9000);
+    return `${type === "in" ? "CIN" : "COUT"}-${date}-${random}`;
+};
+const saveCashMovement = async event => {
+    event.preventDefault();
+    const account = movementAccount.value;
+    const amount = Number(movementAmount.value);
+    const description = movementDescription.value.trim();
+    if (!account) {
+        movementError.textContent = "Please select an account.";
+        return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+        movementError.textContent = "Please enter a valid amount.";
+        return;
+    }
+    if (!description) {
+        movementError.textContent = "Please enter a description or reason.";
+        return;
+    }
+    saveMovement.disabled = true;
+    saveMovement.textContent = "Saving...";
+    movementError.textContent = "";
+    try {
+        const name = sessionStorage.getItem("userName") || currentUser.displayName || currentUser.email?.split("@")[0] || "Staff";
+        const reference = generateReference(movementType);
+        const timestamp = new Date().toISOString();
+        await addDoc(collection(db, "cashFlow"), {
+            transactionId: reference,
+            transactionNumber: reference,
+            referenceNumber: reference,
+            type: movementType,
+            transactionType: movementType === "in" ? "cash_in" : "cash_out",
+            flowType: movementType,
+            category: movementType === "in" ? "Cash In" : "Cash Out",
+            paymentMethod: account,
+            account: account,
+            amount: amount,
+            description: description,
+            reason: description,
+            source: "Manual Cash Movement",
+            userId: currentUser.uid,
+            staffUid: currentUser.uid,
+            cashierUid: currentUser.uid,
+            createdBy: currentUser.uid,
+            cashier: name,
+            staffName: name,
+            date: timestamp,
+            dateTime: timestamp,
+            timestamp: timestamp,
+            createdAt: serverTimestamp()
+        });
+        closeMovement();
+        await loadCashFlow();
+    } catch (error) {
+        console.error("Cash movement error:", error);
+        movementError.textContent = error?.message || "Unable to save the cash movement.";
+    } finally {
+        saveMovement.disabled = false;
+        saveMovement.textContent = movementType === "in" ? "Save Cash In" : "Save Cash Out";
+    }
+};
 const refresh = async () => {
     if (!currentUser) return;
     try {
@@ -202,10 +305,12 @@ const refresh = async () => {
 cashflowSearch.addEventListener("input", applyFilters);
 periodFilter.addEventListener("change", applyFilters);
 typeFilter.addEventListener("change", applyFilters);
+accountFilter.addEventListener("change", applyFilters);
 resetFilters.addEventListener("click", () => {
     cashflowSearch.value = "";
     periodFilter.value = "all";
     typeFilter.value = "all";
+    accountFilter.value = "all";
     applyFilters();
 });
 refreshCashflow.addEventListener("click", refresh);
@@ -226,6 +331,16 @@ nextPage.addEventListener("click", () => {
 closeModal.addEventListener("click", () => cashflowModal.classList.remove("show"));
 cashflowModal.addEventListener("click", event => {
     if (event.target === cashflowModal) cashflowModal.classList.remove("show");
+});
+openCashIn.addEventListener("click", () => openMovement("in"));
+openCashOut.addEventListener("click", () => openMovement("out"));
+movementInButton.addEventListener("click", () => openMovement("in"));
+movementOutButton.addEventListener("click", () => openMovement("out"));
+closeMovementModal.addEventListener("click", closeMovement);
+cancelMovement.addEventListener("click", closeMovement);
+cashMovementForm.addEventListener("submit", saveCashMovement);
+cashMovementModal.addEventListener("click", event => {
+    if (event.target === cashMovementModal) closeMovement();
 });
 onAuthStateChanged(auth, async user => {
     if (!user) {

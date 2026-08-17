@@ -775,64 +775,29 @@ function isSaleFlow(data) {
    ========================================================= */
 
 function isCashOut(data) {
-
     const type = flowType(data);
-
-    if (
-        [
-            "cashout",
-            "cash out",
-            "outflow",
-            "expense",
-            "withdrawal",
-            "purchase",
-            "inventory purchase",
-            "refund"
-        ].includes(type)
-    ) {
+    if (["out","cashout","cash out","outflow","expense","withdrawal","purchase","inventory purchase","refund"].includes(type)) {
         return true;
     }
-
     if (data.cashOut !== undefined) {
         return Boolean(data.cashOut);
     }
-
     if (data.isCashOut !== undefined) {
         return Boolean(data.isCashOut);
     }
-
     return false;
 }
-
-
-/* =========================================================
-   CASH IN
-   ========================================================= */
-
 function isCashIn(data) {
-
     const type = flowType(data);
-
-    if (
-        [
-            "cashin",
-            "cash in",
-            "inflow",
-            "income",
-            "other income"
-        ].includes(type)
-    ) {
+    if (["in","cashin","cash in","inflow","income","other income"].includes(type)) {
         return true;
     }
-
     if (data.cashIn !== undefined) {
         return Boolean(data.cashIn);
     }
-
     if (data.isCashIn !== undefined) {
         return Boolean(data.isCashIn);
     }
-
     return false;
 }
 

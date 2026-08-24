@@ -42,7 +42,6 @@ let customStartDate = null;
 let customEndDate = null;
 
 let cashFlowChart = null;
-
 let monthlyEndingChart = null;
 let monthlyCashInChart = null;
 let monthlyCashOutChart = null;
@@ -282,7 +281,8 @@ function getFlowPaymentMethod(data) {
 
     for (const value of possibleAccounts) {
 
-        const account = normalizePayment(value);
+        const account =
+            normalizePayment(value);
 
         if (account) {
             return account;
@@ -295,21 +295,6 @@ function getFlowPaymentMethod(data) {
 
 /* =========================================================
    PAYMENT BREAKDOWN
-   ========================================================= */
-
-/* =========================================================
-   PAYMENT BREAKDOWN
-   =========================================================
-   IMPORTANT:
-   Only ONE payment source should be used.
-
-   Priority:
-   1. paymentBreakdown
-   2. paymentDetails
-   3. splitPayments
-   4. payments
-   5. normal paymentMethod
-   6. direct payment fields
    ========================================================= */
 
 function getPaymentBreakdown(data) {
@@ -386,7 +371,7 @@ function getPaymentBreakdown(data) {
 
 
     /* =====================================================
-       3. SPLIT PAYMENTS
+       3. SPLIT PAYMENTS ARRAY
        ===================================================== */
 
     if (Array.isArray(data.splitPayments)) {
@@ -416,6 +401,7 @@ function getPaymentBreakdown(data) {
             ) {
 
                 result[method] += amount;
+
                 hasValue = true;
             }
         });
@@ -457,6 +443,7 @@ function getPaymentBreakdown(data) {
             ) {
 
                 result[method] += amount;
+
                 hasValue = true;
             }
         });
@@ -497,8 +484,19 @@ function getPaymentBreakdown(data) {
 
     if (cashAmount > 0) {
 
+        /*
+         * IMPORTANT:
+         * cashReceived can be larger than the sale total
+         * because the cashier may receive change.
+         *
+         * The actual cash retained by the business is
+         * the sale total, not the amount handed over.
+         */
         result.Cash =
-            cashAmount;
+            Math.min(
+                cashAmount,
+                getSaleTotal(data)
+            );
 
         return result;
     }
@@ -515,7 +513,10 @@ function getPaymentBreakdown(data) {
     if (gcashAmount > 0) {
 
         result.GCash =
-            gcashAmount;
+            Math.min(
+                gcashAmount,
+                getSaleTotal(data)
+            );
 
         return result;
     }
@@ -532,7 +533,10 @@ function getPaymentBreakdown(data) {
     if (bdoAmount > 0) {
 
         result.BDO =
-            bdoAmount;
+            Math.min(
+                bdoAmount,
+                getSaleTotal(data)
+            );
 
         return result;
     }
@@ -549,7 +553,10 @@ function getPaymentBreakdown(data) {
     if (biboAmount > 0) {
 
         result.BIBO =
-            biboAmount;
+            Math.min(
+                biboAmount,
+                getSaleTotal(data)
+            );
 
         return result;
     }
@@ -566,7 +573,10 @@ function getPaymentBreakdown(data) {
     if (bpiAmount > 0) {
 
         result.BPI =
-            bpiAmount;
+            Math.min(
+                bpiAmount,
+                getSaleTotal(data)
+            );
 
         return result;
     }
@@ -600,9 +610,10 @@ function isCompleted(data) {
         return true;
     }
 
-    const status = String(data.status)
-        .trim()
-        .toLowerCase();
+    const status =
+        String(data.status)
+            .trim()
+            .toLowerCase();
 
     return [
         "completed",
@@ -628,7 +639,8 @@ function flowType(data) {
         ""
     )
         .trim()
-        .toLowerCase();
+        .toLowerCase()
+        .replace(/[_-]/g, " ");
 }
 
 
@@ -636,58 +648,44 @@ function flowType(data) {
    SALE FLOW
    ========================================================= */
 
-/* =========================================================
-   SALE FLOW
-   =========================================================
-   POS sales are already read from the "sales" collection.
-   Their corresponding cash-flow records must NOT be
-   counted again as manual Cash In.
-   ========================================================= */
-
 function isSaleFlow(data) {
 
-    const type = String(
-        data.type ||
-        data.transactionType ||
-        data.flowType ||
-        ""
-    )
-        .trim()
-        .toLowerCase()
-        .replace(/[_-]/g, " ");
+    const type =
+        flowType(data);
 
-    const category = String(
-        data.category ||
-        data.cashFlowCategory ||
-        ""
-    )
-        .trim()
-        .toLowerCase()
-        .replace(/[_-]/g, " ");
+    const category =
+        String(
+            data.category ||
+            data.cashFlowCategory ||
+            ""
+        )
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]/g, " ");
 
-    const description = String(
-        data.description ||
-        data.details ||
-        data.note ||
-        data.notes ||
-        data.reason ||
-        ""
-    )
-        .trim()
-        .toLowerCase();
+    const description =
+        String(
+            data.description ||
+            data.details ||
+            data.note ||
+            data.notes ||
+            data.reason ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
 
-    const source = String(
-        data.source ||
-        data.origin ||
-        data.sourceType ||
-        ""
-    )
-        .trim()
-        .toLowerCase();
+    const source =
+        String(
+            data.source ||
+            data.origin ||
+            data.sourceType ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
 
-    /*
-     * Direct sale types
-     */
+
     if (
         [
             "sale",
@@ -699,30 +697,19 @@ function isSaleFlow(data) {
         return true;
     }
 
-    /*
-     * Your POS cash-flow records can have:
-     *
-     * Type     = Cash In
-     * Category = Sale
-     *
-     * Therefore category "sale" must also identify
-     * the record as a POS sale.
-     */
+
     if (
-        category === "sale" ||
-        category === "sales" ||
-        category === "pos sale" ||
-        category === "pos sales"
+        [
+            "sale",
+            "sales",
+            "pos sale",
+            "pos sales"
+        ].includes(category)
     ) {
         return true;
     }
 
-    /*
-     * POS descriptions such as:
-     *
-     * POS Sale - Split Payment - Walk-In Customer
-     * POS Sale - BIBO - Walk-In Customer
-     */
+
     if (
         description.includes("pos sale") ||
         description.includes("point of sale")
@@ -730,9 +717,7 @@ function isSaleFlow(data) {
         return true;
     }
 
-    /*
-     * Some systems store the origin/source.
-     */
+
     if (
         source === "pos" ||
         source === "point of sale" ||
@@ -741,21 +726,20 @@ function isSaleFlow(data) {
         return true;
     }
 
-    /*
-     * Check common transaction/reference fields.
-     */
-    const reference = String(
-        data.transactionId ||
-        data.transactionID ||
-        data.saleId ||
-        data.saleID ||
-        data.reference ||
-        data.referenceId ||
-        data.refId ||
-        ""
-    )
-        .trim()
-        .toLowerCase();
+
+    const reference =
+        String(
+            data.transactionId ||
+            data.transactionID ||
+            data.saleId ||
+            data.saleID ||
+            data.reference ||
+            data.referenceId ||
+            data.refId ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
 
     if (
         reference.startsWith("sale-") ||
@@ -766,6 +750,7 @@ function isSaleFlow(data) {
         return true;
     }
 
+
     return false;
 }
 
@@ -775,30 +760,118 @@ function isSaleFlow(data) {
    ========================================================= */
 
 function isCashOut(data) {
-    const type = flowType(data);
-    if (["out","cashout","cash out","outflow","expense","withdrawal","purchase","inventory purchase","refund"].includes(type)) {
+
+    const type =
+        flowType(data);
+
+    if (
+        [
+            "out",
+            "cashout",
+            "cash out",
+            "outflow",
+            "expense",
+            "withdrawal",
+            "purchase",
+            "inventory purchase",
+            "refund"
+        ].includes(type)
+    ) {
         return true;
     }
+
     if (data.cashOut !== undefined) {
         return Boolean(data.cashOut);
     }
+
     if (data.isCashOut !== undefined) {
         return Boolean(data.isCashOut);
     }
+
     return false;
 }
+
+
+/* =========================================================
+   CASH IN
+   ========================================================= */
+
 function isCashIn(data) {
-    const type = flowType(data);
-    if (["in","cashin","cash in","inflow","income","other income"].includes(type)) {
+
+    const type =
+        flowType(data);
+
+    if (
+        [
+            "in",
+            "cashin",
+            "cash in",
+            "inflow",
+            "income",
+            "other income"
+        ].includes(type)
+    ) {
         return true;
     }
+
     if (data.cashIn !== undefined) {
         return Boolean(data.cashIn);
     }
+
     if (data.isCashIn !== undefined) {
         return Boolean(data.isCashIn);
     }
+
     return false;
+}
+
+
+/* =========================================================
+   OPENING CASH
+   ========================================================= */
+
+/*
+ * This function supports future opening-cash records.
+ *
+ * If your cashFlow collection contains a record like:
+ *
+ * {
+ *     type: "opening",
+ *     amount: 5000,
+ *     account: "Cash"
+ * }
+ *
+ * it will be recognized.
+ */
+
+function isOpeningCash(flow) {
+
+    const type =
+        flowType(flow);
+
+    const category =
+        String(
+            flow.category ||
+            flow.cashFlowCategory ||
+            ""
+        )
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]/g, " ");
+
+    return [
+        "opening",
+        "opening cash",
+        "opening balance",
+        "opening cash balance"
+    ].includes(type)
+    ||
+    [
+        "opening",
+        "opening cash",
+        "opening balance",
+        "opening cash balance"
+    ].includes(category);
 }
 
 
@@ -808,9 +881,12 @@ function isCashIn(data) {
 
 function getStart(period) {
 
-    const now = new Date();
+    const now =
+        new Date();
 
-    const start = new Date(now);
+    const start =
+        new Date(now);
+
 
     if (period === "today") {
 
@@ -827,7 +903,8 @@ function getStart(period) {
 
     if (period === "week") {
 
-        const day = now.getDay();
+        const day =
+            now.getDay();
 
         const difference =
             day === 0
@@ -835,7 +912,8 @@ function getStart(period) {
                 : day - 1;
 
         start.setDate(
-            now.getDate() - difference
+            now.getDate() -
+            difference
         );
 
         start.setHours(
@@ -903,13 +981,11 @@ function inSelectedPeriod(date) {
         return false;
     }
 
-    const start = getStart(
-        selectedPeriod
-    );
+    const start =
+        getStart(selectedPeriod);
 
-    const end = getEnd(
-        selectedPeriod
-    );
+    const end =
+        getEnd(selectedPeriod);
 
     if (!start) {
         return true;
@@ -964,7 +1040,9 @@ function calculateCurrentBalances() {
     };
 
 
-    /* POS SALES */
+    /* =====================================================
+       POS SALES
+       ===================================================== */
 
     salesData.forEach(sale => {
 
@@ -977,22 +1055,63 @@ function calculateCurrentBalances() {
 
         PAYMENT_METHODS.forEach(method => {
 
-            balances[method] += getNumber(
-                breakdown[method]
-            );
-
+            balances[method] +=
+                getNumber(
+                    breakdown[method]
+                );
         });
-
     });
 
 
-    /* MANUAL CASH FLOW */
+    /* =====================================================
+       MANUAL CASH FLOW
+       ===================================================== */
 
     cashflowData.forEach(flow => {
 
+        /*
+         * POS sale cash-flow records are already
+         * represented in the sales collection.
+         *
+         * Therefore do not count them twice.
+         */
         if (isSaleFlow(flow)) {
             return;
         }
+
+
+        /*
+         * Opening cash is a starting balance,
+         * not a cash-in transaction.
+         *
+         * If your database contains opening records,
+         * they are added here.
+         */
+        if (isOpeningCash(flow)) {
+
+            const amount =
+                getFlowAmount(flow);
+
+            const method =
+                getFlowPaymentMethod(flow);
+
+            if (
+                method &&
+                balances[method] !== undefined
+            ) {
+
+                balances[method] +=
+                    amount;
+
+            } else {
+
+                balances.Cash +=
+                    amount;
+            }
+
+            return;
+        }
+
 
         const amount =
             getFlowAmount(flow);
@@ -1000,6 +1119,7 @@ function calculateCurrentBalances() {
         if (!amount) {
             return;
         }
+
 
         const method =
             getFlowPaymentMethod(flow);
@@ -1012,11 +1132,13 @@ function calculateCurrentBalances() {
                 balances[method] !== undefined
             ) {
 
-                balances[method] -= amount;
+                balances[method] -=
+                    amount;
 
             } else {
 
-                balances.Cash -= amount;
+                balances.Cash -=
+                    amount;
             }
         }
 
@@ -1028,26 +1150,28 @@ function calculateCurrentBalances() {
                 balances[method] !== undefined
             ) {
 
-                balances[method] += amount;
+                balances[method] +=
+                    amount;
 
             } else {
 
-                balances.Cash += amount;
+                balances.Cash +=
+                    amount;
             }
         }
 
     });
 
 
-    /* NEVER SHOW NEGATIVE BALANCES */
-
-    PAYMENT_METHODS.forEach(method => {
-
-        if (balances[method] < 0) {
-            balances[method] = 0;
-        }
-
-    });
+    /*
+     * IMPORTANT:
+     *
+     * DO NOT force negative balances to zero.
+     *
+     * A negative balance is useful because it tells
+     * the administrator that the account is overdrawn
+     * or that a transaction needs checking.
+     */
 
 
     return balances;
@@ -1066,7 +1190,9 @@ function calculatePeriodActivity() {
     const flows =
         getPeriodFlows();
 
+
     let salesTotal = 0;
+
     let cashSales = 0;
 
 
@@ -1075,7 +1201,8 @@ function calculatePeriodActivity() {
         const total =
             getSaleTotal(sale);
 
-        salesTotal += total;
+        salesTotal +=
+            total;
 
         cashSales +=
             getCashSale(sale);
@@ -1083,7 +1210,10 @@ function calculatePeriodActivity() {
 
 
     let manualCashIn = 0;
+
     let cashOut = 0;
+
+    let cashRefunds = 0;
 
 
     flows.forEach(flow => {
@@ -1092,88 +1222,133 @@ function calculatePeriodActivity() {
             return;
         }
 
+        if (isOpeningCash(flow)) {
+            return;
+        }
+
+
         const amount =
             getFlowAmount(flow);
 
+
         if (isCashOut(flow)) {
 
-            cashOut += amount;
+            /*
+             * Refunds are still cash leaving the business,
+             * but we track them separately for reporting.
+             */
+            if (flowType(flow) === "refund") {
 
+                cashRefunds +=
+                    amount;
+
+            }
+
+            cashOut +=
+                amount;
         }
+
 
         else if (isCashIn(flow)) {
 
-            manualCashIn += amount;
+            manualCashIn +=
+                amount;
         }
 
     });
 
 
-    const cashIn =
+    /*
+     * Cash received during selected period.
+     *
+     * This includes:
+     *
+     * Cash POS Sales
+     * +
+     * Manual Cash In
+     */
+
+    const cashReceived =
         cashSales +
         manualCashIn;
 
-    const net =
-        cashIn -
+
+    /*
+     * Net change in physical cash.
+     */
+
+    const netCash =
+        cashReceived -
         cashOut;
 
 
     return {
+
         sales,
+
         salesTotal,
+
         cashSales,
+
         manualCashIn,
-        cashIn,
+
+        cashReceived,
+
+        cashIn: cashReceived,
+
         cashOut,
-        net
+
+        cashRefunds,
+
+        netCash,
+
+        net: netCash
     };
 }
 
 
 /* =========================================================
-   BEGINNING PHYSICAL CASH
+   HISTORICAL CASH BALANCE
    ========================================================= */
 
-function calculateBeginningCash() {
-
-    const start =
-        getStart(selectedPeriod);
-
-    if (!start) {
-        return 0;
-    }
-
+function calculateHistoricalCash(beforeDate) {
 
     let cash = 0;
 
 
-    /* PREVIOUS SALES */
+    /*
+     * Previous POS CASH SALES
+     */
 
     salesData.forEach(sale => {
 
         if (
             !sale._date ||
-            sale._date >= start ||
+            sale._date >= beforeDate ||
             !isCompleted(sale)
         ) {
             return;
         }
 
-        cash += getCashSale(sale);
+        cash +=
+            getCashSale(sale);
     });
 
 
-    /* PREVIOUS CASH FLOW */
+    /*
+     * Previous CASH FLOW
+     */
 
     cashflowData.forEach(flow => {
 
         if (
             !flow._date ||
-            flow._date >= start ||
+            flow._date >= beforeDate ||
             isSaleFlow(flow)
         ) {
             return;
         }
+
 
         const amount =
             getFlowAmount(flow);
@@ -1182,34 +1357,167 @@ function calculateBeginningCash() {
             getFlowPaymentMethod(flow);
 
 
+        /*
+         * Only physical Cash is included.
+         */
+
+        if (
+            account &&
+            account !== "Cash"
+        ) {
+            return;
+        }
+
+
+        if (isOpeningCash(flow)) {
+
+            cash +=
+                amount;
+
+            return;
+        }
+
+
         if (isCashOut(flow)) {
 
-            if (
-                !account ||
-                account === "Cash"
-            ) {
-                cash -= amount;
-            }
+            cash -=
+                amount;
         }
 
 
         else if (isCashIn(flow)) {
 
-            if (
-                !account ||
-                account === "Cash"
-            ) {
-                cash += amount;
-            }
+            cash +=
+                amount;
         }
 
     });
 
 
-    return Math.max(
-        0,
-        cash
-    );
+    /*
+     * Do not hide a negative historical balance.
+     */
+
+    return cash;
+}
+
+
+/* =========================================================
+   EXPECTED CASH FOR PERIOD
+   ========================================================= */
+
+function calculateExpectedCash() {
+
+    const start =
+        getStart(selectedPeriod);
+
+
+    /*
+     * If no period is selected,
+     * use the current balance.
+     */
+
+    if (!start) {
+
+        const balances =
+            calculateCurrentBalances();
+
+        return balances.Cash;
+    }
+
+
+    let cash =
+        calculateHistoricalCash(start);
+
+
+    const sales =
+        getPeriodSales();
+
+    const flows =
+        getPeriodFlows();
+
+
+    /*
+     * CASH SALES DURING PERIOD
+     */
+
+    sales.forEach(sale => {
+
+        cash +=
+            getCashSale(sale);
+    });
+
+
+    /*
+     * CASH FLOW DURING PERIOD
+     */
+
+    flows.forEach(flow => {
+
+        if (isSaleFlow(flow)) {
+            return;
+        }
+
+
+        if (isOpeningCash(flow)) {
+
+            /*
+             * Opening records that occur exactly
+             * at the selected period start are treated
+             * as an opening balance.
+             */
+
+            if (
+                flow._date &&
+                flow._date.getTime() ===
+                start.getTime()
+            ) {
+
+                cash +=
+                    getFlowAmount(flow);
+            }
+
+            return;
+        }
+
+
+        const account =
+            getFlowPaymentMethod(flow);
+
+
+        /*
+         * Only physical cash affects physical cash.
+         */
+
+        if (
+            account &&
+            account !== "Cash"
+        ) {
+            return;
+        }
+
+
+        const amount =
+            getFlowAmount(flow);
+
+
+        if (isCashOut(flow)) {
+
+            cash -=
+                amount;
+        }
+
+
+        else if (isCashIn(flow)) {
+
+            cash +=
+                amount;
+        }
+
+    });
+
+
+    return cash;
 }
 
 
@@ -1222,8 +1530,10 @@ function updateDashboard() {
     const activity =
         calculatePeriodActivity();
 
+
     const balances =
         calculateCurrentBalances();
+
 
     const totalFunds =
         PAYMENT_METHODS.reduce(
@@ -1233,124 +1543,308 @@ function updateDashboard() {
             0
         );
 
-    const beginning =
-        calculateBeginningCash();
+
+    const expectedCash =
+        calculateExpectedCash();
+
 
     const currentCash =
         balances.Cash;
 
 
-    /* ACCOUNT BALANCES */
+    /* =====================================================
+       ACCOUNT BALANCES
+       ===================================================== */
 
     if (el("cashBalance")) {
+
         el("cashBalance").textContent =
             money(currentCash);
+
+        el("cashBalance").classList.toggle(
+            "negative-balance",
+            currentCash < 0
+        );
     }
+
 
     if (el("gcashBalance")) {
+
         el("gcashBalance").textContent =
             money(balances.GCash);
+
+        el("gcashBalance").classList.toggle(
+            "negative-balance",
+            balances.GCash < 0
+        );
     }
+
 
     if (el("bdoBalance")) {
+
         el("bdoBalance").textContent =
             money(balances.BDO);
+
+        el("bdoBalance").classList.toggle(
+            "negative-balance",
+            balances.BDO < 0
+        );
     }
+
 
     if (el("biboBalance")) {
+
         el("biboBalance").textContent =
             money(balances.BIBO);
+
+        el("biboBalance").classList.toggle(
+            "negative-balance",
+            balances.BIBO < 0
+        );
     }
+
 
     if (el("bpiBalance")) {
+
         el("bpiBalance").textContent =
             money(balances.BPI);
+
+        el("bpiBalance").classList.toggle(
+            "negative-balance",
+            balances.BPI < 0
+        );
     }
 
+
     if (el("totalFunds")) {
+
         el("totalFunds").textContent =
             money(totalFunds);
     }
 
 
-    /* ACTIVITY */
+    /* =====================================================
+       SALES
+       ===================================================== */
 
     if (el("sales")) {
+
         el("sales").textContent =
             money(activity.salesTotal);
     }
 
+
     if (el("salesNote")) {
+
         el("salesNote").textContent =
-            `${activity.sales.length} Transaction${activity.sales.length === 1 ? "" : "s"}`;
+            `${activity.sales.length} Transaction${
+                activity.sales.length === 1
+                    ? ""
+                    : "s"
+            }`;
     }
+
+
+    /* =====================================================
+       CASH RECEIVED
+       ===================================================== */
 
     if (el("cashIn")) {
+
         el("cashIn").textContent =
-            money(activity.cashIn);
+            money(activity.cashReceived);
     }
 
+
+    /* =====================================================
+       CASH SPENT
+       ===================================================== */
+
     if (el("cashOut")) {
+
         el("cashOut").textContent =
             money(activity.cashOut);
     }
 
+
+    /* =====================================================
+       NET CASH CHANGE
+       ===================================================== */
+
     if (el("netCash")) {
+
         el("netCash").textContent =
-            `${activity.net >= 0 ? "+" : "-"}${money(Math.abs(activity.net))}`;
+            `${activity.netCash >= 0 ? "+" : "-"}${money(
+                Math.abs(activity.netCash)
+            )}`;
     }
+
+
+    /* =====================================================
+       EXPECTED CASH
+       ===================================================== */
 
     if (el("cashOnHand")) {
+
         el("cashOnHand").textContent =
-            money(currentCash);
+            money(expectedCash);
+
+        el("cashOnHand").classList.toggle(
+            "negative-balance",
+            expectedCash < 0
+        );
     }
 
 
-    /* PERIOD LABEL */
+    /*
+     * If your HTML has an expectedCash element,
+     * populate that too.
+     */
+
+    if (el("expectedCash")) {
+
+        el("expectedCash").textContent =
+            money(expectedCash);
+
+        el("expectedCash").classList.toggle(
+            "negative-balance",
+            expectedCash < 0
+        );
+    }
+
+
+    /* =====================================================
+       OPTIONAL ACTUAL CASH
+       ===================================================== */
+
+    /*
+     * This is intentionally left blank until you add
+     * an actual physical cash-count input.
+     */
+
+    if (el("actualCash")) {
+
+        const actualValue =
+            Number(
+                el("actualCash").dataset.value
+            );
+
+        if (Number.isFinite(actualValue)) {
+
+            el("actualCash").textContent =
+                money(actualValue);
+        }
+    }
+
+
+    /* =====================================================
+       VARIANCE
+       ===================================================== */
+
+    if (el("cashVariance")) {
+
+        const actualValue =
+            Number(
+                el("actualCash")?.dataset.value
+            );
+
+        if (Number.isFinite(actualValue)) {
+
+            const variance =
+                actualValue -
+                expectedCash;
+
+            el("cashVariance").textContent =
+                `${variance >= 0 ? "+" : "-"}${money(
+                    Math.abs(variance)
+                )}`;
+        }
+        else {
+
+            el("cashVariance").textContent =
+                "—";
+        }
+    }
+
+
+    /* =====================================================
+       PERIOD LABEL
+       ===================================================== */
 
     const periodName =
         getPeriodName();
 
+
     if (el("cashInNote")) {
+
         el("cashInNote").textContent =
             `${periodName} • Cash received`;
     }
 
+
     if (el("cashOutNote")) {
+
         el("cashOutNote").textContent =
             `${periodName} • Cash spent`;
     }
 
 
-    /* SUMMARY */
+    if (el("cashOnHandNote")) {
+
+        el("cashOnHandNote").textContent =
+            `${periodName} • Expected physical cash`;
+    }
+
+
+    /* =====================================================
+       SUMMARY
+       ===================================================== */
 
     if (el("beginningBalance")) {
+
+        const beginning =
+            calculateHistoricalCash(
+                getStart(selectedPeriod)
+            );
+
         el("beginningBalance").textContent =
             money(beginning);
     }
 
+
     if (el("summaryCashIn")) {
+
         el("summaryCashIn").textContent =
-            `+${money(activity.cashIn)}`;
+            `+${money(activity.cashReceived)}`;
     }
 
+
     if (el("summaryCashOut")) {
+
         el("summaryCashOut").textContent =
             `-${money(activity.cashOut)}`;
     }
 
+
     if (el("summaryNet")) {
+
         el("summaryNet").textContent =
-            `${activity.net >= 0 ? "+" : "-"}${money(Math.abs(activity.net))}`;
+            `${activity.netCash >= 0 ? "+" : "-"}${money(
+                Math.abs(activity.netCash)
+            )}`;
     }
+
 
     if (el("endingBalance")) {
+
         el("endingBalance").textContent =
-            money(currentCash);
+            money(expectedCash);
     }
 
 
-    /* CHART */
+    /* =====================================================
+       CHART
+       ===================================================== */
 
     renderCashFlowChart(
         activity.sales,
@@ -1358,7 +1852,9 @@ function updateDashboard() {
     );
 
 
-    /* MONTHLY REPORT */
+    /* =====================================================
+       MONTHLY REPORT
+       ===================================================== */
 
     renderMonthlyReport();
 }
@@ -1426,29 +1922,40 @@ function renderCashFlowChart(
     const canvas =
         el("cashFlowChart");
 
+
     if (!canvas) {
         return;
     }
 
 
     const labels = [];
+
     const cashInValues = [];
+
     const cashOutValues = [];
 
-    const now = new Date();
+    const now =
+        new Date();
 
 
-    /* TODAY */
+    /* =====================================================
+       TODAY
+       ===================================================== */
 
     if (selectedPeriod === "today") {
 
-        for (let hour = 0; hour < 24; hour++) {
+        for (
+            let hour = 0;
+            hour < 24;
+            hour++
+        ) {
 
             labels.push(
                 `${String(hour).padStart(2, "0")}:00`
             );
 
             cashInValues.push(0);
+
             cashOutValues.push(0);
         }
 
@@ -1460,7 +1967,6 @@ function renderCashFlowChart(
 
             cashInValues[hour] +=
                 getCashSale(sale);
-
         });
 
 
@@ -1470,8 +1976,14 @@ function renderCashFlowChart(
                 return;
             }
 
+            if (isOpeningCash(flow)) {
+                return;
+            }
+
+
             const hour =
                 flow._date.getHours();
+
 
             const amount =
                 getFlowAmount(flow);
@@ -1479,20 +1991,33 @@ function renderCashFlowChart(
 
             if (isCashOut(flow)) {
 
-                cashOutValues[hour] += amount;
-
+                cashOutValues[hour] +=
+                    amount;
             }
+
 
             else if (isCashIn(flow)) {
 
-                cashInValues[hour] += amount;
+                const account =
+                    getFlowPaymentMethod(flow);
+
+                if (
+                    !account ||
+                    account === "Cash"
+                ) {
+
+                    cashInValues[hour] +=
+                        amount;
+                }
             }
 
         });
     }
 
 
-    /* WEEK / MONTH / CUSTOM */
+    /* =====================================================
+       WEEK / MONTH / CUSTOM
+       ===================================================== */
 
     else {
 
@@ -1503,6 +2028,7 @@ function renderCashFlowChart(
                 now.getMonth(),
                 now.getDate() - 6
             );
+
 
         const end =
             getEnd(selectedPeriod);
@@ -1537,14 +2063,20 @@ function renderCashFlowChart(
             ) + 1;
 
 
-        for (let i = 0; i < count; i++) {
+        for (
+            let i = 0;
+            i < count;
+            i++
+        ) {
 
             const date =
                 new Date(startDay);
 
             date.setDate(
-                startDay.getDate() + i
+                startDay.getDate() +
+                i
             );
+
 
             labels.push(
                 date.toLocaleDateString(
@@ -1556,7 +2088,9 @@ function renderCashFlowChart(
                 )
             );
 
+
             cashInValues.push(0);
+
             cashOutValues.push(0);
         }
 
@@ -1589,7 +2123,6 @@ function renderCashFlowChart(
                 cashInValues[index] +=
                     getCashSale(sale);
             }
-
         });
 
 
@@ -1598,6 +2131,11 @@ function renderCashFlowChart(
             if (isSaleFlow(flow)) {
                 return;
             }
+
+            if (isOpeningCash(flow)) {
+                return;
+            }
+
 
             const date =
                 new Date(flow._date);
@@ -1629,12 +2167,24 @@ function renderCashFlowChart(
                 getFlowAmount(flow);
 
 
+            const account =
+                getFlowPaymentMethod(flow);
+
+
+            if (
+                account &&
+                account !== "Cash"
+            ) {
+                return;
+            }
+
+
             if (isCashOut(flow)) {
 
                 cashOutValues[index] +=
                     amount;
-
             }
+
 
             else if (isCashIn(flow)) {
 
@@ -1647,8 +2197,13 @@ function renderCashFlowChart(
 
 
     const hasData =
-        cashInValues.some(value => value > 0) ||
-        cashOutValues.some(value => value > 0);
+        cashInValues.some(
+            value => value > 0
+        )
+        ||
+        cashOutValues.some(
+            value => value > 0
+        );
 
 
     if (el("chartEmpty")) {
@@ -1660,7 +2215,9 @@ function renderCashFlowChart(
     }
 
 
-    if (typeof Chart === "undefined") {
+    if (
+        typeof Chart === "undefined"
+    ) {
 
         console.warn(
             "Chart.js is not loaded."
@@ -1674,9 +2231,11 @@ function renderCashFlowChart(
         new Chart(
             canvas,
             {
+
                 type: "line",
 
                 data: {
+
                     labels,
 
                     datasets: [
@@ -1718,8 +2277,10 @@ function renderCashFlowChart(
 
                             pointRadius: 2
                         }
+
                     ]
                 },
+
 
                 options: {
 
@@ -1730,7 +2291,9 @@ function renderCashFlowChart(
                     plugins: {
 
                         legend: {
+
                             display: true,
+
                             position: "bottom"
                         },
 
@@ -1738,11 +2301,15 @@ function renderCashFlowChart(
 
                             callbacks: {
 
-                                label: context =>
-                                    `${context.dataset.label}: ${money(context.raw)}`
+                                label:
+                                    context =>
+                                        `${context.dataset.label}: ${money(
+                                            context.raw
+                                        )}`
                             }
                         }
                     },
+
 
                     scales: {
 
@@ -1752,8 +2319,9 @@ function renderCashFlowChart(
 
                             ticks: {
 
-                                callback: value =>
-                                    money(value)
+                                callback:
+                                    value =>
+                                        money(value)
                             }
                         }
                     }
@@ -1764,7 +2332,34 @@ function renderCashFlowChart(
 
 
 /* =========================================================
-   MONTHLY REPORT YEARS
+   REPORT MONEY
+   ========================================================= */
+
+function formatReportMoney(value) {
+
+    const number =
+        Number(value) || 0;
+
+
+    if (number === 0) {
+        return "-";
+    }
+
+
+    return new Intl.NumberFormat(
+        "en-PH",
+        {
+            style: "currency",
+            currency: "PHP",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    ).format(number);
+}
+
+
+/* =========================================================
+   REPORT YEARS
    ========================================================= */
 
 function getReportYears() {
@@ -1778,22 +2373,22 @@ function getReportYears() {
     salesData.forEach(sale => {
 
         if (sale._date) {
+
             years.add(
                 sale._date.getFullYear()
             );
         }
-
     });
 
 
     cashflowData.forEach(flow => {
 
         if (flow._date) {
+
             years.add(
                 flow._date.getFullYear()
             );
         }
-
     });
 
 
@@ -1812,6 +2407,7 @@ function populateReportYears() {
 
     const select =
         el("reportYear");
+
 
     if (!select) {
         return;
@@ -1856,93 +2452,7 @@ function populateReportYears() {
         select.appendChild(
             option
         );
-
     });
-}
-
-
-/* =========================================================
-   HISTORICAL PHYSICAL CASH
-   ========================================================= */
-
-function calculateHistoricalCash(
-    beforeDate
-) {
-
-    let cash = 0;
-
-
-    /* PREVIOUS CASH SALES */
-
-    salesData.forEach(sale => {
-
-        if (
-            !sale._date ||
-            sale._date >= beforeDate ||
-            !isCompleted(sale)
-        ) {
-            return;
-        }
-
-        cash +=
-            getCashSale(sale);
-    });
-
-
-    /* PREVIOUS MANUAL CASH FLOWS */
-
-    cashflowData.forEach(flow => {
-
-        if (
-            !flow._date ||
-            flow._date >= beforeDate ||
-            isSaleFlow(flow)
-        ) {
-            return;
-        }
-
-
-        const amount =
-            getFlowAmount(flow);
-
-        const account =
-            getFlowPaymentMethod(flow);
-
-
-        /*
-           Monthly report is specifically
-           for PHYSICAL CASH.
-
-           If no account was saved,
-           treat it as Cash.
-        */
-
-        if (
-            account &&
-            account !== "Cash"
-        ) {
-            return;
-        }
-
-
-        if (isCashOut(flow)) {
-
-            cash -= amount;
-
-        }
-
-        else if (isCashIn(flow)) {
-
-            cash += amount;
-        }
-
-    });
-
-
-    return Math.max(
-        0,
-        cash
-    );
 }
 
 
@@ -2018,10 +2528,13 @@ function getReportMonthlyData(year) {
 
 
         let cashIn = 0;
+
         let cashOut = 0;
 
 
-        /* CASH FROM POS SALES */
+        /* =================================================
+           CASH FROM POS SALES
+           ================================================= */
 
         salesData.forEach(sale => {
 
@@ -2034,12 +2547,15 @@ function getReportMonthlyData(year) {
                 return;
             }
 
+
             cashIn +=
                 getCashSale(sale);
         });
 
 
-        /* CASH FLOW RECORDS */
+        /* =================================================
+           CASH FLOW RECORDS
+           ================================================= */
 
         cashflowData.forEach(flow => {
 
@@ -2047,7 +2563,8 @@ function getReportMonthlyData(year) {
                 !flow._date ||
                 flow._date < monthStart ||
                 flow._date > monthEnd ||
-                isSaleFlow(flow)
+                isSaleFlow(flow) ||
+                isOpeningCash(flow)
             ) {
                 return;
             }
@@ -2056,14 +2573,14 @@ function getReportMonthlyData(year) {
             const amount =
                 getFlowAmount(flow);
 
+
             const account =
                 getFlowPaymentMethod(flow);
 
 
             /*
-               Only physical CASH belongs
-               to this report.
-            */
+             * Only physical Cash.
+             */
 
             if (
                 account &&
@@ -2075,13 +2592,15 @@ function getReportMonthlyData(year) {
 
             if (isCashOut(flow)) {
 
-                cashOut += amount;
-
+                cashOut +=
+                    amount;
             }
+
 
             else if (isCashIn(flow)) {
 
-                cashIn += amount;
+                cashIn +=
+                    amount;
             }
 
         });
@@ -2105,39 +2624,11 @@ function getReportMonthlyData(year) {
 
         months[monthIndex]
             .ending =
-            Math.max(
-                0,
-                runningCash
-            );
+            runningCash;
     }
 
 
     return months;
-}
-
-
-/* =========================================================
-   REPORT MONEY
-   ========================================================= */
-
-function formatReportMoney(value) {
-
-    const number =
-        Number(value) || 0;
-
-    if (number === 0) {
-        return "-";
-    }
-
-    return new Intl.NumberFormat(
-        "en-PH",
-        {
-            style: "currency",
-            currency: "PHP",
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }
-    ).format(number);
 }
 
 
@@ -2241,24 +2732,33 @@ function renderMonthlyCharts(
 
 
     if (monthlyEndingChart) {
+
         monthlyEndingChart.destroy();
+
         monthlyEndingChart = null;
     }
 
+
     if (monthlyCashInChart) {
+
         monthlyCashInChart.destroy();
+
         monthlyCashInChart = null;
     }
 
+
     if (monthlyCashOutChart) {
+
         monthlyCashOutChart.destroy();
+
         monthlyCashOutChart = null;
     }
 
 
     const labels =
         MONTH_NAMES.map(
-            month => month.substring(0, 3)
+            month =>
+                month.substring(0, 3)
         );
 
 
@@ -2296,8 +2796,9 @@ function renderMonthlyCharts(
 
                 callbacks: {
 
-                    label: context =>
-                        money(context.raw)
+                    label:
+                        context =>
+                            money(context.raw)
                 }
             }
         },
@@ -2324,15 +2825,18 @@ function renderMonthlyCharts(
 
                 ticks: {
 
-                    callback: value =>
-                        money(value)
+                    callback:
+                        value =>
+                            money(value)
                 }
             }
         }
     };
 
 
-    /* ENDING BALANCE */
+    /* =====================================================
+       ENDING BALANCE
+       ===================================================== */
 
     const endingCanvas =
         el("monthlyEndingChart");
@@ -2344,6 +2848,7 @@ function renderMonthlyCharts(
             new Chart(
                 endingCanvas,
                 {
+
                     type: "line",
 
                     data: {
@@ -2384,7 +2889,9 @@ function renderMonthlyCharts(
     }
 
 
-    /* CASH IN */
+    /* =====================================================
+       CASH IN
+       ===================================================== */
 
     const cashInCanvas =
         el("monthlyCashInChart");
@@ -2396,6 +2903,7 @@ function renderMonthlyCharts(
             new Chart(
                 cashInCanvas,
                 {
+
                     type: "bar",
 
                     data: {
@@ -2430,7 +2938,9 @@ function renderMonthlyCharts(
     }
 
 
-    /* CASH OUT */
+    /* =====================================================
+       CASH OUT
+       ===================================================== */
 
     const cashOutCanvas =
         el("monthlyCashOutChart");
@@ -2442,6 +2952,7 @@ function renderMonthlyCharts(
             new Chart(
                 cashOutCanvas,
                 {
+
                     type: "bar",
 
                     data: {
@@ -2486,17 +2997,20 @@ function loadProfile() {
     const name =
         sessionStorage.getItem(
             "userName"
-        ) ||
+        )
+        ||
         localStorage.getItem(
             "userName"
-        ) ||
+        )
+        ||
         "Administrator";
 
 
     const role =
         sessionStorage.getItem(
             "userRole"
-        ) ||
+        )
+        ||
         "admin";
 
 
@@ -2530,7 +3044,8 @@ function loadProfile() {
                     parts[0][0] +
                     parts[parts.length - 1][0]
                 ).toUpperCase()
-                : name
+                :
+                name
                     .substring(0, 2)
                     .toUpperCase();
     }
@@ -2590,8 +3105,10 @@ function loadSidebar() {
                     "script"
                 );
 
+
             script.src =
                 "sidebar.js";
+
 
             document.body.appendChild(
                 script
@@ -2617,15 +3134,18 @@ function formatDateInput(date) {
     const year =
         date.getFullYear();
 
+
     const month =
         String(
             date.getMonth() + 1
         ).padStart(2, "0");
 
+
     const day =
         String(
             date.getDate()
         ).padStart(2, "0");
+
 
     return `${year}-${month}-${day}`;
 }
@@ -2676,6 +3196,7 @@ function showCustomDateFilter() {
     const filter =
         el("customDateFilter");
 
+
     if (filter) {
 
         filter.classList.add(
@@ -2689,6 +3210,7 @@ function hideCustomDateFilter() {
 
     const filter =
         el("customDateFilter");
+
 
     if (filter) {
 
@@ -2722,7 +3244,6 @@ document
                         item.classList.remove(
                             "active"
                         );
-
                     });
 
 
@@ -2751,8 +3272,11 @@ document
                 hideCustomDateFilter();
 
 
-                customStartDate = null;
-                customEndDate = null;
+                customStartDate =
+                    null;
+
+                customEndDate =
+                    null;
 
 
                 updateDashboard();
@@ -2806,7 +3330,8 @@ el("applyDateFilter")
             if (
                 Number.isNaN(
                     start.getTime()
-                ) ||
+                )
+                ||
                 Number.isNaN(
                     end.getTime()
                 )
@@ -2849,7 +3374,6 @@ el("applyDateFilter")
                     item.classList.remove(
                         "active"
                     );
-
                 });
 
 
@@ -2969,7 +3493,9 @@ el("globalSearch")
             if (value) {
 
                 window.location.href =
-                    `products.html?search=${encodeURIComponent(value)}`;
+                    `products.html?search=${encodeURIComponent(
+                        value
+                    )}`;
             }
         }
     );
@@ -2983,6 +3509,7 @@ function showError(message) {
 
     const box =
         el("dashboardError");
+
 
     if (!box) {
         return;
@@ -3015,6 +3542,7 @@ function clearError() {
     const box =
         el("dashboardError");
 
+
     if (!box) {
         return;
     }
@@ -3023,6 +3551,7 @@ function clearError() {
     box.classList.remove(
         "show"
     );
+
 
     box.innerHTML = "";
 }
@@ -3039,7 +3568,9 @@ function loadDashboard() {
         clearError();
 
 
-        /* REMOVE OLD LISTENERS */
+        /* =================================================
+           REMOVE OLD LISTENERS
+           ================================================= */
 
         if (unsubscribeSales) {
 
@@ -3059,12 +3590,13 @@ function loadDashboard() {
         }
 
 
-        /* =====================================================
+        /* =================================================
            SALES REAL-TIME LISTENER
-           ===================================================== */
+           ================================================= */
 
         unsubscribeSales =
             onSnapshot(
+
                 collection(
                     db,
                     "sales"
@@ -3079,7 +3611,9 @@ function loadDashboard() {
                                 const data =
                                     doc.data();
 
+
                                 return {
+
                                     ...data,
 
                                     id:
@@ -3106,6 +3640,7 @@ function loadDashboard() {
                     updateDashboard();
                 },
 
+
                 error => {
 
                     console.error(
@@ -3122,12 +3657,13 @@ function loadDashboard() {
             );
 
 
-        /* =====================================================
+        /* =================================================
            CASH FLOW REAL-TIME LISTENER
-           ===================================================== */
+           ================================================= */
 
         unsubscribeCashFlow =
             onSnapshot(
+
                 collection(
                     db,
                     "cashFlow"
@@ -3142,7 +3678,9 @@ function loadDashboard() {
                                 const data =
                                     doc.data();
 
+
                                 return {
+
                                     ...data,
 
                                     id:
@@ -3168,6 +3706,7 @@ function loadDashboard() {
 
                     updateDashboard();
                 },
+
 
                 error => {
 

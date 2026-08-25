@@ -3739,16 +3739,7 @@ function loadDashboard() {
         );
     }
 }
-
-
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
 loadProfile();
-
 loadSidebar();
-
 setDateInputDefaults();
-
 loadDashboard();

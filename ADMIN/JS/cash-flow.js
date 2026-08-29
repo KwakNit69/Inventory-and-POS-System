@@ -185,14 +185,102 @@ function normalizeCashFlow(id, data) {
 function normalizeSale(id, data) {
     const status = getSaleStatus(data);
     if (["cancelled", "canceled", "void", "voided", "refunded"].includes(status)) return null;
+
     const amount = getAmount(data);
     if (amount <= 0) return null;
+
     const date = getDateValue(data) || new Date(0);
     const reference = getSaleReference(data, id);
-    const customer = String(getValue(data, ["customerName", "customer", "customer_name"], "Walk-in Customer"));
+    const customer = String(
+        getValue(
+            data,
+            ["customerName", "customer", "customer_name"],
+            "Walk-in Customer"
+        )
+    );
+
     const paymentMethod = getPrimaryPaymentMethod(data);
-    const paymentBreakdown = getPaymentBreakdown(data);
-    const paymentTotal = getPaymentBreakdownTotal(paymentBreakdown);
+
+    /*
+     * paymentBreakdown represents MONEY RETAINED BY THE BUSINESS.
+     *
+     * Example:
+     * Sale total       = ₱650
+     * Cash received    = ₱700
+     * Change           = ₱50
+     *
+     * paymentBreakdown.Cash must be ₱650,
+     * NOT ₱700.
+     *
+     * The separate tenderBreakdown/cashReceived fields are
+     * customer tender information and must not inflate Cash Flow.
+     */
+    let paymentBreakdown = getPaymentBreakdown(data);
+    let paymentTotal = getPaymentBreakdownTotal(paymentBreakdown);
+
+    /*
+     * If the saved payment breakdown is missing, incomplete,
+     * or does not match the sale total, rebuild it safely
+     * from the sale's payment method.
+     */
+    if (paymentTotal <= 0) {
+        paymentBreakdown = {
+            Cash: 0,
+            GCash: 0,
+            BDO: 0,
+            BIBO: 0,
+            BPI: 0
+        };
+
+        if (ACCOUNT_NAMES.includes(paymentMethod)) {
+            paymentBreakdown[paymentMethod] = amount;
+        } else {
+            /*
+             * Unknown payment method:
+             * treat the sale as Cash only when no usable
+             * payment information exists.
+             */
+            paymentBreakdown.Cash = amount;
+        }
+
+        paymentTotal = amount;
+    }
+
+    /*
+     * A valid retained-payment breakdown must equal the sale total.
+     *
+     * If it does not, normalize it so Cash Flow never reports
+     * more POS income than the actual sale total.
+     */
+    if (Math.abs(paymentTotal - amount) > 0.005) {
+
+        const normalized = {
+            Cash: 0,
+            GCash: 0,
+            BDO: 0,
+            BIBO: 0,
+            BPI: 0
+        };
+
+        /*
+         * If the breakdown is too large because it contains
+         * customer tendered cash, prefer the sale's payment
+         * method and assign exactly the sale total there.
+         */
+        if (ACCOUNT_NAMES.includes(paymentMethod)) {
+            normalized[paymentMethod] = amount;
+        } else {
+            normalized.Cash = amount;
+        }
+
+        paymentBreakdown = normalized;
+        paymentTotal = amount;
+    }
+
+    /*
+     * The Cash Flow SALE record must always represent the
+     * actual sale value, never cash tendered before change.
+     */
     return {
         id: `SALE-${id}`,
         firestoreId: id,
@@ -201,7 +289,7 @@ function normalizeSale(id, data) {
         category: "Sale",
         description: `POS Sale${paymentMethod ? ` - ${paymentMethod}` : ""}${customer ? ` - ${customer}` : ""}`,
         reference,
-        cashIn: paymentTotal > 0 ? paymentTotal : amount,
+        cashIn: amount,
         cashOut: 0,
         source: "sale",
         paymentMethod,
@@ -211,11 +299,35 @@ function normalizeSale(id, data) {
     };
 }
 function rebuildCashFlow() {
-    const existing = [...cashFlowData];
-    const existingSaleReferences = new Set(existing.filter(item => item.category === "Sale").map(item => String(item.reference)));
-    const generatedSales = salesData.map(item => normalizeSale(item.id, item.data)).filter(Boolean).filter(item => !existingSaleReferences.has(String(item.reference)));
-    cashFlowData = [...existing, ...generatedSales].sort((a, b) => b.date - a.date);
+    /*
+     * POS sales are generated from the authoritative `sales`
+     * collection. Do not keep an older Sale record from the
+     * `cashFlow` collection because that record may contain
+     * an outdated payment amount.
+     *
+     * This prevents an old cash-flow sale such as:
+     *   total = ₱650
+     *   cashIn = ₱700
+     *
+     * from overriding the corrected sale:
+     *   total = ₱650
+     *   cashIn = ₱650
+     */
+    const nonSaleCashFlow = cashFlowData.filter(
+        item => item.category !== "Sale"
+    );
+
+    const generatedSales = salesData
+        .map(item => normalizeSale(item.id, item.data))
+        .filter(Boolean);
+
+    cashFlowData = [
+        ...nonSaleCashFlow,
+        ...generatedSales
+    ].sort((a, b) => b.date - a.date);
+
     filteredCashFlow = [...cashFlowData];
+
     calculateBalances();
     updateSummary();
     updateAccountBalances();

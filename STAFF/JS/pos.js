@@ -1,5 +1,9 @@
 import { auth, db } from "../../Firebase/firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
 import {
     collection,
     getDocs,
@@ -8,121 +12,251 @@ import {
     runTransaction
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-const productsGrid = document.getElementById("productsGrid");
-const productSearch = document.getElementById("productSearch");
-const categoryFilter = document.getElementById("categoryFilter");
-const typeFilter = document.getElementById("typeFilter");
-const refreshProducts = document.getElementById("refreshProducts");
 
-const cartItems = document.getElementById("cartItems");
-const cartCount = document.getElementById("cartCount");
-const subtotalElement = document.getElementById("subtotal");
-const discountElement = document.getElementById("discount");
-const totalElement = document.getElementById("total");
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
-const checkoutButton = document.getElementById("checkoutButton");
-const clearCartButton = document.getElementById("clearCart");
+const productsGrid =
+    document.getElementById("productsGrid");
 
-const paymentModal = document.getElementById("paymentModal");
-const closePayment = document.getElementById("closePayment");
-const paymentTotal = document.getElementById("paymentTotal");
-const cashReceived = document.getElementById("cashReceived");
-const changeAmount = document.getElementById("changeAmount");
-const completeSale = document.getElementById("completeSale");
-const paymentError = document.getElementById("paymentError");
+const productSearch =
+    document.getElementById("productSearch");
 
-const cashPaymentArea = document.getElementById("cashPaymentArea");
-const splitPaymentArea = document.getElementById("splitPaymentArea");
+const categoryFilter =
+    document.getElementById("categoryFilter");
 
-const splitCash = document.getElementById("splitCash");
-const splitGCash = document.getElementById("splitGCash");
-const splitBDO = document.getElementById("splitBDO");
-const splitBIBO = document.getElementById("splitBIBO");
-const splitBPI = document.getElementById("splitBPI");
+const typeFilter =
+    document.getElementById("typeFilter");
 
-const splitTotalPaid = document.getElementById("splitTotalPaid");
-const splitRemaining = document.getElementById("splitRemaining");
+const refreshProducts =
+    document.getElementById("refreshProducts");
 
-const successModal = document.getElementById("successModal");
-const successMessage = document.getElementById("successMessage");
-const successTotal = document.getElementById("successTotal");
-const newSaleButton = document.getElementById("newSaleButton");
 
-const posError = document.getElementById("posError");
-const posErrorMessage = document.getElementById("posErrorMessage");
-const retryButton = document.getElementById("retryButton");
+const cartItems =
+    document.getElementById("cartItems");
 
-const staffName = document.getElementById("staffName");
-const staffRole = document.getElementById("staffRole");
-const staffAvatar = document.getElementById("staffAvatar");
-const staffStatus = document.getElementById("staffStatus");
+const cartCount =
+    document.getElementById("cartCount");
+
+const subtotalElement =
+    document.getElementById("subtotal");
+
+const discountElement =
+    document.getElementById("discount");
+
+const totalElement =
+    document.getElementById("total");
+
+
+const checkoutButton =
+    document.getElementById("checkoutButton");
+
+const clearCartButton =
+    document.getElementById("clearCart");
+
+
+const paymentModal =
+    document.getElementById("paymentModal");
+
+const closePayment =
+    document.getElementById("closePayment");
+
+const paymentTotal =
+    document.getElementById("paymentTotal");
+
+const cashReceived =
+    document.getElementById("cashReceived");
+
+const changeAmount =
+    document.getElementById("changeAmount");
+
+const completeSale =
+    document.getElementById("completeSale");
+
+const paymentError =
+    document.getElementById("paymentError");
+
+
+const cashPaymentArea =
+    document.getElementById("cashPaymentArea");
+
+const splitPaymentArea =
+    document.getElementById("splitPaymentArea");
+
+
+const splitCash =
+    document.getElementById("splitCash");
+
+const splitGCash =
+    document.getElementById("splitGCash");
+
+const splitBDO =
+    document.getElementById("splitBDO");
+
+const splitBIBO =
+    document.getElementById("splitBIBO");
+
+const splitBPI =
+    document.getElementById("splitBPI");
+
+
+const splitTotalPaid =
+    document.getElementById("splitTotalPaid");
+
+const splitRemaining =
+    document.getElementById("splitRemaining");
+
+
+const paymentDestination =
+    document.getElementById("paymentDestination");
+
+
+const successModal =
+    document.getElementById("successModal");
+
+const successMessage =
+    document.getElementById("successMessage");
+
+const successTotal =
+    document.getElementById("successTotal");
+
+const newSaleButton =
+    document.getElementById("newSaleButton");
+
+
+const posError =
+    document.getElementById("posError");
+
+const posErrorMessage =
+    document.getElementById("posErrorMessage");
+
+const retryButton =
+    document.getElementById("retryButton");
+
+
+const staffName =
+    document.getElementById("staffName");
+
+const staffRole =
+    document.getElementById("staffRole");
+
+const staffAvatar =
+    document.getElementById("staffAvatar");
+
+const staffStatus =
+    document.getElementById("staffStatus");
+
+
+/* =========================================================
+   STATE
+========================================================= */
 
 let currentUser = null;
-let currentProfile = null;
+
+let currentProfile = {};
 
 let products = [];
+
 let categories = [];
+
 let cart = [];
 
 let selectedPaymentMethod = "Cash";
 
+
 /* =========================================================
-   HELPERS
+   BASIC HELPERS
 ========================================================= */
 
-const money = value =>
-    new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP"
-    }).format(Number(value) || 0);
+const money = value => {
 
-const escapeHtml = value =>
-    String(value ?? "").replace(
-        /[&<>"']/g,
-        char =>
-            ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            })[char]
+    return new Intl.NumberFormat(
+        "en-PH",
+        {
+            style: "currency",
+            currency: "PHP"
+        }
+    ).format(
+        Number(value) || 0
     );
 
+};
+
+
+const escapeHtml = value => {
+
+    return String(
+        value ?? ""
+    ).replace(
+        /[&<>"']/g,
+        character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        })[character]
+    );
+
+};
+
+
 const initials = name => {
-    const parts = String(name || "Staff")
-        .trim()
-        .split(/\s+/);
+
+    const parts =
+        String(name || "Staff")
+            .trim()
+            .split(/\s+/);
 
     if (parts.length > 1) {
+
         return (
             parts[0][0] +
             parts[parts.length - 1][0]
         ).toUpperCase();
+
     }
 
-    return String(name || "ST")
+    return String(
+        name || "ST"
+    )
         .substring(0, 2)
         .toUpperCase();
+
 };
 
-const getName = item =>
-    item.name ??
-    item.productName ??
-    item.title ??
-    item.packageName ??
-    item.insuranceName ??
-    "Unnamed";
 
-const getSku = item =>
-    item.sku ??
-    item.SKU ??
-    item.productCode ??
-    item.code ??
-    "";
+const getName = item => {
 
-const getPrice = item =>
-    Number(
+    return (
+        item.name ??
+        item.productName ??
+        item.title ??
+        item.packageName ??
+        item.insuranceName ??
+        "Unnamed"
+    );
+
+};
+
+
+const getSku = item => {
+
+    return (
+        item.sku ??
+        item.SKU ??
+        item.productCode ??
+        item.code ??
+        ""
+    );
+
+};
+
+
+const getPrice = item => {
+
+    return Number(
         item.sellingPrice ??
         item.price ??
         item.salePrice ??
@@ -132,502 +266,163 @@ const getPrice = item =>
         0
     );
 
-const getStock = item =>
-    Number(
+};
+
+
+const getStock = item => {
+
+    return Number(
         item.stock ??
         item.currentStock ??
         item.quantity ??
         0
     );
 
-const getCategory = item =>
-    item.category ??
-    item.categoryName ??
-    item.categoryId ??
-    "Uncategorized";
+};
 
-const getImage = item =>
-    item.imageUrl ??
-    item.imageURL ??
-    item.image ??
-    item.photoUrl ??
-    item.photoURL ??
-    item.productImage ??
-    item.packageImage ??
-    item.insuranceImage ??
-    "";
+
+const getCategory = item => {
+
+    return (
+        item.category ??
+        item.categoryName ??
+        item.categoryId ??
+        "Uncategorized"
+    );
+
+};
+
+
+const getImage = item => {
+
+    return (
+        item.imageUrl ??
+        item.imageURL ??
+        item.image ??
+        item.photoUrl ??
+        item.photoURL ??
+        item.productImage ??
+        item.packageImage ??
+        item.insuranceImage ??
+        ""
+    );
+
+};
+
 
 const getType = item => {
+
     if (item.itemType) {
-        return String(item.itemType).toLowerCase();
+
+        return String(
+            item.itemType
+        ).toLowerCase();
+
     }
 
     if (item.type) {
-        return String(item.type).toLowerCase();
+
+        return String(
+            item.type
+        ).toLowerCase();
+
     }
 
-    if (item.sourceCollection === "packages") {
+    if (
+        item.sourceCollection ===
+        "packages"
+    ) {
+
         return "package";
+
     }
 
-    if (item.sourceCollection === "insurances") {
+    if (
+        item.sourceCollection ===
+        "insurances"
+    ) {
+
         return "insurance";
+
     }
 
     return "product";
+
 };
 
-const normalizeCategory = name => {
-    const value = String(name ?? "").trim();
-    const lower = value.toLowerCase();
 
-    if (lower === "package" || lower === "packages") {
+const normalizeCategory = value => {
+
+    const text =
+        String(
+            value ?? ""
+        ).trim();
+
+    const lower =
+        text.toLowerCase();
+
+    if (
+        lower === "package" ||
+        lower === "packages"
+    ) {
+
         return "Packages";
+
     }
 
-    if (lower === "insurance" || lower === "insurances") {
+    if (
+        lower === "insurance" ||
+        lower === "insurances"
+    ) {
+
         return "Insurance";
+
     }
 
-    return value;
+    return text || "Uncategorized";
+
 };
+
 
 const getPackageItems = item => {
-    if (Array.isArray(item.items)) {
+
+    if (
+        Array.isArray(
+            item.items
+        )
+    ) {
+
         return item.items;
+
     }
 
-    if (Array.isArray(item.packageItems)) {
+    if (
+        Array.isArray(
+            item.packageItems
+        )
+    ) {
+
         return item.packageItems;
+
     }
 
-    if (Array.isArray(item.components)) {
+    if (
+        Array.isArray(
+            item.components
+        )
+    ) {
+
         return item.components;
+
     }
 
     return [];
+
 };
 
-/* =========================================================
-   CART CALCULATIONS
-========================================================= */
-
-const cartSubtotal = () =>
-    cart.reduce(
-        (sum, item) =>
-            sum + item.price * item.quantity,
-        0
-    );
-
-const getDiscount = () => {
-    if (!discountElement) {
-        return 0;
-    }
-
-    let value = parseFloat(discountElement.value);
-
-    if (!Number.isFinite(value) || value < 0) {
-        value = 0;
-    }
-
-    return Math.min(
-        value,
-        cartSubtotal()
-    );
-};
-
-const cartTotal = () =>
-    Math.max(
-        cartSubtotal() - getDiscount(),
-        0
-    );
-
-const cartQuantity = () =>
-    cart.reduce(
-        (sum, item) =>
-            sum + item.quantity,
-        0
-    );
-
-/* =========================================================
-   ERROR HANDLING
-========================================================= */
-
-const showError = error => {
-    console.error(
-        "Staff POS error:",
-        error
-    );
-
-    if (posError) {
-        posError.classList.add("show");
-    }
-
-    if (posErrorMessage) {
-        posErrorMessage.textContent =
-            error?.message ||
-            "Unable to connect to Firebase.";
-    }
-};
-
-const hideError = () => {
-    if (posError) {
-        posError.classList.remove("show");
-    }
-};
-
-/* =========================================================
-   STAFF INFORMATION
-========================================================= */
-
-const loadStaffInfo = async user => {
-    const storedName =
-        sessionStorage.getItem("userName");
-
-    let profile = {};
-
-    try {
-        const profileSnap = await getDoc(
-            doc(db, "users", user.uid)
-        );
-
-        if (profileSnap.exists()) {
-            profile = profileSnap.data();
-        }
-    } catch (error) {
-        console.warn(
-            "Unable to load staff profile:",
-            error
-        );
-    }
-
-    currentProfile = profile;
-
-    const name =
-        profile.fullName ||
-        profile.name ||
-        storedName ||
-        user.displayName ||
-        user.email?.split("@")[0] ||
-        "Staff";
-
-    const role =
-        profile.role ||
-        sessionStorage.getItem("userRole") ||
-        "Staff / Cashier";
-
-    const status =
-        profile.status ||
-        "Active";
-
-    if (staffName) {
-        staffName.textContent = name;
-    }
-
-    if (staffRole) {
-        staffRole.textContent = role;
-    }
-
-    if (staffAvatar) {
-        staffAvatar.textContent =
-            initials(name);
-    }
-
-    if (staffStatus) {
-        staffStatus.innerHTML =
-            `<span></span>${escapeHtml(status)}`;
-
-        if (
-            String(status).toLowerCase() !==
-            "active"
-        ) {
-            staffStatus.classList.add(
-                "offline"
-            );
-        } else {
-            staffStatus.classList.remove(
-                "offline"
-            );
-        }
-    }
-};
-
-/* =========================================================
-   CATEGORIES
-========================================================= */
-
-const loadCategories = async () => {
-    const categoryMap = new Map();
-
-    try {
-        const snapshot = await getDocs(
-            collection(db, "categories")
-        );
-
-        snapshot.forEach(document => {
-            const data = document.data();
-
-            const rawName =
-                data.name ??
-                data.categoryName ??
-                data.title ??
-                document.id;
-
-            const name =
-                normalizeCategory(rawName);
-
-            if (!name) {
-                return;
-            }
-
-            const key =
-                name.toLowerCase();
-
-            if (!categoryMap.has(key)) {
-                categoryMap.set(
-                    key,
-                    {
-                        id: key,
-                        name
-                    }
-                );
-            }
-        });
-    } catch (error) {
-        console.warn(
-            "Categories collection could not be loaded:",
-            error
-        );
-    }
-
-    products.forEach(item => {
-        if (getType(item) !== "product") {
-            return;
-        }
-
-        const name =
-            normalizeCategory(
-                getCategory(item)
-            );
-
-        if (
-            !name ||
-            name === "Uncategorized"
-        ) {
-            return;
-        }
-
-        const key =
-            name.toLowerCase();
-
-        if (!categoryMap.has(key)) {
-            categoryMap.set(
-                key,
-                {
-                    id: key,
-                    name
-                }
-            );
-        }
-    });
-
-    categories =
-        [...categoryMap.values()]
-            .sort((a, b) =>
-                a.name.localeCompare(
-                    b.name
-                )
-            );
-
-    if (!categoryFilter) {
-        return;
-    }
-
-    categoryFilter.innerHTML =
-        '<option value="all">All Categories</option>';
-
-    categories.forEach(category => {
-        const option =
-            document.createElement(
-                "option"
-            );
-
-        option.value =
-            category.id;
-
-        option.textContent =
-            category.name;
-
-        categoryFilter.appendChild(
-            option
-        );
-    });
-};
-
-/* =========================================================
-   LOAD PRODUCTS
-========================================================= */
-
-const loadProducts = async () => {
-    productsGrid.innerHTML =
-        '<div class="loading-products">Loading products, packages and insurance...</div>';
-
-    const loadedItems = [];
-
-    const productSnapshot =
-        await getDocs(
-            collection(db, "products")
-        );
-
-    productSnapshot.forEach(
-        document => {
-            const data =
-                document.data();
-
-            loadedItems.push({
-                id: document.id,
-                ...data,
-                itemType: "product",
-                sourceCollection:
-                    "products"
-            });
-        }
-    );
-
-    try {
-        const packageSnapshot =
-            await getDocs(
-                collection(db, "packages")
-            );
-
-        packageSnapshot.forEach(
-            document => {
-                const data =
-                    document.data();
-
-                if (data.active === false) {
-                    return;
-                }
-
-                loadedItems.push({
-                    id: document.id,
-                    ...data,
-                    itemType: "package",
-                    sourceCollection:
-                        "packages",
-                    category:
-                        normalizeCategory(
-                            data.category ??
-                            data.categoryName ??
-                            "Packages"
-                        ),
-                    sellingPrice:
-                        Number(
-                            data.sellingPrice ??
-                            data.price ??
-                            0
-                        ),
-                    price:
-                        Number(
-                            data.sellingPrice ??
-                            data.price ??
-                            0
-                        ),
-                    imageUrl:
-                        data.imageUrl ?? "",
-                    items:
-                        Array.isArray(
-                            data.items
-                        )
-                            ? data.items
-                            : []
-                });
-            }
-        );
-    } catch (error) {
-        console.error(
-            "Packages loading error:",
-            error
-        );
-    }
-
-    try {
-        const insuranceSnapshot =
-            await getDocs(
-                collection(db, "insurances")
-            );
-
-        insuranceSnapshot.forEach(
-            document => {
-                const data =
-                    document.data();
-
-                const status =
-                    String(
-                        data.status ??
-                        "active"
-                    ).toLowerCase();
-
-                if (status !== "active") {
-                    return;
-                }
-
-                loadedItems.push({
-                    id: document.id,
-                    ...data,
-                    itemType:
-                        "insurance",
-                    sourceCollection:
-                        "insurances",
-                    category:
-                        "Insurance",
-                    sellingPrice:
-                        Number(
-                            data.sellingPrice ??
-                            data.price ??
-                            data.premium ??
-                            0
-                        ),
-                    price:
-                        Number(
-                            data.sellingPrice ??
-                            data.price ??
-                            data.premium ??
-                            0
-                        ),
-                    imageUrl:
-                        data.imageUrl ?? ""
-                });
-            }
-        );
-    } catch (error) {
-        console.error(
-            "Insurance loading error:",
-            error
-        );
-    }
-
-    products = loadedItems;
-
-    await loadCategories();
-
-    renderProducts();
-};
-
-const getProductById =
-    productId =>
-        products.find(
-            item =>
-                item.sourceCollection ===
-                    "products" &&
-                item.id === productId
-        );
-
-/* =========================================================
-   PACKAGE AVAILABILITY
-========================================================= */
 
 const normalizePackageItem = item => {
+
     const productId =
         item.productId ??
         item.productID ??
@@ -642,324 +437,1228 @@ const normalizePackageItem = item => {
         );
 
     return {
+
         productId,
+
         quantity:
             Number.isFinite(quantity) &&
             quantity > 0
                 ? quantity
                 : 1
+
     };
+
 };
 
-const checkPackageAvailability =
-    packageItem => {
-        const packageItems =
-            getPackageItems(
-                packageItem
+
+const generateTransactionNumber = () => {
+
+    const now =
+        new Date();
+
+    const date =
+        now
+            .toISOString()
+            .replace(/\D/g, "")
+            .substring(
+                0,
+                14
             );
 
-        if (!packageItems.length) {
-            return {
-                available: false,
-                message:
-                    "This package has no items configured."
-            };
+    const random =
+        Math.floor(
+            1000 +
+            Math.random() *
+            9000
+        );
+
+    return (
+        `TXN-${date}-${random}`
+    );
+
+};
+
+
+/* =========================================================
+   ERROR HANDLING
+========================================================= */
+
+function showError(error) {
+
+    console.error(
+        "Staff POS error:",
+        error
+    );
+
+    if (posError) {
+
+        posError.classList.add(
+            "show"
+        );
+
+    }
+
+    if (posErrorMessage) {
+
+        posErrorMessage.textContent =
+            error?.message ||
+            "Unable to connect to Firebase.";
+
+    }
+
+}
+
+
+function hideError() {
+
+    if (posError) {
+
+        posError.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   STAFF INFORMATION
+========================================================= */
+
+async function loadStaffInfo(user) {
+
+    let profile = {};
+
+    const storedName =
+        sessionStorage.getItem(
+            "userName"
+        );
+
+    try {
+
+        const profileSnapshot =
+            await getDoc(
+                doc(
+                    db,
+                    "users",
+                    user.uid
+                )
+            );
+
+        if (
+            profileSnapshot.exists()
+        ) {
+
+            profile =
+                profileSnapshot.data();
+
         }
 
-        for (
-            const rawItem
-            of packageItems
+    } catch (error) {
+
+        console.warn(
+            "Unable to load staff profile:",
+            error
+        );
+
+    }
+
+    currentProfile =
+        profile;
+
+    const name =
+        profile.fullName ||
+        profile.name ||
+        storedName ||
+        user.displayName ||
+        user.email?.split("@")[0] ||
+        "Staff";
+
+    const role =
+        profile.role ||
+        sessionStorage.getItem(
+            "userRole"
+        ) ||
+        "Staff / Cashier";
+
+    const status =
+        profile.status ||
+        "Active";
+
+
+    if (staffName) {
+
+        staffName.textContent =
+            name;
+
+    }
+
+
+    if (staffRole) {
+
+        staffRole.textContent =
+            role;
+
+    }
+
+
+    if (staffAvatar) {
+
+        staffAvatar.textContent =
+            initials(name);
+
+    }
+
+
+    if (staffStatus) {
+
+        staffStatus.innerHTML =
+            `<span></span>${escapeHtml(status)}`;
+
+        if (
+            String(status)
+                .toLowerCase() !==
+            "active"
         ) {
-            const component =
-                normalizePackageItem(
-                    rawItem
-                );
 
-            if (!component.productId) {
-                return {
-                    available: false,
-                    message:
-                        "A package item is missing its product ID."
-                };
+            staffStatus.classList.add(
+                "offline"
+            );
+
+        } else {
+
+            staffStatus.classList.remove(
+                "offline"
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   CART CALCULATIONS
+========================================================= */
+
+function cartSubtotal() {
+
+    return cart.reduce(
+        (
+            total,
+            item
+        ) => {
+
+            return (
+                total +
+                (
+                    Number(item.price) *
+                    Number(item.quantity)
+                )
+            );
+
+        },
+        0
+    );
+
+}
+
+
+function getDiscount() {
+
+    if (!discountElement) {
+
+        return 0;
+
+    }
+
+    let value =
+        Number(
+            discountElement.value
+        );
+
+    if (
+        !Number.isFinite(value) ||
+        value < 0
+    ) {
+
+        value = 0;
+
+    }
+
+    return Math.min(
+        value,
+        cartSubtotal()
+    );
+
+}
+
+
+function cartTotal() {
+
+    return Math.max(
+        cartSubtotal() -
+        getDiscount(),
+        0
+    );
+
+}
+
+
+function cartQuantity() {
+
+    return cart.reduce(
+        (
+            total,
+            item
+        ) => {
+
+            return (
+                total +
+                Number(item.quantity)
+            );
+
+        },
+        0
+    );
+
+}
+
+
+/* =========================================================
+   LOAD CATEGORIES
+========================================================= */
+
+async function loadCategories() {
+
+    const categoryMap =
+        new Map();
+
+    try {
+
+        const snapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "categories"
+                )
+            );
+
+        snapshot.forEach(
+            categoryDoc => {
+
+                const data =
+                    categoryDoc.data();
+
+                const rawName =
+                    data.name ??
+                    data.categoryName ??
+                    data.title ??
+                    categoryDoc.id;
+
+                const name =
+                    normalizeCategory(
+                        rawName
+                    );
+
+                if (!name) {
+
+                    return;
+
+                }
+
+                const key =
+                    name.toLowerCase();
+
+                if (
+                    !categoryMap.has(key)
+                ) {
+
+                    categoryMap.set(
+                        key,
+                        {
+                            id: key,
+                            name
+                        }
+                    );
+
+                }
+
             }
+        );
 
-            const product =
-                getProductById(
-                    component.productId
-                );
+    } catch (error) {
 
-            if (!product) {
-                return {
-                    available: false,
-                    message:
-                        `Package product ${component.productId} was not found.`
-                };
-            }
+        console.warn(
+            "Categories collection could not be loaded:",
+            error
+        );
 
-            const stock =
-                getStock(product);
+    }
+
+
+    products.forEach(
+        item => {
 
             if (
-                stock <
-                component.quantity
+                getType(item) !==
+                "product"
             ) {
-                return {
-                    available: false,
-                    message:
-                        `${getName(product)} has insufficient stock.`
-                };
+
+                return;
+
             }
+
+            const name =
+                normalizeCategory(
+                    getCategory(item)
+                );
+
+            if (
+                !name ||
+                name === "Uncategorized"
+            ) {
+
+                return;
+
+            }
+
+            const key =
+                name.toLowerCase();
+
+            if (
+                !categoryMap.has(key)
+            ) {
+
+                categoryMap.set(
+                    key,
+                    {
+                        id: key,
+                        name
+                    }
+                );
+
+            }
+
         }
+    );
+
+
+    categories =
+        [...categoryMap.values()]
+            .sort(
+                (a, b) =>
+                    a.name.localeCompare(
+                        b.name
+                    )
+            );
+
+
+    if (!categoryFilter) {
+
+        return;
+
+    }
+
+
+    categoryFilter.innerHTML =
+        `<option value="all">
+            All Categories
+         </option>`;
+
+
+    categories.forEach(
+        category => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                category.id;
+
+            option.textContent =
+                category.name;
+
+            categoryFilter.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   LOAD PRODUCTS / PACKAGES / INSURANCE
+========================================================= */
+
+async function loadProducts() {
+
+    if (productsGrid) {
+
+        productsGrid.innerHTML =
+            `<div class="loading-products">
+                Loading products, packages and insurance...
+             </div>`;
+
+    }
+
+    const loadedItems = [];
+
+
+    /* -------------------------------------------------------
+       PRODUCTS
+    ------------------------------------------------------- */
+
+    const productSnapshot =
+        await getDocs(
+            collection(
+                db,
+                "products"
+            )
+        );
+
+
+    productSnapshot.forEach(
+        productDoc => {
+
+            const data =
+                productDoc.data();
+
+            loadedItems.push({
+
+                id:
+                    productDoc.id,
+
+                ...data,
+
+                itemType:
+                    "product",
+
+                sourceCollection:
+                    "products"
+
+            });
+
+        }
+    );
+
+
+    /* -------------------------------------------------------
+       PACKAGES
+    ------------------------------------------------------- */
+
+    try {
+
+        const packageSnapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "packages"
+                )
+            );
+
+
+        packageSnapshot.forEach(
+            packageDoc => {
+
+                const data =
+                    packageDoc.data();
+
+                if (
+                    data.active === false
+                ) {
+
+                    return;
+
+                }
+
+                loadedItems.push({
+
+                    id:
+                        packageDoc.id,
+
+                    ...data,
+
+                    itemType:
+                        "package",
+
+                    sourceCollection:
+                        "packages",
+
+                    category:
+                        normalizeCategory(
+                            data.category ??
+                            data.categoryName ??
+                            "Packages"
+                        ),
+
+                    sellingPrice:
+                        Number(
+                            data.sellingPrice ??
+                            data.price ??
+                            0
+                        ),
+
+                    price:
+                        Number(
+                            data.sellingPrice ??
+                            data.price ??
+                            0
+                        ),
+
+                    imageUrl:
+                        data.imageUrl ??
+                        data.imageURL ??
+                        "",
+
+                    items:
+                        Array.isArray(
+                            data.items
+                        )
+                            ? data.items
+                            : []
+
+                });
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Packages loading error:",
+            error
+        );
+
+    }
+
+
+    /* -------------------------------------------------------
+       INSURANCE
+    ------------------------------------------------------- */
+
+    try {
+
+        const insuranceSnapshot =
+            await getDocs(
+                collection(
+                    db,
+                    "insurances"
+                )
+            );
+
+
+        insuranceSnapshot.forEach(
+            insuranceDoc => {
+
+                const data =
+                    insuranceDoc.data();
+
+                const status =
+                    String(
+                        data.status ??
+                        "active"
+                    ).toLowerCase();
+
+                if (
+                    status !== "active"
+                ) {
+
+                    return;
+
+                }
+
+                loadedItems.push({
+
+                    id:
+                        insuranceDoc.id,
+
+                    ...data,
+
+                    itemType:
+                        "insurance",
+
+                    sourceCollection:
+                        "insurances",
+
+                    category:
+                        "Insurance",
+
+                    sellingPrice:
+                        Number(
+                            data.sellingPrice ??
+                            data.price ??
+                            data.premium ??
+                            0
+                        ),
+
+                    price:
+                        Number(
+                            data.sellingPrice ??
+                            data.price ??
+                            data.premium ??
+                            0
+                        ),
+
+                    imageUrl:
+                        data.imageUrl ??
+                        data.imageURL ??
+                        ""
+
+                });
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Insurance loading error:",
+            error
+        );
+
+    }
+
+
+    products =
+        loadedItems;
+
+
+    await loadCategories();
+
+    renderProducts();
+
+}
+
+
+/* =========================================================
+   FIND PRODUCT
+========================================================= */
+
+function getProductById(
+    productId
+) {
+
+    return products.find(
+        item =>
+            getType(item) ===
+                "product" &&
+            item.id ===
+                productId
+    );
+
+}
+
+
+/* =========================================================
+   PACKAGE AVAILABILITY
+========================================================= */
+
+function checkPackageAvailability(
+    packageItem
+) {
+
+    const packageProducts =
+        getPackageItems(
+            packageItem
+        );
+
+
+    if (
+        !packageProducts.length
+    ) {
 
         return {
-            available: true,
-            message: "Available"
+
+            available: false,
+
+            message:
+                "This package has no products configured."
+
         };
+
+    }
+
+
+    /*
+       IMPORTANT:
+
+       A package is available only when
+       EVERY component has enough stock.
+    */
+
+    for (
+        const rawItem
+        of packageProducts
+    ) {
+
+        const component =
+            normalizePackageItem(
+                rawItem
+            );
+
+
+        if (
+            !component.productId
+        ) {
+
+            return {
+
+                available: false,
+
+                message:
+                    "A package item is missing its product ID."
+
+            };
+
+        }
+
+
+        const product =
+            getProductById(
+                component.productId
+            );
+
+
+        if (!product) {
+
+            return {
+
+                available: false,
+
+                message:
+                    `Package product ${component.productId} was not found.`
+
+            };
+
+        }
+
+
+        const stock =
+            getStock(product);
+
+
+        if (
+            stock <
+            component.quantity
+        ) {
+
+            return {
+
+                available: false,
+
+                message:
+                    `${getName(product)} has insufficient stock.`
+
+            };
+
+        }
+
+    }
+
+
+    return {
+
+        available: true,
+
+        message:
+            "Available"
+
     };
+
+}
+
 
 /* =========================================================
    RENDER PRODUCTS
 ========================================================= */
 
-const renderProducts = () => {
+function renderProducts() {
+
+    if (!productsGrid) {
+
+        return;
+
+    }
+
+
     const search =
-        productSearch.value
+        productSearch
+            ?.value
             .trim()
-            .toLowerCase();
+            .toLowerCase() ||
+        "";
+
 
     const selectedCategory =
-        categoryFilter.value;
+        categoryFilter
+            ?.value ||
+        "all";
+
 
     const selectedType =
         typeFilter
-            ? typeFilter.value
-            : "all";
+            ?.value ||
+        "all";
+
 
     const filtered =
-        products.filter(item => {
-            const name =
-                getName(item)
-                    .toLowerCase();
+        products.filter(
+            item => {
 
-            const sku =
-                getSku(item)
-                    .toLowerCase();
-
-            const itemType =
-                getType(item);
-
-            const normalizedItemCategory =
-                normalizeCategory(
-                    getCategory(item)
-                ).toLowerCase();
-
-            const matchesSearch =
-                !search ||
-                name.includes(search) ||
-                sku.includes(search);
-
-            let matchesCategory = true;
-
-            if (
-                selectedCategory !==
-                "all"
-            ) {
-                const selectedCategoryObject =
-                    categories.find(
-                        category =>
-                            category.id ===
-                            selectedCategory
-                    );
-
-                const selectedName =
-                    String(
-                        selectedCategoryObject?.name ??
-                        selectedCategory
-                    )
-                        .trim()
+                const name =
+                    getName(item)
                         .toLowerCase();
 
-                matchesCategory =
-                    normalizedItemCategory ===
-                    selectedName;
-            }
+                const sku =
+                    getSku(item)
+                        .toLowerCase();
 
-            const matchesType =
-                selectedType === "all" ||
-                itemType ===
-                    selectedType;
-
-            return (
-                matchesSearch &&
-                matchesCategory &&
-                matchesType
-            );
-        });
-
-    if (!filtered.length) {
-        productsGrid.innerHTML =
-            '<div class="no-products">No products, packages or insurance found.</div>';
-
-        return;
-    }
-
-    productsGrid.innerHTML =
-        filtered
-            .map(item => {
                 const itemType =
                     getType(item);
 
-                const packageItem =
-                    itemType ===
-                    "package";
+                const category =
+                    normalizeCategory(
+                        getCategory(item)
+                    )
+                        .toLowerCase();
 
-                const insurance =
-                    itemType ===
-                    "insurance";
 
-                let available = true;
-                let stockText = "";
+                const matchesSearch =
+                    !search ||
+                    name.includes(search) ||
+                    sku.includes(search) ||
+                    category.includes(search);
 
-                if (insurance) {
-                    stockText =
-                        "No stock required";
-                } else if (packageItem) {
-                    const availability =
-                        checkPackageAvailability(
-                            item
+
+                let matchesCategory =
+                    true;
+
+
+                if (
+                    selectedCategory !==
+                    "all"
+                ) {
+
+                    const categoryObject =
+                        categories.find(
+                            categoryItem =>
+                                categoryItem.id ===
+                                selectedCategory
                         );
 
-                    available =
-                        availability.available;
 
-                    stockText =
-                        available
-                            ? "Package available"
-                            : availability.message;
-                } else {
-                    const stock =
-                        getStock(item);
+                    const selectedName =
+                        String(
+                            categoryObject?.name ??
+                            selectedCategory
+                        )
+                            .trim()
+                            .toLowerCase();
 
-                    available =
-                        stock > 0;
 
-                    stockText =
-                        stock > 0
-                            ? `${stock} in stock`
-                            : "Out of Stock";
+                    matchesCategory =
+                        category ===
+                        selectedName;
+
                 }
 
-                const image =
-                    getImage(item);
 
-                const price =
-                    getPrice(item);
+                const matchesType =
+                    selectedType ===
+                        "all" ||
+                    itemType ===
+                        selectedType;
 
-                const typeLabel =
-                    insurance
-                        ? "INSURANCE"
-                        : packageItem
-                        ? "PACKAGE"
-                        : "PRODUCT";
 
-                const buttonText =
-                    !available
-                        ? "Unavailable"
-                        : insurance
-                        ? "Add Insurance"
-                        : packageItem
-                        ? "Add Package"
-                        : "Add to Cart";
+                return (
+                    matchesSearch &&
+                    matchesCategory &&
+                    matchesType
+                );
 
-                return `
-<article class="product-card ${itemType} ${available ? "" : "out"}">
+            }
+        );
 
-    <div class="product-image">
-        ${
-            image
-                ? `<img
-                    src="${escapeHtml(image)}"
-                    alt="${escapeHtml(getName(item))}"
-                    onerror="this.style.display='none';this.parentElement.classList.add('image-error')"
-                >`
-                : `<span>${
-                    insurance
-                        ? "🛡"
-                        : packageItem
-                        ? "▦"
-                        : "₱"
-                }</span>`
-        }
-    </div>
 
-    <div class="type-badge ${itemType}">
-        ${typeLabel}
-    </div>
+    if (!filtered.length) {
 
-    <div class="product-name">
-        ${escapeHtml(getName(item))}
-    </div>
+        productsGrid.innerHTML =
+            `<div class="no-products">
+                No products, packages or insurance found.
+             </div>`;
 
-    <div class="product-sku">
-        ${escapeHtml(getSku(item))}
-    </div>
+        return;
 
-    ${
-        packageItem
-            ? `<div class="package-info">
-                ${getPackageItems(item).length}
-                included item${
-                    getPackageItems(item).length === 1
-                        ? ""
-                        : "s"
-                }
-            </div>`
-            : ""
     }
 
-    <div class="product-bottom">
 
-        <div class="product-price">
-            ${money(price)}
-        </div>
-
-        <div class="product-stock ${available ? "" : "out"}">
-            ${escapeHtml(stockText)}
-        </div>
-
-        <button
-            class="add-product"
-            data-product-id="${escapeHtml(item.id)}"
-            ${available ? "" : "disabled"}
-        >
-            ${buttonText}
-        </button>
-
-    </div>
-
-</article>`;
-            })
+    productsGrid.innerHTML =
+        filtered
+            .map(
+                item =>
+                    createProductCard(
+                        item
+                    )
+            )
             .join("");
 
+
     document
-        .querySelectorAll(".add-product")
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () =>
-                    addToCart(
-                        button.dataset
-                            .productId
-                    )
-            );
-        });
-};
+        .querySelectorAll(
+            ".add-product"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        addToCart(
+                            button.dataset
+                                .productId
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
 
 /* =========================================================
-   CART
+   PRODUCT CARD
 ========================================================= */
 
-const addToCart = productId => {
+function createProductCard(
+    item
+) {
+
+    const type =
+        getType(item);
+
+    const isPackage =
+        type === "package";
+
+    const isInsurance =
+        type === "insurance";
+
+
+    let available =
+        true;
+
+    let stockText =
+        "";
+
+
+    if (isInsurance) {
+
+        stockText =
+            "No stock required";
+
+    }
+
+
+    else if (isPackage) {
+
+        const availability =
+            checkPackageAvailability(
+                item
+            );
+
+        available =
+            availability.available;
+
+        stockText =
+            available
+                ? "Package available"
+                : availability.message;
+
+    }
+
+
+    else {
+
+        const stock =
+            getStock(item);
+
+        available =
+            stock > 0;
+
+        stockText =
+            stock > 0
+                ? `${stock} in stock`
+                : "Out of Stock";
+
+    }
+
+
+    const image =
+        getImage(item);
+
+
+    const price =
+        getPrice(item);
+
+
+    const typeLabel =
+        isInsurance
+            ? "INSURANCE"
+            : isPackage
+            ? "PACKAGE"
+            : "PRODUCT";
+
+
+    const buttonText =
+        !available
+            ? "Unavailable"
+            : isInsurance
+            ? "Add Insurance"
+            : isPackage
+            ? "Add Package"
+            : "Add to Cart";
+
+
+    return `
+
+        <article
+            class="product-card ${type}
+            ${available ? "" : "out"}"
+        >
+
+            <div class="product-image">
+
+                ${
+                    image
+
+                        ? `
+                            <img
+                                src="${escapeHtml(image)}"
+                                alt="${escapeHtml(
+                                    getName(item)
+                                )}"
+                                onerror="
+                                    this.style.display='none';
+                                    this.parentElement.classList.add('image-error')
+                                "
+                            >
+                          `
+
+                        : `
+                            <span>
+                                ${
+                                    isInsurance
+                                        ? "🛡"
+                                        : isPackage
+                                        ? "▦"
+                                        : "₱"
+                                }
+                            </span>
+                          `
+                }
+
+            </div>
+
+
+            <div class="type-badge ${type}">
+                ${typeLabel}
+            </div>
+
+
+            <div class="product-name">
+                ${escapeHtml(
+                    getName(item)
+                )}
+            </div>
+
+
+            <div class="product-sku">
+                ${escapeHtml(
+                    getSku(item)
+                )}
+            </div>
+
+
+            ${
+                isPackage
+
+                    ? `
+                        <div class="package-info">
+
+                            ${getPackageItems(item).length}
+
+                            included item${
+                                getPackageItems(item).length ===
+                                1
+                                    ? ""
+                                    : "s"
+                            }
+
+                        </div>
+                      `
+
+                    : ""
+            }
+
+
+            <div class="product-bottom">
+
+                <div class="product-price">
+                    ${money(price)}
+                </div>
+
+
+                <div
+                    class="product-stock
+                    ${available ? "" : "out"}"
+                >
+                    ${escapeHtml(
+                        stockText
+                    )}
+                </div>
+
+
+                <button
+                    class="add-product"
+                    type="button"
+                    data-product-id="${escapeHtml(
+                        item.id
+                    )}"
+                    ${
+                        available
+                            ? ""
+                            : "disabled"
+                    }
+                >
+                    ${buttonText}
+                </button>
+
+            </div>
+
+        </article>
+
+    `;
+
+}
+
+
+/* =========================================================
+   ADD TO CART
+========================================================= */
+
+function addToCart(
+    productId
+) {
+
     const item =
         products.find(
             product =>
@@ -967,12 +1666,17 @@ const addToCart = productId => {
                 productId
         );
 
+
     if (!item) {
+
         return;
+
     }
 
-    const itemType =
+
+    const type =
         getType(item);
+
 
     const existing =
         cart.find(
@@ -981,119 +1685,358 @@ const addToCart = productId => {
                 productId
         );
 
+
+    /* -------------------------------------------------------
+       INSURANCE
+    ------------------------------------------------------- */
+
     if (
-        itemType ===
+        type ===
         "insurance"
     ) {
+
         if (existing) {
+
             existing.quantity += 1;
-        } else {
-            cart.push({
-                productId: item.id,
-                name: getName(item),
-                sku: getSku(item),
-                category: "Insurance",
-                price: getPrice(item),
-                quantity: 1,
-                stock: 0,
-                itemType: "insurance",
-                image: getImage(item),
-                packageItems: []
-            });
+
         }
+
+        else {
+
+            cart.push({
+
+                productId:
+                    item.id,
+
+                name:
+                    getName(item),
+
+                sku:
+                    getSku(item),
+
+                category:
+                    "Insurance",
+
+                price:
+                    getPrice(item),
+
+                quantity:
+                    1,
+
+                stock:
+                    0,
+
+                itemType:
+                    "insurance",
+
+                image:
+                    getImage(item),
+
+                packageItems:
+                    []
+
+            });
+
+        }
+
 
         renderCart();
 
         return;
+
     }
 
+
+    /* -------------------------------------------------------
+       PACKAGE
+    ------------------------------------------------------- */
+
     if (
-        itemType ===
+        type ===
         "package"
     ) {
+
         const availability =
             checkPackageAvailability(
                 item
             );
 
-        if (!availability.available) {
+
+        if (
+            !availability.available
+        ) {
+
             alert(
                 availability.message
             );
 
             return;
+
         }
 
+
+        /*
+           Do not allow package quantity
+           beyond the actual available
+           component stock.
+        */
+
+        const newQuantity =
+            existing
+                ? existing.quantity + 1
+                : 1;
+
+
+        const possible =
+            getMaximumPackageQuantity(
+                item
+            );
+
+
+        if (
+            newQuantity >
+            possible
+        ) {
+
+            alert(
+                `Only ${possible} package${
+                    possible === 1
+                        ? ""
+                        : "s"
+                } can currently be made from available stock.`
+            );
+
+            return;
+
+        }
+
+
         if (existing) {
-            existing.quantity += 1;
-        } else {
+
+            existing.quantity =
+                newQuantity;
+
+        }
+
+        else {
+
             cart.push({
-                productId: item.id,
-                name: getName(item),
-                sku: getSku(item),
-                category: "Packages",
-                price: getPrice(item),
-                quantity: 1,
-                stock: 0,
-                itemType: "package",
-                image: getImage(item),
+
+                productId:
+                    item.id,
+
+                name:
+                    getName(item),
+
+                sku:
+                    getSku(item),
+
+                category:
+                    "Packages",
+
+                price:
+                    getPrice(item),
+
+                quantity:
+                    1,
+
+                stock:
+                    0,
+
+                itemType:
+                    "package",
+
+                image:
+                    getImage(item),
+
                 packageItems:
                     getPackageItems(item)
+
             });
+
         }
+
 
         renderCart();
 
         return;
+
     }
+
+
+    /* -------------------------------------------------------
+       NORMAL PRODUCT
+    ------------------------------------------------------- */
 
     const stock =
         getStock(item);
 
-    if (stock <= 0) {
+
+    if (
+        stock <= 0
+    ) {
+
         alert(
             "This product is out of stock."
         );
 
         return;
+
     }
 
+
     if (existing) {
+
         if (
             existing.quantity >=
             stock
         ) {
+
             alert(
                 "You cannot add more than the available stock."
             );
 
             return;
+
         }
 
+
         existing.quantity += 1;
-    } else {
-        cart.push({
-            productId: item.id,
-            name: getName(item),
-            sku: getSku(item),
-            category:
-                getCategory(item),
-            price: getPrice(item),
-            quantity: 1,
-            stock,
-            itemType: "product",
-            image: getImage(item),
-            packageItems: []
-        });
+
     }
 
-    renderCart();
-};
+    else {
 
-const changeQuantity = (
+        cart.push({
+
+            productId:
+                item.id,
+
+            name:
+                getName(item),
+
+            sku:
+                getSku(item),
+
+            category:
+                getCategory(item),
+
+            price:
+                getPrice(item),
+
+            quantity:
+                1,
+
+            stock,
+
+            itemType:
+                "product",
+
+            image:
+                getImage(item),
+
+            packageItems:
+                []
+
+        });
+
+    }
+
+
+    renderCart();
+
+}
+
+
+/* =========================================================
+   MAXIMUM PACKAGE QUANTITY
+========================================================= */
+
+function getMaximumPackageQuantity(
+    packageItem
+) {
+
+    const components =
+        getPackageItems(
+            packageItem
+        );
+
+
+    if (
+        !components.length
+    ) {
+
+        return 0;
+
+    }
+
+
+    let maximum =
+        Infinity;
+
+
+    for (
+        const rawComponent
+        of components
+    ) {
+
+        const component =
+            normalizePackageItem(
+                rawComponent
+            );
+
+
+        const product =
+            getProductById(
+                component.productId
+            );
+
+
+        if (!product) {
+
+            return 0;
+
+        }
+
+
+        const stock =
+            getStock(product);
+
+
+        const possible =
+            Math.floor(
+                stock /
+                component.quantity
+            );
+
+
+        maximum =
+            Math.min(
+                maximum,
+                possible
+            );
+
+    }
+
+
+    return Number.isFinite(
+        maximum
+    )
+        ? maximum
+        : 0;
+
+}
+
+
+/* =========================================================
+   CHANGE CART QUANTITY
+========================================================= */
+
+function changeQuantity(
     productId,
     amount
-) => {
+) {
+
     const item =
         cart.find(
             cartItem =>
@@ -1101,9 +2044,13 @@ const changeQuantity = (
                 productId
         );
 
+
     if (!item) {
+
         return;
+
     }
+
 
     const source =
         products.find(
@@ -1112,79 +2059,132 @@ const changeQuantity = (
                 productId
         );
 
-    const newQuantity =
-        item.quantity + amount;
 
-    if (newQuantity <= 0) {
-        removeFromCart(productId);
+    if (!source) {
 
         return;
+
     }
+
+
+    const newQuantity =
+        item.quantity +
+        amount;
+
+
+    if (
+        newQuantity <= 0
+    ) {
+
+        removeFromCart(
+            productId
+        );
+
+        return;
+
+    }
+
+
+    /* -------------------------------------------------------
+       PRODUCT STOCK
+    ------------------------------------------------------- */
 
     if (
         item.itemType ===
         "product"
     ) {
+
         const stock =
             getStock(source);
+
 
         if (
             newQuantity >
             stock
         ) {
+
             alert(
                 "Quantity cannot exceed available stock."
             );
 
             return;
+
         }
+
     }
+
+
+    /* -------------------------------------------------------
+       PACKAGE STOCK
+    ------------------------------------------------------- */
 
     if (
         item.itemType ===
         "package"
     ) {
-        for (
-            let i = 0;
-            i < newQuantity;
-            i++
+
+        const maximum =
+            getMaximumPackageQuantity(
+                source
+            );
+
+
+        if (
+            newQuantity >
+            maximum
         ) {
-            const availability =
-                checkPackageAvailability(
-                    source
-                );
 
-            if (
-                !availability.available
-            ) {
-                alert(
-                    availability.message
-                );
+            alert(
+                `Only ${maximum} package${
+                    maximum === 1
+                        ? ""
+                        : "s"
+                } can currently be made from available stock.`
+            );
 
-                return;
-            }
+            return;
+
         }
+
     }
+
 
     item.quantity =
         newQuantity;
 
+
     renderCart();
-};
 
-const removeFromCart =
-    productId => {
-        cart =
-            cart.filter(
-                item =>
-                    item.productId !==
-                    productId
-            );
+}
 
-        renderCart();
-    };
 
-const renderCart = () => {
+/* =========================================================
+   REMOVE FROM CART
+========================================================= */
+
+function removeFromCart(
+    productId
+) {
+
+    cart =
+        cart.filter(
+            item =>
+                item.productId !==
+                productId
+        );
+
+
+    renderCart();
+
+}
+
+
+/* =========================================================
+   RENDER CART
+========================================================= */
+
+function renderCart() {
+
     const subtotal =
         cartSubtotal();
 
@@ -1194,207 +2194,342 @@ const renderCart = () => {
     const quantity =
         cartQuantity();
 
-    cartCount.textContent =
-        `${quantity} item${
-            quantity === 1
-                ? ""
-                : "s"
-        }`;
 
-    subtotalElement.textContent =
-        money(subtotal);
+    if (cartCount) {
 
-    totalElement.textContent =
-        money(total);
+        cartCount.textContent =
+            `${quantity} item${
+                quantity === 1
+                    ? ""
+                    : "s"
+            }`;
 
-    checkoutButton.disabled =
-        cart.length === 0;
-
-    if (!cart.length) {
-        cartItems.innerHTML = `
-<div class="empty-cart">
-    <div class="empty-cart-icon">₱</div>
-    <strong>No items in cart</strong>
-    <span>Add products, packages or insurance.</span>
-</div>`;
-
-        return;
     }
 
+
+    if (subtotalElement) {
+
+        subtotalElement.textContent =
+            money(subtotal);
+
+    }
+
+
+    if (discountElement) {
+
+        discountElement.value =
+            Number(
+                discountElement.value
+            ) || 0;
+
+    }
+
+
+    if (totalElement) {
+
+        totalElement.textContent =
+            money(total);
+
+    }
+
+
+    if (checkoutButton) {
+
+        checkoutButton.disabled =
+            cart.length === 0;
+
+    }
+
+
+    if (!cart.length) {
+
+        cartItems.innerHTML = `
+
+            <div class="empty-cart">
+
+                <div class="empty-cart-icon">
+                    ₱
+                </div>
+
+                <strong>
+                    No items in cart
+                </strong>
+
+                <span>
+                    Add products, packages or insurance.
+                </span>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
     cartItems.innerHTML =
-        cart.map(item => {
-            const badge =
-                item.itemType ===
-                "insurance"
-                    ? "INSURANCE"
-                    : item.itemType ===
-                      "package"
-                    ? "PACKAGE"
-                    : "PRODUCT";
+        cart
+            .map(
+                item => {
 
-            return `
-<div class="cart-item">
+                    const badge =
+                        item.itemType ===
+                        "insurance"
 
-    <div>
+                            ? "INSURANCE"
 
-        <div class="cart-item-top">
-            <span class="cart-type ${item.itemType}">
-                ${badge}
-            </span>
-        </div>
+                            : item.itemType ===
+                              "package"
 
-        <div class="cart-item-name">
-            ${escapeHtml(item.name)}
-        </div>
+                            ? "PACKAGE"
 
-        <div class="cart-item-price">
-            ${money(item.price)} each
-        </div>
+                            : "PRODUCT";
 
-        <div class="cart-item-controls">
 
-            <button
-                class="qty-button"
-                data-action="minus"
-                data-id="${escapeHtml(item.productId)}"
-            >
-                −
-            </button>
+                    return `
 
-            <span class="qty-value">
-                ${item.quantity}
-            </span>
+                        <div class="cart-item">
 
-            <button
-                class="qty-button"
-                data-action="plus"
-                data-id="${escapeHtml(item.productId)}"
-            >
-                +
-            </button>
+                            <div>
 
-            <button
-                class="remove-item"
-                data-action="remove"
-                data-id="${escapeHtml(item.productId)}"
-            >
-                ×
-            </button>
+                                <div class="cart-item-top">
 
-        </div>
+                                    <span
+                                        class="cart-type ${item.itemType}"
+                                    >
+                                        ${badge}
+                                    </span>
 
-    </div>
+                                </div>
 
-    <div class="cart-item-total">
-        ${money(
-            item.price *
-            item.quantity
-        )}
-    </div>
 
-</div>`;
-        }).join("");
+                                <div class="cart-item-name">
+                                    ${escapeHtml(
+                                        item.name
+                                    )}
+                                </div>
+
+
+                                <div class="cart-item-price">
+                                    ${money(
+                                        item.price
+                                    )}
+                                    each
+                                </div>
+
+
+                                <div
+                                    class="cart-item-controls"
+                                >
+
+                                    <button
+                                        class="qty-button"
+                                        type="button"
+                                        data-action="minus"
+                                        data-id="${escapeHtml(
+                                            item.productId
+                                        )}"
+                                    >
+                                        −
+                                    </button>
+
+
+                                    <span
+                                        class="qty-value"
+                                    >
+                                        ${item.quantity}
+                                    </span>
+
+
+                                    <button
+                                        class="qty-button"
+                                        type="button"
+                                        data-action="plus"
+                                        data-id="${escapeHtml(
+                                            item.productId
+                                        )}"
+                                    >
+                                        +
+                                    </button>
+
+
+                                    <button
+                                        class="remove-item"
+                                        type="button"
+                                        data-action="remove"
+                                        data-id="${escapeHtml(
+                                            item.productId
+                                        )}"
+                                    >
+                                        ×
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="cart-item-total">
+
+                                ${money(
+                                    item.price *
+                                    item.quantity
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
 
     document
         .querySelectorAll(
-            ".qty-button,.remove-item"
+            ".qty-button, .remove-item"
         )
-        .forEach(button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    const id =
-                        button.dataset
-                            .id;
+        .forEach(
+            button => {
 
-                    const action =
-                        button.dataset
-                            .action;
+                button.addEventListener(
+                    "click",
+                    () => {
 
-                    if (
-                        action ===
-                        "minus"
-                    ) {
-                        changeQuantity(
-                            id,
-                            -1
-                        );
+                        const id =
+                            button.dataset.id;
+
+                        const action =
+                            button.dataset.action;
+
+
+                        if (
+                            action ===
+                            "minus"
+                        ) {
+
+                            changeQuantity(
+                                id,
+                                -1
+                            );
+
+                        }
+
+
+                        if (
+                            action ===
+                            "plus"
+                        ) {
+
+                            changeQuantity(
+                                id,
+                                1
+                            );
+
+                        }
+
+
+                        if (
+                            action ===
+                            "remove"
+                        ) {
+
+                            removeFromCart(
+                                id
+                            );
+
+                        }
+
                     }
+                );
 
-                    if (
-                        action ===
-                        "plus"
-                    ) {
-                        changeQuantity(
-                            id,
-                            1
-                        );
-                    }
+            }
+        );
 
-                    if (
-                        action ===
-                        "remove"
-                    ) {
-                        removeFromCart(
-                            id
-                        );
-                    }
-                }
-            );
-        });
-};
+}
+
 
 /* =========================================================
    SPLIT PAYMENT
-   FIXED: CASH + GCASH + BDO + BIBO + BPI
 ========================================================= */
 
-const resetSplitPayment = () => {
+function resetSplitPayment() {
 
     if (splitCash) {
-        splitCash.value = "";
+
+        splitCash.value =
+            "";
+
     }
 
     if (splitGCash) {
-        splitGCash.value = "";
+
+        splitGCash.value =
+            "";
+
     }
 
     if (splitBDO) {
-        splitBDO.value = "";
+
+        splitBDO.value =
+            "";
+
     }
 
     if (splitBIBO) {
-        splitBIBO.value = "";
+
+        splitBIBO.value =
+            "";
+
     }
 
-    /* FIX: RESET BPI */
     if (splitBPI) {
-        splitBPI.value = "";
+
+        splitBPI.value =
+            "";
+
     }
+
 
     if (splitTotalPaid) {
+
         splitTotalPaid.textContent =
             money(0);
+
     }
+
 
     if (splitRemaining) {
+
         splitRemaining.textContent =
-            money(cartTotal());
+            money(
+                cartTotal()
+            );
+
     }
+
 
     if (changeAmount) {
+
         changeAmount.textContent =
             money(0);
+
     }
-};
+
+}
+
 
 /*
- * FIX:
- * BPI IS NOW INCLUDED IN THE SPLIT AMOUNTS.
- */
-const getSplitAmounts = () => {
+   BPI IS INCLUDED.
+*/
+
+function getSplitAmounts() {
 
     return {
+
         Cash:
             Number(
                 splitCash?.value
@@ -1419,17 +2554,17 @@ const getSplitAmounts = () => {
             Number(
                 splitBPI?.value
             ) || 0
-    };
-};
 
-/*
- * FIX:
- * BPI IS NOW INCLUDED IN TOTAL PAID.
- */
-const getSplitTotal = () => {
+    };
+
+}
+
+
+function getSplitTotal() {
 
     const amounts =
         getSplitAmounts();
+
 
     return (
         amounts.Cash +
@@ -1438,9 +2573,37 @@ const getSplitTotal = () => {
         amounts.BIBO +
         amounts.BPI
     );
-};
 
-const updateSplitPayment = () => {
+}
+
+
+function getSplitPaymentTypes(
+    amounts
+) {
+
+    return Object
+        .entries(
+            amounts
+        )
+        .filter(
+            ([, amount]) =>
+                Number(amount) > 0
+        )
+        .map(
+            ([method, amount]) => ({
+
+                method,
+
+                amount:
+                    Number(amount)
+
+            })
+        );
+
+}
+
+
+function updateSplitPayment() {
 
     const total =
         cartTotal();
@@ -1450,108 +2613,135 @@ const updateSplitPayment = () => {
 
     const remaining =
         Math.max(
-            total - paid,
+            total -
+            paid,
             0
         );
 
+
     if (splitTotalPaid) {
+
         splitTotalPaid.textContent =
             money(paid);
+
     }
+
 
     if (splitRemaining) {
+
         splitRemaining.textContent =
             money(remaining);
+
     }
 
-    if (paid > total) {
 
-        if (splitRemaining) {
-            splitRemaining.textContent =
-                money(0);
-        }
+    if (changeAmount) {
 
-        if (changeAmount) {
-            changeAmount.textContent =
-                money(
-                    paid - total
-                );
-        }
+        changeAmount.textContent =
+            money(
+                Math.max(
+                    paid -
+                    total,
+                    0
+                )
+            );
 
-    } else {
-
-        if (changeAmount) {
-            changeAmount.textContent =
-                money(0);
-        }
     }
-};
+
+}
+
 
 /* =========================================================
    PAYMENT MODAL
 ========================================================= */
 
-const openPaymentModal = () => {
+function openPaymentModal() {
 
     if (!cart.length) {
+
         return;
+
     }
+
 
     const total =
         cartTotal();
 
+
     paymentTotal.textContent =
         money(total);
 
-    cashReceived.value = "";
+
+    cashReceived.value =
+        "";
+
 
     changeAmount.textContent =
         money(0);
 
+
     paymentError.textContent =
         "";
 
-    if (discountElement) {
-        discountElement.value =
-            "0";
-    }
 
     selectedPaymentMethod =
         "Cash";
+
 
     document
         .querySelectorAll(
             ".payment-method"
         )
-        .forEach(button => {
-            button.classList.toggle(
-                "active",
-                button.dataset
-                    .method ===
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.method ===
                     "Cash"
-            );
-        });
+                );
+
+            }
+        );
+
 
     cashPaymentArea.style.display =
         "block";
 
+
     splitPaymentArea.style.display =
         "none";
 
+
+    if (paymentDestination) {
+
+        paymentDestination.textContent =
+            "Cash";
+
+    }
+
+
     resetSplitPayment();
+
 
     paymentModal.classList.add(
         "show"
     );
 
+
     setTimeout(
-        () =>
-            cashReceived.focus(),
+        () => {
+
+            cashReceived?.focus();
+
+        },
         100
     );
-};
 
-const closePaymentModal = () => {
+}
+
+
+function closePaymentModal() {
 
     paymentModal.classList.remove(
         "show"
@@ -1559,19 +2749,23 @@ const closePaymentModal = () => {
 
     paymentError.textContent =
         "";
-};
+
+}
+
 
 /* =========================================================
-   PAYMENT TOTAL
+   UPDATE PAYMENT
 ========================================================= */
 
-const updatePaymentTotal = () => {
+function updatePaymentTotal() {
 
     const total =
         cartTotal();
 
+
     paymentTotal.textContent =
         money(total);
+
 
     if (
         selectedPaymentMethod ===
@@ -1583,558 +2777,356 @@ const updatePaymentTotal = () => {
                 cashReceived.value
             ) || 0;
 
+
         const change =
             Math.max(
-                received - total,
+                received -
+                total,
                 0
             );
+
 
         changeAmount.textContent =
             money(change);
 
-    } else if (
+    }
+
+
+    else if (
         selectedPaymentMethod ===
         "Split"
     ) {
 
         updateSplitPayment();
 
-    } else {
+    }
+
+
+    else {
 
         changeAmount.textContent =
             money(0);
+
     }
-};
 
-/* =========================================================
-   TRANSACTION NUMBER
-========================================================= */
+}
 
-const generateTransactionNumber =
-    () => {
-
-        const now =
-            new Date();
-
-        const date =
-            now
-                .toISOString()
-                .replace(/\D/g, "")
-                .substring(
-                    0,
-                    14
-                );
-
-        const random =
-            Math.floor(
-                1000 +
-                Math.random() *
-                    9000
-            );
-
-        return `TXN-${date}-${random}`;
-    };
-
-/* =========================================================
-   STOCK DEDUCTIONS
-========================================================= */
-
-const getStockDeductions =
-    () => {
-
-        const deductions =
-            new Map();
-
-        for (
-            const item of cart
-        ) {
-
-            if (
-                item.itemType ===
-                "insurance"
-            ) {
-                continue;
-            }
-
-            if (
-                item.itemType ===
-                "product"
-            ) {
-
-                deductions.set(
-                    item.productId,
-                    (
-                        deductions.get(
-                            item.productId
-                        ) || 0
-                    ) +
-                        item.quantity
-                );
-
-                continue;
-            }
-
-            if (
-                item.itemType ===
-                "package"
-            ) {
-
-                for (
-                    const rawComponent
-                    of getPackageItems(
-                        item
-                    )
-                ) {
-
-                    const component =
-                        normalizePackageItem(
-                            rawComponent
-                        );
-
-                    if (
-                        !component.productId
-                    ) {
-                        continue;
-                    }
-
-                    const quantity =
-                        component.quantity *
-                        item.quantity;
-
-                    deductions.set(
-                        component.productId,
-                        (
-                            deductions.get(
-                                component.productId
-                            ) || 0
-                        ) +
-                            quantity
-                    );
-                }
-            }
-        }
-
-        return deductions;
-    };
-
-/* =========================================================
-   SPLIT PAYMENT TYPES
-========================================================= */
-
-const getSplitPaymentTypes =
-    amounts => {
-
-        return Object.entries(
-            amounts
-        )
-            .filter(
-                ([, amount]) =>
-                    Number(amount) > 0
-            )
-            .map(
-                ([method, amount]) => ({
-                    method,
-                    amount:
-                        Number(amount)
-                })
-            );
-    };
 
 /* =========================================================
    PAYMENT BREAKDOWN
-   FIXED: BPI INCLUDED EVERYWHERE
 ========================================================= */
 
-const getPaymentBreakdown =
-    total => {
+function getPaymentBreakdown(total) {
+    if (selectedPaymentMethod === "Cash") {
+        const received = Number(cashReceived?.value) || 0;
+        return { Cash: total, GCash: 0, BDO: 0, BIBO: 0, BPI: 0, totalPaid: received, tenderedTotal: received, change: Math.max(received - total, 0), paymentTypes: [{ method: "Cash", amount: total }], tenderBreakdown: { Cash: received, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 } };
+    }
+    if (selectedPaymentMethod === "GCash") return { Cash: 0, GCash: total, BDO: 0, BIBO: 0, BPI: 0, totalPaid: total, tenderedTotal: total, change: 0, paymentTypes: [{ method: "GCash", amount: total }], tenderBreakdown: { Cash: 0, GCash: total, BDO: 0, BIBO: 0, BPI: 0 } };
+    if (selectedPaymentMethod === "BDO") return { Cash: 0, GCash: 0, BDO: total, BIBO: 0, BPI: 0, totalPaid: total, tenderedTotal: total, change: 0, paymentTypes: [{ method: "BDO", amount: total }], tenderBreakdown: { Cash: 0, GCash: 0, BDO: total, BIBO: 0, BPI: 0 } };
+    if (selectedPaymentMethod === "BIBO") return { Cash: 0, GCash: 0, BDO: 0, BIBO: total, BPI: 0, totalPaid: total, tenderedTotal: total, change: 0, paymentTypes: [{ method: "BIBO", amount: total }], tenderBreakdown: { Cash: 0, GCash: 0, BDO: 0, BIBO: total, BPI: 0 } };
+    if (selectedPaymentMethod === "BPI") return { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: total, totalPaid: total, tenderedTotal: total, change: 0, paymentTypes: [{ method: "BPI", amount: total }], tenderBreakdown: { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: total } };
+    const amounts = getSplitAmounts();
+    const paymentTypes = getSplitPaymentTypes(amounts);
+    const splitTotal = getSplitTotal();
+    return { Cash: amounts.Cash, GCash: amounts.GCash, BDO: amounts.BDO, BIBO: amounts.BIBO, BPI: amounts.BPI, totalPaid: splitTotal, tenderedTotal: splitTotal, change: 0, paymentTypes, splitPaymentType: paymentTypes.map(item => item.method).join(" + ") || "Split", tenderBreakdown: { ...amounts } };
+}
 
-        /* =========================
-           CASH
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "Cash"
-        ) {
-
-            const received =
-                Number(
-                    cashReceived.value
-                ) || 0;
-
-            return {
-                Cash: received,
-                GCash: 0,
-                BDO: 0,
-                BIBO: 0,
-                BPI: 0,
-
-                totalPaid:
-                    received,
-
-                paymentTypes: [
-                    {
-                        method:
-                            "Cash",
-                        amount:
-                            received
-                    }
-                ]
-            };
-        }
-
-        /* =========================
-           GCASH
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "GCash"
-        ) {
-
-            return {
-                Cash: 0,
-                GCash: total,
-                BDO: 0,
-                BIBO: 0,
-                BPI: 0,
-
-                totalPaid:
-                    total,
-
-                paymentTypes: [
-                    {
-                        method:
-                            "GCash",
-                        amount:
-                            total
-                    }
-                ]
-            };
-        }
-
-        /* =========================
-           BDO
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "BDO"
-        ) {
-
-            return {
-                Cash: 0,
-                GCash: 0,
-                BDO: total,
-                BIBO: 0,
-                BPI: 0,
-
-                totalPaid:
-                    total,
-
-                paymentTypes: [
-                    {
-                        method:
-                            "BDO",
-                        amount:
-                            total
-                    }
-                ]
-            };
-        }
-
-        /* =========================
-           BIBO
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "BIBO"
-        ) {
-
-            return {
-                Cash: 0,
-                GCash: 0,
-                BDO: 0,
-                BIBO: total,
-                BPI: 0,
-
-                totalPaid:
-                    total,
-
-                paymentTypes: [
-                    {
-                        method:
-                            "BIBO",
-                        amount:
-                            total
-                    }
-                ]
-            };
-        }
-
-        /* =========================
-           BPI
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "BPI"
-        ) {
-
-            return {
-                Cash: 0,
-                GCash: 0,
-                BDO: 0,
-                BIBO: 0,
-                BPI: total,
-
-                totalPaid:
-                    total,
-
-                paymentTypes: [
-                    {
-                        method:
-                            "BPI",
-                        amount:
-                            total
-                    }
-                ]
-            };
-        }
-
-        /* =========================
-           SPLIT PAYMENT
-        ========================= */
-
-        const splitAmounts =
-            getSplitAmounts();
-
-        const splitPaymentTypes =
-            getSplitPaymentTypes(
-                splitAmounts
-            );
-
-        return {
-            Cash:
-                splitAmounts.Cash,
-
-            GCash:
-                splitAmounts.GCash,
-
-            BDO:
-                splitAmounts.BDO,
-
-            BIBO:
-                splitAmounts.BIBO,
-
-            BPI:
-                splitAmounts.BPI,
-
-            totalPaid:
-                getSplitTotal(),
-
-            splitPaymentTypes,
-
-            splitPaymentType:
-                splitPaymentTypes
-                    .map(
-                        item =>
-                            item.method
-                    )
-                    .join(" + ") ||
-                "Split"
-        };
-    };
 
 /* =========================================================
    PAYMENT VALIDATION
 ========================================================= */
 
-const validatePayment =
-    total => {
-
-        /* =========================
-           CASH
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "Cash"
-        ) {
-
-            const received =
-                Number(
-                    cashReceived.value
-                ) || 0;
-
-            if (
-                received < total
-            ) {
-
-                paymentError.textContent =
-                    `Cash received is ${money(
-                        total - received
-                    )} short.`;
-
-                return false;
-            }
-
-            return true;
-        }
-
-        /* =========================
-           SPLIT
-        ========================= */
-
-        if (
-            selectedPaymentMethod ===
-            "Split"
-        ) {
-
-            const paid =
-                getSplitTotal();
-
-            if (paid <= 0) {
-
-                paymentError.textContent =
-                    "Please enter at least one split payment amount.";
-
-                return false;
-            }
-
-            if (
-                paid < total
-            ) {
-
-                paymentError.textContent =
-                    `Split payment is ${money(
-                        total - paid
-                    )} short.`;
-
-                return false;
-            }
-
-            return true;
-        }
-
+function validatePayment(total) {
+    if (selectedPaymentMethod === "Cash") {
+        const received = Number(cashReceived?.value) || 0;
+        if (received <= 0) { paymentError.textContent = "Please enter the cash received."; return false; }
+        if (received < total) { paymentError.textContent = `Cash received is ${money(total - received)} short.`; return false; }
         return true;
-    };
+    }
+    if (selectedPaymentMethod === "Split") {
+        const paid = getSplitTotal();
+        if (paid <= 0) { paymentError.textContent = "Please enter at least one split payment amount."; return false; }
+        if (Math.abs(paid - total) > 0.005) {
+            paymentError.textContent = paid < total ? `Split payment is ${money(total - paid)} short.` : `Split payment exceeds the amount due by ${money(paid - total)}.`;
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
+
+
+/* =========================================================
+   STOCK DEDUCTIONS
+========================================================= */
+
+function getStockDeductions() {
+
+    const deductions =
+        new Map();
+
+
+    function add(
+        productId,
+        quantity
+    ) {
+
+        if (!productId) {
+
+            return;
+
+        }
+
+
+        deductions.set(
+
+            productId,
+
+            (
+                deductions.get(
+                    productId
+                ) || 0
+            ) +
+            Number(quantity || 0)
+
+        );
+
+    }
+
+
+    for (
+        const item
+        of cart
+    ) {
+
+        /* Insurance does not use physical stock. */
+
+        if (
+            item.itemType ===
+            "insurance"
+        ) {
+
+            continue;
+
+        }
+
+
+        /* Normal product */
+
+        if (
+            item.itemType ===
+            "product"
+        ) {
+
+            add(
+                item.productId,
+                item.quantity
+            );
+
+            continue;
+
+        }
+
+
+        /* Package */
+
+        if (
+            item.itemType ===
+            "package"
+        ) {
+
+            const packageComponents =
+                getPackageItems(
+                    item
+                );
+
+
+            for (
+                const rawComponent
+                of packageComponents
+            ) {
+
+                const component =
+                    normalizePackageItem(
+                        rawComponent
+                    );
+
+
+                if (
+                    !component.productId
+                ) {
+
+                    continue;
+
+                }
+
+
+                add(
+
+                    component.productId,
+
+                    component.quantity *
+                    item.quantity
+
+                );
+
+            }
+
+        }
+
+    }
+
+
+    return deductions;
+
+}
+
 
 /* =========================================================
    COMPLETE TRANSACTION
 ========================================================= */
 
-const completeTransaction =
-    async () => {
+async function completeTransaction() {
 
-        if (!currentUser) {
-
-            paymentError.textContent =
-                "You are not authenticated. Please log in again.";
-
-            return;
-        }
-
-        if (!cart.length) {
-
-            paymentError.textContent =
-                "Your cart is empty.";
-
-            return;
-        }
-
-        const subtotal =
-            cartSubtotal();
-
-        const discount =
-            getDiscount();
-
-        const total =
-            cartTotal();
-
-        if (
-            !validatePayment(
-                total
-            )
-        ) {
-            return;
-        }
-
-        const paymentBreakdown =
-            getPaymentBreakdown(
-                total
-            );
-
-        const received =
-            paymentBreakdown.totalPaid;
-
-        completeSale.disabled =
-            true;
-
-        completeSale.textContent =
-            "Processing...";
+    if (!currentUser) {
 
         paymentError.textContent =
-            "";
+            "You are not authenticated. Please log in again.";
 
-        try {
+        return;
 
-            const transactionNumber =
-                generateTransactionNumber();
+    }
 
-            const saleRef =
-                doc(
-                    collection(
-                        db,
-                        "sales"
-                    )
-                );
 
-            const movementRef =
-                doc(
-                    collection(
-                        db,
-                        "inventoryMovements"
-                    )
-                );
+    if (!cart.length) {
 
-            const cashFlowRef =
-                doc(
-                    collection(
-                        db,
-                        "cashFlow"
-                    )
-                );
+        paymentError.textContent =
+            "Your cart is empty.";
 
-            const timestamp =
-                new Date();
+        return;
 
-            const cashierName =
-                currentProfile?.fullName ||
-                currentProfile?.name ||
-                sessionStorage.getItem(
-                    "userName"
-                ) ||
-                currentUser.displayName ||
-                currentUser.email?.split(
-                    "@"
-                )[0] ||
-                "Staff";
+    }
 
-            const cashierRole =
-                currentProfile?.role ||
-                sessionStorage.getItem(
-                    "userRole"
-                ) ||
-                "Staff / Cashier";
 
-            /* =========================
-               SALE ITEMS
-            ========================= */
+    const subtotal =
+        cartSubtotal();
 
-            const saleItems =
-                cart.map(item => ({
+
+    const discount =
+        getDiscount();
+
+
+    const total =
+        cartTotal();
+
+
+    if (
+        !validatePayment(
+            total
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    const paymentBreakdown =
+        getPaymentBreakdown(
+            total
+        );
+
+
+    const received =
+        paymentBreakdown.totalPaid;
+
+    const tenderBreakdown =
+        paymentBreakdown.tenderBreakdown || {
+            Cash: 0,
+            GCash: 0,
+            BDO: 0,
+            BIBO: 0,
+            BPI: 0
+        };
+
+
+    completeSale.disabled =
+        true;
+
+
+    completeSale.textContent =
+        "Processing...";
+
+
+    paymentError.textContent =
+        "";
+
+
+    try {
+
+        const transactionNumber =
+            generateTransactionNumber();
+
+
+        const saleRef =
+            doc(
+                collection(
+                    db,
+                    "sales"
+                )
+            );
+
+
+        const movementRef =
+            doc(
+                collection(
+                    db,
+                    "inventoryMovements"
+                )
+            );
+
+
+        const cashFlowRef =
+            doc(
+                collection(
+                    db,
+                    "cashFlow"
+                )
+            );
+
+
+        const timestamp =
+            new Date();
+
+
+        const cashierName =
+            currentProfile?.fullName ||
+            currentProfile?.name ||
+            sessionStorage.getItem(
+                "userName"
+            ) ||
+            currentUser.displayName ||
+            currentUser.email
+                ?.split("@")[0] ||
+            "Staff";
+
+
+        const cashierRole =
+            currentProfile?.role ||
+            sessionStorage.getItem(
+                "userRole"
+            ) ||
+            "Staff / Cashier";
+
+
+        /*
+           Build sale items.
+        */
+
+        const saleItems =
+            cart.map(
+                item => ({
+
                     productId:
                         item.productId,
 
@@ -2148,25 +3140,30 @@ const completeTransaction =
                         item.category,
 
                     price:
-                        item.price,
+                        Number(item.price),
 
                     quantity:
-                        item.quantity,
+                        Number(item.quantity),
 
                     subtotal:
-                        item.price *
-                        item.quantity,
+                        Number(item.price) *
+                        Number(item.quantity),
 
                     itemType:
                         item.itemType,
 
                     sourceCollection:
+
                         item.itemType ===
                         "package"
+
                             ? "packages"
+
                             : item.itemType ===
                               "insurance"
+
                             ? "insurances"
+
                             : "products",
 
                     image:
@@ -2174,307 +3171,390 @@ const completeTransaction =
                         "",
 
                     packageItems:
+
                         item.itemType ===
                         "package"
+
                             ? item.packageItems
+
                             : [],
 
                     insuranceId:
+
                         item.itemType ===
                         "insurance"
+
                             ? item.productId
+
                             : null,
 
                     stockDeducted:
+
                         item.itemType !==
                         "insurance"
-                }));
 
-            const stockDeductions =
-                getStockDeductions();
+                })
+            );
 
-            /* =========================
-               FIREBASE TRANSACTION
-            ========================= */
 
-            await runTransaction(
-                db,
-                async transaction => {
+        /*
+           Calculate physical stock
+           required by this transaction.
+        */
 
-                    const deductionRefs =
-                        [
-                            ...stockDeductions.keys()
-                        ].map(
-                            productId =>
-                                doc(
-                                    db,
-                                    "products",
-                                    productId
-                                )
+        const stockDeductions =
+            getStockDeductions();
+
+
+        /* =====================================================
+           FIRESTORE TRANSACTION
+        ===================================================== */
+
+        await runTransaction(
+            db,
+            async transaction => {
+
+
+                /*
+                   IMPORTANT:
+
+                   Read every affected product
+                   before updating any of them.
+                */
+
+                const deductionRefs =
+                    [
+                        ...stockDeductions.keys()
+                    ].map(
+                        productId =>
+                            doc(
+                                db,
+                                "products",
+                                productId
+                            )
+                    );
+
+
+                const snapshots = [];
+
+
+                for (
+                    const ref
+                    of deductionRefs
+                ) {
+
+                    const snapshot =
+                        await transaction.get(
+                            ref
                         );
 
-                    const snapshots = [];
 
-                    for (
-                        const ref
-                        of deductionRefs
+                    if (
+                        !snapshot.exists()
                     ) {
 
-                        const snapshot =
-                            await transaction.get(
-                                ref
-                            );
-
-                        if (
-                            !snapshot.exists()
-                        ) {
-                            throw new Error(
-                                "A product required for this sale no longer exists."
-                            );
-                        }
-
-                        snapshots.push(
-                            snapshot
+                        throw new Error(
+                            "A product required for this sale no longer exists."
                         );
+
                     }
 
-                    /* =========================
-                       UPDATE STOCK
-                    ========================= */
 
-                    for (
-                        let index = 0;
-                        index <
-                        deductionRefs.length;
-                        index++
+                    snapshots.push(
+                        snapshot
+                    );
+
+                }
+
+
+                /*
+                   UPDATE INVENTORY
+                */
+
+                for (
+                    let index = 0;
+                    index <
+                    deductionRefs.length;
+                    index++
+                ) {
+
+                    const ref =
+                        deductionRefs[
+                            index
+                        ];
+
+
+                    const snapshot =
+                        snapshots[
+                            index
+                        ];
+
+
+                    const required =
+                        stockDeductions.get(
+                            ref.id
+                        ) || 0;
+
+
+                    const data =
+                        snapshot.data();
+
+
+                    const currentStock =
+                        Number(
+                            data.stock ??
+                            data.currentStock ??
+                            data.quantity ??
+                            0
+                        );
+
+
+                    if (
+                        currentStock <
+                        required
                     ) {
 
-                        const ref =
-                            deductionRefs[
-                                index
-                            ];
+                        throw new Error(
 
-                        const snapshot =
-                            snapshots[
-                                index
-                            ];
+                            `${getName(
+                                data
+                            )} does not have enough stock. ` +
 
-                        const required =
-                            stockDeductions.get(
-                                ref.id
-                            ) || 0;
+                            `Available: ${currentStock}, ` +
 
-                        const data =
-                            snapshot.data();
+                            `required: ${required}.`
 
-                        const currentStock =
-                            Number(
-                                data.stock ??
-                                data.currentStock ??
-                                data.quantity ??
-                                0
-                            );
-
-                        if (
-                            currentStock <
-                            required
-                        ) {
-                            throw new Error(
-                                `${getName(
-                                    data
-                                )} does not have enough stock. Available: ${currentStock}, required: ${required}.`
-                            );
-                        }
-
-                        transaction.update(
-                            ref,
-                            {
-                                stock:
-                                    currentStock -
-                                    required,
-
-                                updatedAt:
-                                    timestamp,
-
-                                updatedBy:
-                                    currentUser.uid
-                            }
                         );
+
                     }
 
-                    /* =========================
-                       SAVE SALE
-                    ========================= */
 
-                    transaction.set(
-                        saleRef,
+                    transaction.update(
+                        ref,
                         {
 
-                            transactionId:
-                                saleRef.id,
+                            stock:
+                                currentStock -
+                                required,
 
-                            transactionNumber,
-
-                            items:
-                                saleItems,
-
-                            itemCount:
-                                cartQuantity(),
-
-                            subtotal,
-
-                            discount,
-
-                            total,
-
-                            paymentMethod:
-                                selectedPaymentMethod,
-
-                            /*
-                             * IMPORTANT:
-                             * BPI IS NOW SAVED.
-                             */
-                            paymentBreakdown: {
-
-                                Cash:
-                                    paymentBreakdown.Cash,
-
-                                GCash:
-                                    paymentBreakdown.GCash,
-
-                                BDO:
-                                    paymentBreakdown.BDO,
-
-                                BIBO:
-                                    paymentBreakdown.BIBO,
-
-                                BPI:
-                                    paymentBreakdown.BPI
-                            },
-
-                            splitPayment:
-                                selectedPaymentMethod ===
-                                "Split",
-
-                            splitPaymentType:
-                                selectedPaymentMethod ===
-                                "Split"
-                                    ? paymentBreakdown.splitPaymentType
-                                    : null,
-
-                            splitPayments:
-                                selectedPaymentMethod ===
-                                "Split"
-                                    ? paymentBreakdown.splitPaymentTypes
-                                    : [],
-
-                            amountPaid:
-                                received,
-
-                            change:
-                                selectedPaymentMethod ===
-                                "Cash"
-                                    ? Math.max(
-                                        received -
-                                            total,
-                                        0
-                                    )
-                                    : selectedPaymentMethod ===
-                                      "Split"
-                                    ? Math.max(
-                                        received -
-                                            total,
-                                        0
-                                    )
-                                    : 0,
-
-                            status:
-                                "Completed",
-
-                            cashierName,
-
-                            cashierRole,
-
-                            cashierUid:
-                                currentUser.uid,
-
-                            cashierId:
-                                currentUser.uid,
-
-                            cashierEmail:
-                                currentUser.email ||
-                                "",
-
-                            staffName:
-                                cashierName,
-
-                            staffUid:
-                                currentUser.uid,
-
-                            staffEmail:
-                                currentUser.email ||
-                                "",
-
-                            createdBy:
-                                currentUser.uid,
-
-                            createdByEmail:
-                                currentUser.email ||
-                                "",
-
-                            createdAt:
+                            updatedAt:
                                 timestamp,
 
-                            date:
-                                timestamp
+                            updatedBy:
+                                currentUser.uid
+
                         }
                     );
 
-                    /* =========================
-                       INVENTORY MOVEMENT
-                    ========================= */
+                }
 
-                    transaction.set(
-                        movementRef,
-                        {
 
-                            type:
-                                "OUT",
+                /* =================================================
+                   SALES DOCUMENT
+                ================================================= */
 
-                            movementType:
-                                "SALE",
+                transaction.set(
+                    saleRef,
+                    {
 
-                            reason:
-                                "Sale",
+                        transactionId:
+                            saleRef.id,
 
-                            referenceId:
-                                saleRef.id,
+                        transactionNumber,
 
-                            transactionId:
-                                saleRef.id,
+                        items:
+                            saleItems,
 
-                            transactionNumber,
+                        itemCount:
+                            cartQuantity(),
 
-                            items:
-                                saleItems,
+                        subtotal,
 
-                            stockDeductions:
-                                [
-                                    ...stockDeductions.entries()
-                                ].map(
+                        discount,
+
+                        total,
+
+                        paymentMethod:
+                            selectedPaymentMethod,
+
+
+                        paymentBreakdown: {
+
+                            Cash:
+                                paymentBreakdown.Cash,
+
+                            GCash:
+                                paymentBreakdown.GCash,
+
+                            BDO:
+                                paymentBreakdown.BDO,
+
+                            BIBO:
+                                paymentBreakdown.BIBO,
+
+                            BPI:
+                                paymentBreakdown.BPI
+
+                        },
+
+                        tenderBreakdown: {
+                            Cash: tenderBreakdown.Cash,
+                            GCash: tenderBreakdown.GCash,
+                            BDO: tenderBreakdown.BDO,
+                            BIBO: tenderBreakdown.BIBO,
+                            BPI: tenderBreakdown.BPI
+                        },
+
+
+                        splitPayment:
+                            selectedPaymentMethod ===
+                            "Split",
+
+
+                        splitPaymentType:
+
+                            selectedPaymentMethod ===
+                            "Split"
+
+                                ? paymentBreakdown
+                                    .splitPaymentType
+
+                                : null,
+
+
+                        splitPayments:
+
+                            selectedPaymentMethod ===
+                            "Split"
+
+                                ? paymentBreakdown
+                                    .paymentTypes
+
+                                : [],
+
+
+                        amountPaid:
+                            received,
+
+
+                        change:
+
+                            selectedPaymentMethod ===
+                            "Cash"
+
+                                ? Math.max(
+                                    received -
+                                    total,
+                                    0
+                                )
+
+                                : 0,
+
+
+                        status:
+                            "Completed",
+
+
+                        cashierName,
+
+                        cashierRole,
+
+                        cashierUid:
+                            currentUser.uid,
+
+                        cashierId:
+                            currentUser.uid,
+
+                        cashierEmail:
+                            currentUser.email ||
+                            "",
+
+
+                        staffName:
+                            cashierName,
+
+                        staffUid:
+                            currentUser.uid,
+
+                        staffEmail:
+                            currentUser.email ||
+                            "",
+
+
+                        createdBy:
+                            currentUser.uid,
+
+                        createdByEmail:
+                            currentUser.email ||
+                            "",
+
+
+                        createdAt:
+                            timestamp,
+
+                        date:
+                            timestamp
+
+                    }
+                );
+
+
+                /* =================================================
+                   INVENTORY MOVEMENT
+                ================================================= */
+
+                transaction.set(
+                    movementRef,
+                    {
+
+                        type:
+                            "OUT",
+
+                        movementType:
+                            "SALE",
+
+                        reason:
+                            "Sale",
+
+
+                        referenceId:
+                            saleRef.id,
+
+                        transactionId:
+                            saleRef.id,
+
+                        transactionNumber,
+
+
+                        items:
+                            saleItems,
+
+
+                        stockDeductions:
+
+                            [
+                                ...stockDeductions.entries()
+                            ]
+                                .map(
                                     ([
                                         productId,
                                         quantity
                                     ]) => ({
+
                                         productId,
+
                                         quantity
+
                                     })
                                 ),
 
-                            totalQuantity:
-                                [
-                                    ...stockDeductions.values()
-                                ].reduce(
+
+                        totalQuantity:
+
+                            [
+                                ...stockDeductions.values()
+                            ]
+                                .reduce(
                                     (
                                         sum,
                                         value
@@ -2484,203 +3564,303 @@ const completeTransaction =
                                     0
                                 ),
 
-                            staffName:
-                                cashierName,
 
-                            staffUid:
-                                currentUser.uid,
+                        staffName:
+                            cashierName,
 
-                            staffEmail:
-                                currentUser.email ||
-                                "",
+                        staffUid:
+                            currentUser.uid,
 
-                            createdBy:
-                                currentUser.uid,
+                        staffEmail:
+                            currentUser.email ||
+                            "",
 
-                            createdAt:
-                                timestamp,
 
-                            date:
-                                timestamp
-                        }
-                    );
+                        createdBy:
+                            currentUser.uid,
 
-                    /* =========================
-                       CASH FLOW
-                    ========================= */
+                        createdAt:
+                            timestamp,
 
-                    transaction.set(
-                        cashFlowRef,
-                        {
+                        date:
+                            timestamp
 
-                            type:
-                                "cashIn",
+                    }
+                );
 
-                            flowType:
-                                "SALE",
 
-                            category:
-                                "Sales",
+                /* =================================================
+                   CASH FLOW
+                ================================================= */
 
-                            description:
-                                `Sale ${transactionNumber}`,
+                transaction.set(
+                    cashFlowRef,
+                    {
 
-                            referenceId:
-                                saleRef.id,
+                        type:
+                            "cashIn",
 
-                            transactionId:
-                                saleRef.id,
+                        flowType:
+                            "SALE",
 
-                            transactionNumber,
+                        category:
+                            "Sales",
 
-                            amount:
-                                total,
 
-                            cashIn:
-                                total,
+                        description:
+                            `Sale ${transactionNumber}`,
 
-                            cashOut:
-                                0,
 
-                            discount,
+                        referenceId:
+                            saleRef.id,
 
-                            paymentMethod:
-                                selectedPaymentMethod,
+                        transactionId:
+                            saleRef.id,
 
-                            /*
-                             * IMPORTANT:
-                             * BPI IS ALSO SAVED
-                             * TO CASH FLOW.
-                             */
-                            paymentBreakdown: {
+                        transactionNumber,
 
-                                Cash:
-                                    paymentBreakdown.Cash,
 
-                                GCash:
-                                    paymentBreakdown.GCash,
+                        amount:
+                            total,
 
-                                BDO:
-                                    paymentBreakdown.BDO,
+                        cashIn:
+                            total,
 
-                                BIBO:
-                                    paymentBreakdown.BIBO,
+                        cashOut:
+                            0,
 
-                                BPI:
-                                    paymentBreakdown.BPI
-                            },
 
-                            splitPayment:
-                                selectedPaymentMethod ===
-                                "Split",
+                        discount,
 
-                            splitPaymentType:
-                                selectedPaymentMethod ===
-                                "Split"
-                                    ? paymentBreakdown.splitPaymentType
-                                    : null,
 
-                            splitPayments:
-                                selectedPaymentMethod ===
-                                "Split"
-                                    ? paymentBreakdown.splitPaymentTypes
-                                    : [],
+                        paymentMethod:
+                            selectedPaymentMethod,
 
-                            staffName:
-                                cashierName,
 
-                            staffUid:
-                                currentUser.uid,
+                        paymentBreakdown: {
 
-                            staffEmail:
-                                currentUser.email ||
-                                "",
+                            Cash:
+                                paymentBreakdown.Cash,
 
-                            createdBy:
-                                currentUser.uid,
+                            GCash:
+                                paymentBreakdown.GCash,
 
-                            createdAt:
-                                timestamp,
+                            BDO:
+                                paymentBreakdown.BDO,
 
-                            date:
-                                timestamp
-                        }
-                    );
-                }
-            );
+                            BIBO:
+                                paymentBreakdown.BIBO,
 
-            /* =========================
-               SUCCESS
-            ========================= */
+                            BPI:
+                                paymentBreakdown.BPI
+
+                        },
+
+                        tenderBreakdown: {
+                            Cash: tenderBreakdown.Cash,
+                            GCash: tenderBreakdown.GCash,
+                            BDO: tenderBreakdown.BDO,
+                            BIBO: tenderBreakdown.BIBO,
+                            BPI: tenderBreakdown.BPI
+                        },
+
+
+                        splitPayment:
+                            selectedPaymentMethod ===
+                            "Split",
+
+
+                        splitPaymentType:
+
+                            selectedPaymentMethod ===
+                            "Split"
+
+                                ? paymentBreakdown
+                                    .splitPaymentType
+
+                                : null,
+
+
+                        splitPayments:
+
+                            selectedPaymentMethod ===
+                            "Split"
+
+                                ? paymentBreakdown
+                                    .paymentTypes
+
+                                : [],
+
+
+                        staffName:
+                            cashierName,
+
+                        staffUid:
+                            currentUser.uid,
+
+                        staffEmail:
+                            currentUser.email ||
+                            "",
+
+
+                        createdBy:
+                            currentUser.uid,
+
+                        createdAt:
+                            timestamp,
+
+                        date:
+                            timestamp
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           SUCCESS
+        ===================================================== */
+
+        if (successTotal) {
 
             successTotal.textContent =
                 money(total);
 
+        }
+
+
+        if (successMessage) {
+
             successMessage.textContent =
                 `Transaction ${transactionNumber} was completed by ${cashierName}.`;
 
-            closePaymentModal();
-
-            successModal.classList.add(
-                "show"
-            );
-
-            cart = [];
-
-            if (discountElement) {
-                discountElement.value =
-                    "0";
-            }
-
-            renderCart();
-
-            await loadProducts();
-
-        } catch (error) {
-
-            console.error(
-                "Sale error:",
-                error
-            );
-
-            paymentError.textContent =
-                error?.message ||
-                "Unable to complete sale.";
-
-        } finally {
-
-            completeSale.disabled =
-                false;
-
-            completeSale.textContent =
-                "Complete Sale";
         }
-    };
+
+
+        closePaymentModal();
+
+
+        successModal.classList.add(
+            "show"
+        );
+
+
+        cart = [];
+
+
+        if (discountElement) {
+
+            discountElement.value =
+                "0";
+
+        }
+
+
+        renderCart();
+
+
+        await loadProducts();
+
+
+    } catch (error) {
+
+        console.error(
+            "Sale error:",
+            error
+        );
+
+
+        paymentError.textContent =
+            error?.message ||
+            "Unable to complete sale.";
+
+
+    } finally {
+
+        completeSale.disabled =
+            false;
+
+
+        completeSale.textContent =
+            "Complete Sale";
+
+    }
+
+}
+
 
 /* =========================================================
    EVENT LISTENERS
 ========================================================= */
 
-productSearch.addEventListener(
-    "input",
-    renderProducts
-);
 
-categoryFilter.addEventListener(
-    "change",
-    renderProducts
-);
+/* Search */
+
+if (productSearch) {
+
+    productSearch.addEventListener(
+        "input",
+        renderProducts
+    );
+
+}
+
+
+/* Category */
+
+if (categoryFilter) {
+
+    categoryFilter.addEventListener(
+        "change",
+        renderProducts
+    );
+
+}
+
+
+/* Type */
 
 if (typeFilter) {
+
     typeFilter.addEventListener(
         "change",
         renderProducts
     );
+
 }
 
-/* =========================================================
-   DISCOUNT
-========================================================= */
+
+/* Refresh */
+
+if (refreshProducts) {
+
+    refreshProducts.addEventListener(
+        "click",
+        async () => {
+
+            try {
+
+                hideError();
+
+                await loadProducts();
+
+            } catch (error) {
+
+                showError(
+                    error
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* Discount */
 
 if (discountElement) {
 
@@ -2689,353 +3869,481 @@ if (discountElement) {
         () => {
 
             let value =
-                discountElement.value.replace(
-                    /[^\d.]/g,
-                    ""
-                );
+                discountElement.value
+                    .replace(
+                        /[^\d.]/g,
+                        ""
+                    );
+
 
             const number =
-                Number(value) || 0;
+                Number(value) ||
+                0;
 
-            const max =
+
+            const maximum =
                 cartSubtotal();
+
 
             if (
                 number >
-                max
+                maximum
             ) {
+
                 value =
-                    max.toFixed(2);
+                    maximum.toFixed(2);
+
             }
+
 
             discountElement.value =
                 value;
 
-            paymentError.textContent =
-                "";
 
             if (
-                paymentModal.classList.contains(
-                    "show"
-                )
+                paymentModal.classList
+                    .contains("show")
             ) {
+
                 updatePaymentTotal();
+
             }
-        }
-    );
-}
 
-/* =========================================================
-   REFRESH PRODUCTS
-========================================================= */
-
-refreshProducts.addEventListener(
-    "click",
-    async () => {
-
-        try {
-
-            hideError();
-
-            await loadProducts();
-
-        } catch (error) {
-
-            showError(error);
-        }
-    }
-);
-
-/* =========================================================
-   CLEAR CART
-========================================================= */
-
-clearCartButton.addEventListener(
-    "click",
-    () => {
-
-        if (!cart.length) {
-            return;
-        }
-
-        if (
-            confirm(
-                "Clear all items from the current sale?"
-            )
-        ) {
-
-            cart = [];
-
-            if (discountElement) {
-                discountElement.value =
-                    "0";
-            }
 
             renderCart();
+
         }
-    }
-);
+    );
 
-/* =========================================================
-   CHECKOUT
-========================================================= */
+}
 
-checkoutButton.addEventListener(
-    "click",
-    openPaymentModal
-);
 
-/* =========================================================
-   CLOSE PAYMENT
-========================================================= */
+/* Checkout */
 
-closePayment.addEventListener(
-    "click",
-    closePaymentModal
-);
+if (checkoutButton) {
 
-paymentModal.addEventListener(
-    "click",
-    event => {
+    checkoutButton.addEventListener(
+        "click",
+        openPaymentModal
+    );
 
-        if (
-            event.target ===
-            paymentModal
-        ) {
-            closePaymentModal();
-        }
-    }
-);
+}
 
-/* =========================================================
-   PAYMENT METHOD BUTTONS
-========================================================= */
+
+/* Close Payment */
+
+if (closePayment) {
+
+    closePayment.addEventListener(
+        "click",
+        closePaymentModal
+    );
+
+}
+
+
+/* Payment method */
 
 document
     .querySelectorAll(
         ".payment-method"
     )
-    .forEach(button => {
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-                selectedPaymentMethod =
-                    button.dataset.method;
+                    selectedPaymentMethod =
+                        button.dataset.method;
 
-                document
-                    .querySelectorAll(
-                        ".payment-method"
-                    )
-                    .forEach(item =>
-                        item.classList.remove(
-                            "active"
+
+                    document
+                        .querySelectorAll(
+                            ".payment-method"
                         )
-                    );
+                        .forEach(
+                            item => {
 
-                button.classList.add(
-                    "active"
-                );
+                                item.classList.toggle(
+                                    "active",
+                                    item.dataset.method ===
+                                    selectedPaymentMethod
+                                );
 
-                cashPaymentArea.style.display =
-                    selectedPaymentMethod ===
-                    "Cash"
-                        ? "block"
-                        : "none";
+                            }
+                        );
 
-                splitPaymentArea.style.display =
-                    selectedPaymentMethod ===
-                    "Split"
-                        ? "block"
-                        : "none";
 
-                cashReceived.value =
-                    "";
+                    paymentError.textContent =
+                        "";
 
-                paymentError.textContent =
-                    "";
 
-                if (
-                    selectedPaymentMethod ===
-                    "Split"
-                ) {
-                    resetSplitPayment();
+                    if (
+                        selectedPaymentMethod ===
+                        "Cash"
+                    ) {
+
+                        cashPaymentArea.style.display =
+                            "block";
+
+                        splitPaymentArea.style.display =
+                            "none";
+
+
+                        if (
+                            paymentDestination
+                        ) {
+
+                            paymentDestination.textContent =
+                                "Cash";
+
+                        }
+
+                    }
+
+
+                    else if (
+                        selectedPaymentMethod ===
+                        "Split"
+                    ) {
+
+                        cashPaymentArea.style.display =
+                            "none";
+
+                        splitPaymentArea.style.display =
+                            "block";
+
+
+                        if (
+                            paymentDestination
+                        ) {
+
+                            paymentDestination.textContent =
+                                "Multiple Funds";
+
+                        }
+
+
+                        resetSplitPayment();
+
+                    }
+
+
+                    else {
+
+                        cashPaymentArea.style.display =
+                            "none";
+
+                        splitPaymentArea.style.display =
+                            "none";
+
+
+                        if (
+                            paymentDestination
+                        ) {
+
+                            paymentDestination.textContent =
+                                selectedPaymentMethod;
+
+                        }
+
+                    }
+
+
+                    updatePaymentTotal();
+
                 }
+            );
 
-                updatePaymentTotal();
+        }
+    );
 
-                if (
-                    selectedPaymentMethod ===
-                    "Cash"
-                ) {
 
-                    setTimeout(
-                        () =>
-                            cashReceived.focus(),
-                        50
-                    );
-                }
-            }
-        );
-    });
+/* Cash received */
 
-/* =========================================================
-   CASH INPUT
-========================================================= */
+if (cashReceived) {
 
-cashReceived.addEventListener(
-    "input",
-    updatePaymentTotal
-);
-
-/* =========================================================
-   SPLIT INPUTS
-   FIXED: BPI ADDED
-========================================================= */
-
-[
-    splitCash,
-    splitGCash,
-    splitBDO,
-    splitBIBO,
-    splitBPI
-].forEach(input => {
-
-    if (!input) {
-        return;
-    }
-
-    input.addEventListener(
+    cashReceived.addEventListener(
         "input",
         () => {
 
-            if (
-                Number(input.value) <
-                0
-            ) {
-                input.value =
-                    "0";
-            }
+            updatePaymentTotal();
 
-            updateSplitPayment();
         }
     );
-});
 
-/* =========================================================
-   QUICK CASH BUTTONS
-========================================================= */
+}
+
+
+/* Quick cash */
 
 document
     .querySelectorAll(
         ".quick-cash button"
     )
-    .forEach(button => {
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-                const total =
-                    cartTotal();
+                    if (
+                        button.dataset.cash ===
+                        "exact"
+                    ) {
 
-                if (
-                    button.dataset
-                        .cash ===
-                    "exact"
-                ) {
+                        cashReceived.value =
+                            cartTotal()
+                                .toFixed(2);
 
-                    cashReceived.value =
-                        total.toFixed(2);
+                    }
 
-                } else {
+                    else {
 
-                    cashReceived.value =
-                        button.dataset
-                            .cash;
+                        cashReceived.value =
+                            button.dataset.cash;
+
+                    }
+
+
+                    updatePaymentTotal();
+
                 }
-
-                updatePaymentTotal();
-            }
-        );
-    });
-
-/* =========================================================
-   COMPLETE SALE
-========================================================= */
-
-completeSale.addEventListener(
-    "click",
-    completeTransaction
-);
-
-/* =========================================================
-   NEW SALE
-========================================================= */
-
-newSaleButton.addEventListener(
-    "click",
-    () => {
-
-        successModal.classList.remove(
-            "show"
-        );
-
-        productSearch.focus();
-    }
-);
-
-/* =========================================================
-   RETRY
-========================================================= */
-
-retryButton.addEventListener(
-    "click",
-    async () => {
-
-        if (!currentUser) {
-            return;
-        }
-
-        try {
-
-            hideError();
-
-            await loadStaffInfo(
-                currentUser
             );
 
-            await loadProducts();
-
-        } catch (error) {
-
-            showError(error);
-        }
-    }
-);
-
-/* =========================================================
-   GLOBAL SEARCH
-========================================================= */
-
-document
-    .getElementById(
-        "globalSearch"
-    )
-    .addEventListener(
-        "input",
-        event => {
-
-            productSearch.value =
-                event.target.value;
-
-            renderProducts();
         }
     );
 
+
+/* Split Cash */
+
+if (splitCash) {
+
+    splitCash.addEventListener(
+        "input",
+        updateSplitPayment
+    );
+
+}
+
+
+/* Split GCash */
+
+if (splitGCash) {
+
+    splitGCash.addEventListener(
+        "input",
+        updateSplitPayment
+    );
+
+}
+
+
+/* Split BDO */
+
+if (splitBDO) {
+
+    splitBDO.addEventListener(
+        "input",
+        updateSplitPayment
+    );
+
+}
+
+
+/* Split BIBO */
+
+if (splitBIBO) {
+
+    splitBIBO.addEventListener(
+        "input",
+        updateSplitPayment
+    );
+
+}
+
+
+/* Split BPI */
+
+if (splitBPI) {
+
+    splitBPI.addEventListener(
+        "input",
+        updateSplitPayment
+    );
+
+}
+
+
+/* Complete Sale */
+
+if (completeSale) {
+
+    completeSale.addEventListener(
+        "click",
+        completeTransaction
+    );
+
+}
+
+
+/* Clear Cart */
+
+if (clearCartButton) {
+
+    clearCartButton.addEventListener(
+        "click",
+        () => {
+
+            if (!cart.length) {
+
+                return;
+
+            }
+
+
+            if (
+                confirm(
+                    "Clear all items from the current sale?"
+                )
+            ) {
+
+                cart = [];
+
+
+                if (
+                    discountElement
+                ) {
+
+                    discountElement.value =
+                        "0";
+
+                }
+
+
+                renderCart();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* New Sale */
+
+if (newSaleButton) {
+
+    newSaleButton.addEventListener(
+        "click",
+        () => {
+
+            successModal.classList.remove(
+                "show"
+            );
+
+
+            cart = [];
+
+
+            if (
+                discountElement
+            ) {
+
+                discountElement.value =
+                    "0";
+
+            }
+
+
+            renderCart();
+
+        }
+    );
+
+}
+
+
+/* Close modal by clicking background */
+
+if (paymentModal) {
+
+    paymentModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                paymentModal
+            ) {
+
+                closePaymentModal();
+
+            }
+
+        }
+    );
+
+}
+
+
+if (successModal) {
+
+    successModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                successModal
+            ) {
+
+                successModal.classList.remove(
+                    "show"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* Retry */
+
+if (retryButton) {
+
+    retryButton.addEventListener(
+        "click",
+        async () => {
+
+            try {
+
+                hideError();
+
+                await loadProducts();
+
+            } catch (error) {
+
+                showError(
+                    error
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
 /* =========================================================
-   AUTH
+   AUTHENTICATION
 ========================================================= */
 
 onAuthStateChanged(
@@ -3044,33 +4352,43 @@ onAuthStateChanged(
 
         if (!user) {
 
-            window.location.href =
-                "../login.html?role=staff";
+            currentUser =
+                null;
 
             return;
+
         }
 
-        currentUser = user;
+
+        currentUser =
+            user;
+
 
         try {
 
             hideError();
 
+
             await loadStaffInfo(
                 user
             );
 
+
             await loadProducts();
+
+
+            renderCart();
+
 
         } catch (error) {
 
-            showError(error);
+            showError(
+                error
+            );
+
         }
+
     }
 );
-
-/* =========================================================
-   INITIAL CART
-========================================================= */
 
 renderCart();

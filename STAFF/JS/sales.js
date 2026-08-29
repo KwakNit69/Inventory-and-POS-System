@@ -77,7 +77,22 @@ const getItems = sale => {
     return Number(sale.itemCount ?? sale.itemsCount ?? sale.quantity ?? 0);
 };
 
-const getPayment = sale => String(sale.paymentMethod ?? sale.payment ?? sale.method ?? "Unknown");
+const getPayment = sale => {
+
+    const raw =
+        String(
+            sale.paymentMethod ??
+            sale.payment ??
+            sale.method ??
+            "Unknown"
+        ).trim();
+
+    if (raw.toLowerCase() === "split") {
+        return "Split Payment";
+    }
+
+    return raw || "Unknown";
+};
 
 const getCashier = sale => String(sale.cashierUid ?? sale.cashierId ?? sale.userId ?? sale.createdBy ?? sale.staffUid ?? "");
 
@@ -86,6 +101,26 @@ const getSaleDate = sale => getDate(sale.createdAt ?? sale.dateTime ?? sale.time
 const getTransaction = sale => String(sale.transactionNumber ?? sale.transactionId ?? sale.referenceNumber ?? sale.id);
 
 const getStatus = sale => String(sale.status ?? "Completed");
+
+/*
+ * Payment fields used by the new Admin/Staff POS format.
+ */
+const getTotalPaid = sale =>
+    Number(
+        sale.totalPaid ??
+        sale.amountPaid ??
+        sale.paidAmount ??
+        sale.cashReceived ??
+        sale.cash ??
+        sale.total
+    ) || 0;
+
+const getChange = sale =>
+    Math.max(
+        0,
+        Number(sale.change) || 0
+    );
+
 
 const showError = error => {
     console.error("Sales error:", error);
@@ -122,6 +157,140 @@ const loadStaffInfo = user => {
     staffAvatar.textContent = initials(name);
 };
 
+/*
+ * =========================================================
+ * PAYMENT AMOUNTS
+ * =========================================================
+ *
+ * paymentBreakdown = amount retained by the business.
+ * cashReceived / tenderBreakdown = amount handed over
+ * by the customer and may include change.
+ */
+const getPaymentAmounts = sale => {
+
+    const amounts = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0,
+        BPI: 0
+    };
+
+    const payment =
+        String(
+            sale.paymentMethod ??
+            sale.payment ??
+            sale.method ??
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+    const total =
+        getTotal(sale);
+
+    const singleMethod = {
+        cash: "Cash",
+        gcash: "GCash",
+        bdo: "BDO",
+        bibo: "BIBO",
+        bpi: "BPI"
+    };
+
+    if (singleMethod[payment]) {
+        amounts[singleMethod[payment]] = total;
+        return amounts;
+    }
+
+    const breakdown =
+        sale.paymentBreakdown || {};
+
+    let breakdownTotal = 0;
+
+    Object.keys(amounts).forEach(method => {
+
+        const amount =
+            Number(breakdown[method]) || 0;
+
+        if (amount > 0) {
+            amounts[method] = amount;
+            breakdownTotal += amount;
+        }
+    });
+
+    if (
+        breakdownTotal > 0 &&
+        Math.abs(breakdownTotal - total) <= 0.005
+    ) {
+        return amounts;
+    }
+
+    Object.keys(amounts).forEach(method => {
+        amounts[method] = 0;
+    });
+
+    if (Array.isArray(sale.splitPayments)) {
+
+        sale.splitPayments.forEach(item => {
+
+            const raw =
+                String(item.method || "")
+                    .trim()
+                    .toLowerCase();
+
+            const method =
+                singleMethod[raw];
+
+            const amount =
+                Number(item.amount) || 0;
+
+            if (method && amount > 0) {
+                amounts[method] += amount;
+            }
+        });
+    }
+
+    const legacyTotal =
+        Object.values(amounts)
+            .reduce(
+                (sum, value) => sum + value,
+                0
+            );
+
+    if (
+        legacyTotal > 0 &&
+        Math.abs(legacyTotal - total) <= 0.005
+    ) {
+        return amounts;
+    }
+
+    /*
+     * Safe fallback for old records.
+     * Never let customer tendered cash inflate revenue.
+     */
+    Object.keys(amounts).forEach(method => {
+        amounts[method] = 0;
+    });
+
+    amounts.Cash = total;
+
+    return amounts;
+};
+
+const getPaymentTransactions = sale => {
+
+    const amounts =
+        getPaymentAmounts(sale);
+
+    return {
+        Cash: amounts.Cash > 0 ? 1 : 0,
+        GCash: amounts.GCash > 0 ? 1 : 0,
+        BDO: amounts.BDO > 0 ? 1 : 0,
+        BIBO: amounts.BIBO > 0 ? 1 : 0,
+        BPI: amounts.BPI > 0 ? 1 : 0
+    };
+};
+
 const loadSales = async () => {
     hideError();
     salesBody.innerHTML = '<tr><td colspan="9" class="empty-cell">Loading sales...</td></tr>';
@@ -140,10 +309,31 @@ const loadSales = async () => {
 };
 
 const updateSummary = () => {
-    const today = sales.filter(sale => isToday(getSaleDate(sale)));
-    const total = today.reduce((sum, sale) => sum + getTotal(sale), 0);
-    const count = today.length;
-    const items = today.reduce((sum, sale) => sum + getItems(sale), 0);
+    const today =
+        sales.filter(
+            sale =>
+                isToday(getSaleDate(sale)) &&
+                getStatus(sale)
+                    .toLowerCase() ===
+                "completed"
+        );
+
+    const total =
+        today.reduce(
+            (sum, sale) =>
+                sum + getTotal(sale),
+            0
+        );
+
+    const count =
+        today.length;
+
+    const items =
+        today.reduce(
+            (sum, sale) =>
+                sum + getItems(sale),
+            0
+        );
     todaySales.textContent = money(total);
     transactionCount.textContent = count;
     itemsSold.textContent = items;
@@ -164,7 +354,43 @@ const applyFilters = () => {
         if (date === "today") matchesDate = isToday(saleDate);
         if (date === "week") matchesDate = isThisWeek(saleDate);
         if (date === "month") matchesDate = isThisMonth(saleDate);
-        const matchesPayment = payment === "all" || getPayment(sale).toLowerCase() === payment.toLowerCase();
+        let matchesPayment = true;
+
+        if (payment !== "all") {
+
+            const filterValue =
+                payment.toLowerCase();
+
+            if (
+                filterValue === "split" ||
+                filterValue === "split payment"
+            ) {
+                matchesPayment =
+                    getPayment(sale)
+                        .toLowerCase() ===
+                    "split payment";
+            } else {
+
+                const method =
+                    filterValue === "cash" ? "Cash" :
+                    filterValue === "gcash" ? "GCash" :
+                    filterValue === "bdo" ? "BDO" :
+                    filterValue === "bibo" ? "BIBO" :
+                    filterValue === "bpi" ? "BPI" :
+                    null;
+
+                if (method) {
+                    matchesPayment =
+                        getPaymentAmounts(sale)[method] > 0;
+                } else {
+                    matchesPayment =
+                        getPayment(sale)
+                            .toLowerCase() ===
+                        filterValue;
+                }
+            }
+        }
+
         return matchesSearch && matchesDate && matchesPayment;
     });
     currentPage = 1;
@@ -229,8 +455,15 @@ const openSale = id => {
     modalSubtotal.textContent = money(subtotal);
     modalDiscount.textContent = money(discount);
     modalTotal.textContent = money(total);
-    modalPaid.textContent = money(sale.amountPaid ?? sale.paidAmount ?? total);
-    modalChange.textContent = money(sale.change ?? 0);
+    modalPaid.textContent =
+        money(
+            getTotalPaid(sale)
+        );
+
+    modalChange.textContent =
+        money(
+            getChange(sale)
+        );
     const items = Array.isArray(sale.items) ? sale.items : [];
     if (!items.length) {
         modalItems.innerHTML = '<tr><td colspan="4" class="empty-cell">No item details available.</td></tr>';

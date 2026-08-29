@@ -794,8 +794,26 @@ function normalizeSale(snapshot) {
                 data.cash
             ) || 0,
 
+        /*
+         * totalPaid is what the customer actually tendered.
+         * It may be greater than the sale total when change
+         * is returned.
+         */
+        totalPaid:
+            Number(
+                data.totalPaid ??
+                data.amountPaid ??
+                data.paidAmount ??
+                data.cashReceived ??
+                data.cash ??
+                data.total
+            ) || 0,
+
         change:
             Number(data.change) || 0,
+
+        tenderBreakdown:
+            data.tenderBreakdown || {},
 
         cashier:
             String(
@@ -839,22 +857,28 @@ function normalizeSale(snapshot) {
 function getPaymentAmounts(sale) {
 
     const amounts = {
-
         Cash: 0,
         GCash: 0,
         BDO: 0,
         BIBO: 0,
         BPI: 0
-
     };
-
 
     const payment =
         normalizePaymentMethod(
             sale.payment
         );
 
+    const total =
+        Number(sale.total) || 0;
 
+    /*
+     * Single payment:
+     * the retained amount is the sale total.
+     *
+     * Do NOT use cashReceived here because cashReceived
+     * can include money that was returned as change.
+     */
     if (
         payment === "Cash" ||
         payment === "GCash" ||
@@ -862,94 +886,96 @@ function getPaymentAmounts(sale) {
         payment === "BIBO" ||
         payment === "BPI"
     ) {
-
-        amounts[payment] =
-            Number(sale.total) || 0;
-
+        amounts[payment] = total;
         return amounts;
-
     }
 
-
+    /*
+     * Split payment:
+     * paymentBreakdown represents money retained by
+     * each payment account.
+     */
     const breakdown =
         sale.paymentBreakdown || {};
 
-    let hasBreakdown =
-        false;
+    let breakdownTotal = 0;
 
-
-    [
-        "Cash",
-        "GCash",
-        "BDO",
-        "BIBO",
-        "BPI"
-
-    ].forEach(method => {
+    Object.keys(amounts).forEach(method => {
 
         const amount =
-            Number(
-                breakdown[method]
-            ) || 0;
+            Number(breakdown[method]) || 0;
 
         if (amount > 0) {
-
-            amounts[method] +=
-                amount;
-
-            hasBreakdown = true;
-
+            amounts[method] = amount;
+            breakdownTotal += amount;
         }
-
     });
 
-
-    if (hasBreakdown) {
+    if (
+        breakdownTotal > 0 &&
+        Math.abs(breakdownTotal - total) <= 0.005
+    ) {
         return amounts;
     }
 
+    /*
+     * Legacy fallback for older split transactions.
+     */
+    Object.keys(amounts).forEach(method => {
+        amounts[method] = 0;
+    });
 
-    if (
-        Array.isArray(
-            sale.splitPayments
-        )
-    ) {
+    if (Array.isArray(sale.splitPayments)) {
 
-        sale.splitPayments
-            .forEach(item => {
+        sale.splitPayments.forEach(item => {
 
-                const method =
-                    normalizePaymentMethod(
-                        item.method
-                    );
+            const method =
+                normalizePaymentMethod(
+                    item.method
+                );
 
-                const amount =
-                    Number(
-                        item.amount
-                    ) || 0;
+            const amount =
+                Number(item.amount) || 0;
 
-                if (
-                    amount > 0 &&
-                    Object.prototype.hasOwnProperty.call(
-                        amounts,
-                        method
-                    )
-                ) {
-
-                    amounts[method] +=
-                        amount;
-
-                }
-
-            });
-
+            if (
+                amount > 0 &&
+                Object.prototype.hasOwnProperty.call(
+                    amounts,
+                    method
+                )
+            ) {
+                amounts[method] += amount;
+            }
+        });
     }
 
+    const legacyTotal =
+        Object.values(amounts)
+            .reduce(
+                (sum, value) => sum + value,
+                0
+            );
+
+    if (
+        legacyTotal > 0 &&
+        Math.abs(legacyTotal - total) <= 0.005
+    ) {
+        return amounts;
+    }
+
+    /*
+     * Safe fallback:
+     * never allow the Sales page to report more revenue
+     * than the actual sale total.
+     */
+    Object.keys(amounts).forEach(method => {
+        amounts[method] = 0;
+    });
+
+    amounts.Cash = total;
 
     return amounts;
-
 }
-
 
 /* =========================================================
    PAYMENT TRANSACTION COUNT
@@ -2102,6 +2128,7 @@ function openTransaction(id) {
         "detailCash"
     ).textContent =
         money(
+            sale.totalPaid ||
             sale.cash
         );
 

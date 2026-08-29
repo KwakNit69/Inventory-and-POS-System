@@ -2,724 +2,440 @@
    STOCKMASTER STAFF POS
    Complete POS stylesheet
 ========================================================= */
-
-
 /* =========================================================
    RESET
 ========================================================= */
-
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
-
-
 :root {
-
     --blue: #1976d2;
     --blue-dark: #075eb5;
     --blue-light: #edf6ff;
-
     --text: #172331;
     --muted: #6b7480;
-
     --border: #d8dee6;
-
     --background: #f5f7f9;
     --white: #ffffff;
-
     --green: #16803c;
     --green-bg: #eaf7ef;
-
     --red: #d74343;
     --red-bg: #fdecec;
-
     --orange: #c87500;
     --orange-bg: #fff5df;
-
     --purple: #6b46c1;
     --purple-bg: #f0eafd;
-
 }
-
-
 html,
 body {
-
     width: 100%;
     min-height: 100%;
-
     margin: 0;
-
 }
-
-
 body {
-
     min-height: 100vh;
-
     background:
         var(--background);
-
     color:
         var(--text);
-
     font-family:
         Arial,
         Helvetica,
         sans-serif;
-
     font-size:
         13px;
-
     overflow-x:
         hidden;
-
 }
-
-
 /* =========================================================
    FORM ELEMENTS
 ========================================================= */
-
 button,
 input,
 select {
-
     font-family:
         inherit;
-
 }
-
-
 button {
-
     cursor:
         pointer;
-
 }
-
-
 button:focus,
 input:focus,
 select:focus {
-
     outline:
         none;
-
 }
-
-
 /* =========================================================
    MAIN APPLICATION
 ========================================================= */
-
 .staff-app {
-
     display:
         flex;
-
     width:
         100%;
-
     min-height:
         100vh;
-
 }
-
-
 #sidebar-container {
-
     flex:
         0 0 205px;
-
     width:
         205px;
-
     min-width:
         205px;
-
     position:
         relative;
-
     z-index:
         100;
-
 }
-
-
 .staff-main {
-
     flex:
         1;
-
     width:
         calc(100% - 205px);
-
     min-width:
         0;
-
     display:
         flex;
-
     flex-direction:
         column;
-
 }
-
-
 /* =========================================================
    TOP BAR
 ========================================================= */
-
 .topbar {
-
     height:
         58px;
-
     min-height:
         58px;
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     padding:
         0 25px;
-
     background:
         #ffffff;
-
     border-bottom:
         1px solid var(--border);
-
 }
-
-
 .search-box {
-
     width:
         300px;
-
     height:
         32px;
-
     display:
         flex;
-
     align-items:
         center;
-
     gap:
         8px;
-
     padding:
         0 10px;
-
     border:
         1px solid #d5dce4;
-
     border-radius:
         5px;
-
     background:
         #fafbfc;
-
 }
-
-
 .search-box span {
-
     color:
         #5c6671;
-
     font-size:
         16px;
-
 }
-
-
 .search-box input {
-
     flex:
         1;
-
     min-width:
         0;
-
     border:
         0;
-
     outline:
         0;
-
     background:
         transparent;
-
     color:
         #26333f;
-
     font-size:
         11px;
-
 }
-
-
 .search-box input::placeholder {
-
     color:
         #8a949e;
-
 }
-
-
 /* =========================================================
    STAFF PROFILE
 ========================================================= */
-
 .profile {
-
     display:
         flex;
-
     align-items:
         center;
-
     gap:
         10px;
-
 }
-
-
 .profile-text {
-
     text-align:
         right;
-
 }
-
-
 .profile-text strong {
-
     display:
         block;
-
     color:
         #172331;
-
     font-size:
         11px;
-
     font-weight:
         700;
-
 }
-
-
 .profile-text small {
-
     display:
         block;
-
     margin-top:
         3px;
-
     color:
         var(--blue);
-
     font-size:
         9px;
-
 }
-
-
 .avatar {
-
     width:
         32px;
-
     height:
         32px;
-
     display:
         grid;
-
     place-items:
         center;
-
     border-radius:
         50%;
-
     background:
         #d9e8f8;
-
     border:
         1px solid #c7d9eb;
-
     color:
         #1c5d9e;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 /* =========================================================
    POS CONTENT
 ========================================================= */
-
 .pos-content {
-
     width:
         100%;
-
     padding:
         20px 24px 28px;
-
 }
-
-
 /* =========================================================
    PAGE HEADER
 ========================================================= */
-
 .page-heading {
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     margin-bottom:
         17px;
-
 }
-
-
 .page-heading h1 {
-
     font-size:
         23px;
-
     line-height:
         1.2;
-
     margin-bottom:
         4px;
-
     color:
         #172331;
-
 }
-
-
 .page-heading p {
-
     font-size:
         10px;
-
     color:
         var(--muted);
-
 }
-
-
 /* =========================================================
    STAFF STATUS
 ========================================================= */
-
 .staff-status {
-
     height:
         28px;
-
     display:
         flex;
-
     align-items:
         center;
-
     gap:
         6px;
-
     padding:
         0 10px;
-
     border:
         1px solid #cce9d6;
-
     border-radius:
         16px;
-
     background:
         var(--green-bg);
-
     color:
         var(--green);
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .staff-status span {
-
     width:
         7px;
-
     height:
         7px;
-
     border-radius:
         50%;
-
     background:
         var(--green);
-
 }
-
-
 .staff-status.offline {
-
     background:
         var(--red-bg);
-
     border-color:
         #efb1b1;
-
     color:
         var(--red);
-
 }
-
-
 .staff-status.offline span {
-
     background:
         var(--red);
-
 }
-
-
 /* =========================================================
    ERROR
 ========================================================= */
-
 .pos-error {
-
     display:
         none;
-
     align-items:
         center;
-
     gap:
         10px;
-
     padding:
         10px 12px;
-
     margin-bottom:
         14px;
-
     background:
         var(--red-bg);
-
     border:
         1px solid #efb1b1;
-
     border-radius:
         5px;
-
     color:
         #a82d2d;
-
 }
-
-
 .pos-error.show {
-
     display:
         flex;
-
 }
-
-
 .pos-error strong {
-
     font-size:
         10px;
-
 }
-
-
 .pos-error span {
-
     flex:
         1;
-
     font-size:
         9px;
-
 }
-
-
 .pos-error button {
-
     height:
         27px;
-
     padding:
         0 10px;
-
     border:
         1px solid #dfa3a3;
-
     border-radius:
         4px;
-
     background:
         #ffffff;
-
     color:
         #a82d2d;
-
     font-size:
         9px;
-
 }
-
-
 .pos-error button:hover {
-
     background:
         #fff8f8;
-
 }
-
-
 /* =========================================================
    MAIN POS LAYOUT
 ========================================================= */
-
 .pos-layout {
-
     display:
         grid;
-
     grid-template-columns:
         minmax(0, 1fr)
         340px;
-
     gap:
         12px;
-
     align-items:
         start;
-
 }
-
-
 /* =========================================================
    PRODUCTS SECTION
 ========================================================= */
-
 .products-section {
-
     min-width:
         0;
-
     padding:
         12px;
-
     background:
         #ffffff;
-
     border:
         1px solid var(--border);
-
     border-radius:
         6px;
-
 }
-
-
 /* =========================================================
    PRODUCT TOOLBAR
 ========================================================= */
-
 .products-toolbar {
-
     display:
         flex;
-
     align-items:
         center;
-
     gap:
         7px;
-
     margin-bottom:
         10px;
-
 }
-
-
 .product-search {
-
     height:
         36px;
-
     display:
         flex;
-
     align-items:
         center;
-
     gap:
         8px;
-
     flex:
         1;
-
     padding:
         0 10px;
-
     border:
         1px solid #d4dce4;
-
     border-radius:
         5px;
-
     background:
         #ffffff;
-
 }
-
-
 .product-search:focus-within {
-
     border-color:
         var(--blue);
-
     box-shadow:
         0 0 0 2px
         rgba(
@@ -728,157 +444,95 @@ select:focus {
             210,
             .07
         );
-
 }
-
-
 .product-search span {
-
     color:
         #71808d;
-
     font-size:
         15px;
-
 }
-
-
 .product-search input {
-
     width:
         100%;
-
     border:
         0;
-
     outline:
         0;
-
     font-size:
         10px;
-
     color:
         #263541;
-
 }
-
-
 .product-search input::placeholder {
-
     color:
         #929ca5;
-
 }
-
-
 /* =========================================================
    FILTERS
 ========================================================= */
-
 .products-toolbar select {
-
     height:
         36px;
-
     min-width:
         125px;
-
     padding:
         0 9px;
-
     border:
         1px solid #d4dce4;
-
     border-radius:
         5px;
-
     background:
         #ffffff;
-
     color:
         #596673;
-
     font-size:
         9px;
-
 }
-
-
 .products-toolbar select:hover {
-
     border-color:
         #a9c9e5;
-
 }
-
-
 .products-toolbar select:focus {
-
     border-color:
         var(--blue);
-
 }
-
-
 /* =========================================================
    REFRESH
 ========================================================= */
-
 #refreshProducts {
-
     width:
         36px;
-
     height:
         36px;
-
     border:
         1px solid #d4dce4;
-
     border-radius:
         5px;
-
     background:
         #ffffff;
-
     color:
         #596673;
-
     font-size:
         16px;
-
     transition:
         .15s;
-
 }
-
-
 #refreshProducts:hover {
-
     background:
         var(--blue-light);
-
     border-color:
         #a9c9e5;
-
     color:
         var(--blue);
-
     transform:
         rotate(90deg);
-
 }
-
-
 /* =========================================================
    PRODUCT GRID
 ========================================================= */
-
 .products-grid {
-
     display:
         grid;
-
     grid-template-columns:
         repeat(
             3,
@@ -887,99 +541,60 @@ select:focus {
                 1fr
             )
         );
-
     gap:
         9px;
-
     max-height:
         calc(
             100vh - 180px
         );
-
     overflow-y:
         auto;
-
     padding:
         2px;
-
 }
-
-
 /* Scrollbar */
-
 .products-grid::-webkit-scrollbar {
-
     width:
         6px;
-
 }
-
-
 .products-grid::-webkit-scrollbar-track {
-
     background:
         #f4f6f8;
-
 }
-
-
 .products-grid::-webkit-scrollbar-thumb {
-
     background:
         #c8d1da;
-
     border-radius:
         10px;
-
 }
-
-
 .products-grid::-webkit-scrollbar-thumb:hover {
-
     background:
         #aeb9c3;
-
 }
-
-
 /* =========================================================
    PRODUCT CARD
 ========================================================= */
-
 .product-card {
-
     min-width:
         0;
-
     display:
         flex;
-
     flex-direction:
         column;
-
     padding:
         8px;
-
     border:
         1px solid #d8e0e7;
-
     border-radius:
         5px;
-
     background:
         #ffffff;
-
     transition:
         .15s;
-
 }
-
-
 .product-card:hover {
-
     border-color:
         #9ebfdf;
-
     box-shadow:
         0 4px 12px
         rgba(
@@ -988,1106 +603,645 @@ select:focus {
             100,
             .08
         );
-
     transform:
         translateY(-1px);
-
 }
-
-
 .product-card.out {
-
     opacity:
         .58;
-
 }
-
-
 /* =========================================================
    PRODUCT IMAGE
 ========================================================= */
-
 .product-image {
-
     height:
         135px;
-
     margin-bottom:
         8px;
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         center;
-
     border:
         1px solid #e0e6eb;
-
     border-radius:
         4px;
-
     background:
         #f1f4f6;
-
     overflow:
         hidden;
-
 }
-
-
 .product-image img {
-
     width:
         100%;
-
     height:
         100%;
-
     display:
         block;
-
     object-fit:
         cover;
-
 }
-
-
 .product-image span {
-
     font-size:
         30px;
-
     color:
         #7d8a95;
-
 }
-
-
 .product-image.image-error {
-
     background:
         #eef3f7;
-
 }
-
-
 /* =========================================================
    TYPE BADGES
 ========================================================= */
-
 .type-badge {
-
     width:
         max-content;
-
     padding:
         3px 7px;
-
     margin-bottom:
         5px;
-
     border-radius:
         10px;
-
     font-size:
         6px;
-
     font-weight:
         700;
-
     line-height:
         1;
-
     text-transform:
         uppercase;
-
 }
-
-
 .type-badge.product {
-
     background:
         #e8f2fc;
-
     color:
         var(--blue);
-
 }
-
-
 .type-badge.package {
-
     background:
         var(--purple-bg);
-
     color:
         var(--purple);
-
 }
-
-
 .type-badge.insurance {
-
     background:
         var(--green-bg);
-
     color:
         var(--green);
-
 }
-
-
 /* =========================================================
    PRODUCT INFORMATION
 ========================================================= */
-
 .product-name {
-
     color:
         #172331;
-
     font-size:
         11px;
-
     font-weight:
         700;
-
     line-height:
         1.25;
-
     margin-bottom:
         4px;
-
     white-space:
         nowrap;
-
     overflow:
         hidden;
-
     text-overflow:
         ellipsis;
-
 }
-
-
 .product-sku {
-
     color:
         #7c8791;
-
     font-size:
         8px;
-
     margin-bottom:
         6px;
-
 }
-
-
 .package-info {
-
     min-height:
         18px;
-
     margin-bottom:
         5px;
-
     color:
         #7b8791;
-
     font-size:
         7px;
-
 }
-
-
 /* =========================================================
    PRODUCT BOTTOM
 ========================================================= */
-
 .product-bottom {
-
     display:
         grid;
-
     grid-template-columns:
         1fr;
-
     gap:
         6px;
-
     margin-top:
         auto;
-
 }
-
-
 .product-price {
-
     color:
         #172331;
-
     font-size:
         13px;
-
     font-weight:
         700;
-
     line-height:
         1.2;
-
 }
-
-
 .product-stock {
-
     color:
         var(--green);
-
     font-size:
         7px;
-
     font-weight:
         600;
-
 }
-
-
 .product-stock.out {
-
     color:
         var(--red);
-
 }
-
-
 /* =========================================================
    ADD PRODUCT BUTTON
 ========================================================= */
-
 .add-product {
-
     width:
         100%;
-
     height:
         31px;
-
     border:
         0;
-
     border-radius:
         4px;
-
     background:
         var(--blue);
-
     color:
         #ffffff;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
     transition:
         .15s;
-
 }
-
-
 .add-product:hover {
-
     background:
         var(--blue-dark);
-
 }
-
-
 .add-product:active {
-
     transform:
         scale(.98);
-
 }
-
-
 .add-product:disabled {
-
     background:
         #aeb8c1;
-
     cursor:
         not-allowed;
-
 }
-
-
 /* =========================================================
    NO PRODUCTS
 ========================================================= */
-
 .no-products {
-
     grid-column:
         1 / -1;
-
     padding:
         60px 20px;
-
     text-align:
         center;
-
     color:
         #8b959f;
-
     font-size:
         10px;
-
 }
-
-
 .empty-products {
-
     display:
         none;
-
 }
-
-
 .empty-products.show {
-
     display:
         block;
-
     grid-column:
         1 / -1;
-
     padding:
         60px 20px;
-
     text-align:
         center;
-
 }
-
-
 /* =========================================================
    CART
 ========================================================= */
-
 .cart-section {
-
-    height:
-        calc(
-            100vh - 125px
-        );
-
-    min-height:
-        560px;
-
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    background:
-        #ffffff;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        6px;
-
-    position:
-        sticky;
-
-    top:
-        15px;
-
-    overflow:
-        hidden;
-
+    height: calc(100vh - 125px);
+    max-height: calc(100vh - 125px);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    position: sticky;
+    top: 15px;
+    overflow: hidden;
 }
-
-
 /* =========================================================
    CART HEADER
 ========================================================= */
-
 .cart-header {
-
     height:
         58px;
-
     min-height:
         58px;
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     padding:
         0 13px;
-
     border-bottom:
         1px solid var(--border);
-
 }
-
-
 .cart-header h2 {
-
     font-size:
         13px;
-
     margin-bottom:
         3px;
-
     color:
         #172331;
-
 }
-
-
 .cart-header p {
-
     color:
         #808b95;
-
     font-size:
         8px;
-
 }
-
-
 .cart-header button {
-
     height:
         27px;
-
     padding:
         0 10px;
-
     border:
         0;
-
     background:
         transparent;
-
     color:
         var(--red);
-
     font-size:
         8px;
-
     font-weight:
         700;
-
 }
-
-
 .cart-header button:hover {
-
     background:
         var(--red-bg);
-
     border-radius:
         4px;
-
 }
-
-
 /* =========================================================
    CART ITEMS
 ========================================================= */
-
 .cart-items {
-
-    flex:
-        1;
-
-    min-height:
-        0;
-
-    padding:
-        0 11px;
-
-    overflow-y:
-        auto;
-
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
 }
-
-
 .cart-items::-webkit-scrollbar {
-
     width:
         6px;
-
 }
-
-
 .cart-items::-webkit-scrollbar-track {
-
     background:
         #ffffff;
-
 }
-
-
 .cart-items::-webkit-scrollbar-thumb {
-
     background:
         #cbd4dd;
-
     border-radius:
         10px;
-
 }
-
-
 /* =========================================================
    EMPTY CART
 ========================================================= */
-
 .empty-cart {
-
     height:
         100%;
-
     min-height:
         260px;
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         center;
-
     flex-direction:
         column;
-
     text-align:
         center;
-
     gap:
         6px;
-
     color:
         #7d8791;
-
 }
-
-
 .empty-cart-icon {
-
     width:
         45px;
-
     height:
         45px;
-
     display:
         grid;
-
     place-items:
         center;
-
     margin-bottom:
         4px;
-
     border-radius:
         50%;
-
     background:
         #eaf2fb;
-
     color:
         var(--blue);
-
     font-size:
         20px;
-
 }
-
-
 .empty-cart strong {
-
     color:
         #4b5966;
-
     font-size:
         10px;
-
 }
-
-
 .empty-cart span {
-
     font-size:
         8px;
-
 }
-
-
 /* =========================================================
    CART ITEM
 ========================================================= */
-
 .cart-item {
-
     display:
         grid;
-
     grid-template-columns:
         1fr auto;
-
     gap:
         8px;
-
     padding:
         10px 0;
-
     border-bottom:
         1px solid #edf0f3;
-
 }
-
-
 .cart-item-top {
-
     margin-bottom:
         4px;
-
 }
-
-
 .cart-type {
-
     display:
         inline-block;
-
     padding:
         3px 6px;
-
     border-radius:
         8px;
-
     font-size:
         5px;
-
     font-weight:
         700;
-
 }
-
-
 .cart-type.product {
-
     background:
         #e8f2fc;
-
     color:
         var(--blue);
-
 }
-
-
 .cart-type.package {
-
     background:
         var(--purple-bg);
-
     color:
         var(--purple);
-
 }
-
-
 .cart-type.insurance {
-
     background:
         var(--green-bg);
-
     color:
         var(--green);
-
 }
-
-
 .cart-item-name {
-
     color:
         #273641;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
     margin-bottom:
         3px;
-
     white-space:
         nowrap;
-
     overflow:
         hidden;
-
     text-overflow:
         ellipsis;
-
 }
-
-
 .cart-item-price {
-
     color:
         #73808b;
-
     font-size:
         7px;
-
 }
-
-
 .cart-item-controls {
-
     display:
         flex;
-
     align-items:
         center;
-
     gap:
         4px;
-
     margin-top:
         6px;
-
 }
-
-
 .qty-button {
-
     width:
         19px;
-
     height:
         19px;
-
     display:
         grid;
-
     place-items:
         center;
-
     border:
         1px solid #d5dce4;
-
     border-radius:
         3px;
-
     background:
         #ffffff;
-
     color:
         #455461;
-
     font-size:
         10px;
-
 }
-
-
 .qty-button:hover {
-
     background:
         #eef6ff;
-
     color:
         var(--blue);
-
     border-color:
         #a9c9e5;
-
 }
-
-
 .qty-value {
-
     min-width:
         18px;
-
     text-align:
         center;
-
     font-size:
         8px;
-
     font-weight:
         700;
-
 }
-
-
 .remove-item {
-
     margin-left:
         2px;
-
     border:
         0;
-
     background:
         transparent;
-
     color:
         #a3acb4;
-
     font-size:
         12px;
-
 }
-
-
 .remove-item:hover {
-
     color:
         var(--red);
-
 }
-
-
 .cart-item-total {
-
     align-self:
         start;
-
     color:
         #263541;
-
     font-size:
         8px;
-
     font-weight:
         700;
-
 }
-
-
 /* =========================================================
    CART SUMMARY
 ========================================================= */
-
 .cart-summary {
-
     padding:
         11px 13px;
-
     border-top:
         1px solid var(--border);
-
     background:
         #ffffff;
-
 }
-
-
 .summary-row {
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     margin-bottom:
         8px;
-
     color:
         #64717d;
-
     font-size:
         8px;
-
 }
-
-
 .summary-row strong {
-
     color:
         #172331;
-
     font-size:
         9px;
-
 }
-
-
 /* Discount */
-
 #cartDiscount {
-
     color:
         var(--red);
-
 }
-
-
 /* Total */
-
 .total-row {
-
     padding-top:
         9px;
-
     margin-top:
         4px;
-
     margin-bottom:
         11px;
-
     border-top:
         1px solid #edf0f3;
-
 }
-
-
 .total-row span {
-
     color:
         #172331;
-
     font-size:
         10px;
-
     font-weight:
         700;
-
 }
-
-
 .total-row strong {
-
     color:
         var(--blue);
-
     font-size:
         18px;
-
 }
-
-
 /* =========================================================
    CHECKOUT BUTTON
 ========================================================= */
-
 .checkout-button {
-
     width:
         100%;
-
     height:
         38px;
-
     border:
         0;
-
     border-radius:
         4px;
-
     background:
         var(--blue);
-
     color:
         #ffffff;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
     transition:
         .15s;
-
 }
-
-
 .checkout-button:hover {
-
     background:
         var(--blue-dark);
-
 }
-
-
 .checkout-button:active {
-
     transform:
         scale(.99);
-
 }
-
-
 .checkout-button:disabled {
-
     background:
         #cbd3dc;
-
     cursor:
         not-allowed;
-
 }
-
-
 /* =========================================================
    MODAL
 ========================================================= */
-
 .modal {
-
     display:
         none;
-
     position:
         fixed;
-
     inset:
         0;
-
     z-index:
         9999;
-
     align-items:
         center;
-
     justify-content:
         center;
-
     padding:
         20px;
-
     background:
         rgba(
             16,
@@ -2095,42 +1249,27 @@ select:focus {
             32,
             .55
         );
-
 }
-
-
 .modal.show {
-
     display:
         flex;
-
 }
-
-
 /* =========================================================
    PAYMENT BOX
 ========================================================= */
-
 .payment-box {
-
     width:
         460px;
-
     max-width:
         100%;
-
     max-height:
         92vh;
-
     overflow-y:
         auto;
-
     background:
         #ffffff;
-
     border-radius:
         7px;
-
     box-shadow:
         0 15px 45px
         rgba(
@@ -2139,493 +1278,322 @@ select:focus {
             0,
             .2
         );
-
 }
-
-
 /* =========================================================
    PAYMENT HEADER
 ========================================================= */
-
 .payment-header {
-
     display:
         flex;
-
     align-items:
         flex-start;
-
     justify-content:
         space-between;
-
     padding:
         16px;
-
     border-bottom:
         1px solid var(--border);
-
 }
-
-
 .payment-header h2 {
-
     font-size:
         17px;
-
     margin-bottom:
         3px;
-
 }
-
-
 .payment-header p {
-
     color:
         var(--muted);
-
     font-size:
         9px;
-
 }
-
-
 .payment-header button {
-
     border:
         0;
-
     background:
         transparent;
-
     color:
         #65717d;
-
     font-size:
         23px;
-
 }
-
-
 .payment-header button:hover {
-
     color:
         var(--red);
-
 }
-
-
 /* =========================================================
    AMOUNT DUE
 ========================================================= */
-
 .amount-due {
-
     margin:
         13px 16px;
-
     padding:
         13px;
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     border:
         1px solid #dbe4ed;
-
     border-radius:
         5px;
-
     background:
         #f3f7fb;
-
 }
-
-
 .amount-due span {
-
     color:
         #63717e;
-
     font-size:
         9px;
-
     font-weight:
         600;
-
 }
-
-
 .amount-due strong {
-
     color:
         var(--blue);
-
     font-size:
         22px;
-
 }
-
-
 /* =========================================================
    DISCOUNT
 ========================================================= */
-
+.payment-customer-field {
+    margin-bottom: 14px;
+}
+.payment-customer-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text);
+    font-size: 9px;
+    font-weight: 700;
+}
+.payment-customer-field input {
+    width: 100%;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #d4dce4;
+    border-radius: 5px;
+    outline: 0;
+    background: #ffffff;
+    color: var(--text);
+    font-size: 10px;
+}
+.payment-customer-field input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, .08);
+}
 .payment-discount-area {
-
     margin:
         0 16px 13px;
-
     padding:
         10px;
-
     border:
         1px solid #e0e5ea;
-
     border-radius:
         5px;
-
     background:
         #fafbfc;
-
 }
-
-
 .payment-discount-area label {
-
     display:
         block;
-
     margin-bottom:
         5px;
-
     color:
         #344150;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .payment-discount-input {
-
     height:
         34px;
-
     display:
         flex;
-
     align-items:
         center;
-
     border:
         1px solid #cfd8e2;
-
     border-radius:
         4px;
-
     background:
         #ffffff;
-
     overflow:
         hidden;
-
 }
-
-
 .payment-discount-input span {
-
     padding-left:
         8px;
-
     color:
         #68737f;
-
     font-size:
         9px;
-
 }
-
-
 .payment-discount-input input {
-
     width:
         100%;
-
     height:
         100%;
-
     padding:
         0 7px;
-
     border:
         0;
-
     outline:
         0;
-
     text-align:
         right;
-
     font-size:
         10px;
-
 }
-
-
 .payment-discount-area small {
-
     display:
         block;
-
     margin-top:
         4px;
-
     color:
         #89949e;
-
     font-size:
         7px;
-
 }
-
-
 /* =========================================================
    PAYMENT METHODS
 ========================================================= */
-
 .payment-method-title {
-
     padding:
         0 16px;
-
     margin-bottom:
         7px;
-
     color:
         #344150;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .payment-methods {
-
     display:
         grid;
-
     grid-template-columns:
         repeat(
             3,
             1fr
         );
-
     gap:
         6px;
-
     padding:
         0 16px;
-
     margin-bottom:
         13px;
-
 }
-
-
 .payment-method {
-
     height:
         62px;
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         center;
-
     flex-direction:
         column;
-
     gap:
         3px;
-
     border:
         1px solid #d5dce4;
-
     border-radius:
         5px;
-
     background:
         #ffffff;
-
     color:
         #53606c;
-
     transition:
         .15s;
-
 }
-
-
 .payment-method span {
-
     font-size:
         16px;
-
     color:
         var(--blue);
-
 }
-
-
 .payment-method strong {
-
     font-size:
         9px;
-
 }
-
-
 .payment-method small {
-
     font-size:
         7px;
-
     color:
         #8a949e;
-
 }
-
-
 .payment-method:hover {
-
     border-color:
         #9ebbd7;
-
     background:
         #f6faff;
-
 }
-
-
 .payment-method.active {
-
     border:
         2px solid var(--blue);
-
     background:
         #edf5fd;
-
     color:
         var(--blue);
-
 }
-
-
 /* =========================================================
    SPLIT PAYMENT BUTTON
 ========================================================= */
-
 .payment-method.split-method {
-
     grid-column:
         1 / -1;
-
     height:
         48px;
-
     flex-direction:
         row;
-
     gap:
         7px;
-
 }
-
-
 /* =========================================================
    CASH PAYMENT
 ========================================================= */
-
 .cash-payment-area {
-
     padding:
         0 16px;
-
     margin-bottom:
         12px;
-
 }
-
-
 .cash-payment-area label {
-
     display:
         block;
-
     margin-bottom:
         5px;
-
     color:
         #344150;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .cash-payment-area > input {
-
     width:
         100%;
-
     height:
         35px;
-
     padding:
         0 9px;
-
     border:
         1px solid #cfd8e2;
-
     border-radius:
         4px;
-
     outline:
         0;
-
     font-size:
         11px;
-
 }
-
-
 .cash-payment-area > input:focus {
-
     border-color:
         var(--blue);
-
     box-shadow:
         0 0 0 2px
         rgba(
@@ -2634,531 +1602,320 @@ select:focus {
             210,
             .08
         );
-
 }
-
-
 /* =========================================================
    QUICK CASH
 ========================================================= */
-
 .quick-cash {
-
     display:
         flex;
-
     gap:
         5px;
-
     margin-top:
         6px;
-
 }
-
-
 .quick-cash button {
-
     height:
         27px;
-
     padding:
         0 9px;
-
     border:
         1px solid #d5dce4;
-
     border-radius:
         4px;
-
     background:
         #ffffff;
-
     color:
         #53606c;
-
     font-size:
         8px;
-
 }
-
-
 .quick-cash button:hover {
-
     background:
         #f1f6fb;
-
     color:
         var(--blue);
-
 }
-
-
 /* =========================================================
    SPLIT PAYMENT AREA
 ========================================================= */
-
 .split-payment-area {
-
     display:
         none;
-
     margin:
         0 16px 12px;
-
     padding:
         10px;
-
     border:
         1px solid #dbe4ed;
-
     border-radius:
         5px;
-
     background:
         #f8fafc;
-
 }
-
-
 .split-payment-title {
-
     margin-bottom:
         7px;
-
     color:
         #344150;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .split-payment-grid {
-
     display:
         grid;
-
     grid-template-columns:
         1fr 1fr;
-
     gap:
         7px;
-
 }
-
-
 .split-payment-grid label {
-
     color:
         #596672;
-
     font-size:
         8px;
-
     font-weight:
         700;
-
 }
-
-
 .split-input {
-
     height:
         32px;
-
     display:
         flex;
-
     align-items:
         center;
-
     margin-top:
         3px;
-
     border:
         1px solid #d3dce4;
-
     border-radius:
         4px;
-
     background:
         #ffffff;
-
 }
-
-
 .split-input:focus-within {
-
     border-color:
         var(--blue);
-
 }
-
-
 .split-input span {
-
     padding-left:
         7px;
-
     color:
         #6d7984;
-
     font-size:
         8px;
-
 }
-
-
 .split-input input {
-
     width:
         100%;
-
     height:
         100%;
-
     padding:
         0 6px;
-
     border:
         0;
-
     outline:
         0;
-
     text-align:
         right;
-
     font-size:
         9px;
-
 }
-
-
 /* =========================================================
    SPLIT SUMMARY
 ========================================================= */
-
 .split-summary {
-
     display:
         grid;
-
     grid-template-columns:
         1fr 1fr;
-
     gap:
         6px;
-
     margin-top:
         8px;
-
 }
-
-
 .split-summary > div {
-
     padding:
         7px;
-
     border:
         1px solid #e2e7ec;
-
     border-radius:
         4px;
-
     background:
         #ffffff;
-
 }
-
-
 .split-summary span {
-
     display:
         block;
-
     margin-bottom:
         2px;
-
     color:
         #7a858f;
-
     font-size:
         7px;
-
 }
-
-
 .split-summary strong {
-
     font-size:
         9px;
-
 }
-
-
 #splitRemaining {
-
     color:
         var(--orange);
-
 }
-
-
 #splitTotalPaid {
-
     color:
         var(--green);
-
 }
-
-
 /* =========================================================
    PAYMENT DESTINATION
 ========================================================= */
-
 .payment-destination {
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     margin:
         0 16px 8px;
-
     padding:
         9px 10px;
-
     border:
         1px solid #dbe4ed;
-
     border-radius:
         4px;
-
     background:
         #f7fafc;
-
 }
-
-
 .payment-destination span {
-
     color:
         #63717e;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .payment-destination strong {
-
     color:
         var(--blue);
-
     font-size:
         10px;
-
 }
-
-
 /* =========================================================
    CHANGE
 ========================================================= */
-
 .change-box {
-
     display:
         flex;
-
     align-items:
         center;
-
     justify-content:
         space-between;
-
     margin:
         0 16px 10px;
-
     padding:
         10px;
-
     border-radius:
         4px;
-
     background:
         var(--green-bg);
-
     border:
         1px solid #d9eddf;
-
 }
-
-
 .change-box span {
-
     color:
         #52705d;
-
     font-size:
         9px;
-
     font-weight:
         700;
-
 }
-
-
 .change-box strong {
-
     color:
         var(--green);
-
     font-size:
         15px;
-
 }
-
-
 /* =========================================================
    PAYMENT ERROR
 ========================================================= */
-
 .payment-error {
-
     display:
         none;
-
     margin:
         0 16px 10px;
-
     padding:
         8px;
-
     border:
         1px solid #efb1b1;
-
     border-radius:
         4px;
-
     background:
         #fff0f0;
-
     color:
         #a82d2d;
-
     font-size:
         8px;
-
 }
-
-
 .payment-error.show {
-
     display:
         block;
-
 }
-
-
 /* =========================================================
    COMPLETE SALE
 ========================================================= */
-
 .complete-sale {
-
     width:
         calc(
             100% - 32px
         );
-
     height:
         39px;
-
     margin:
         0 16px 16px;
-
     border:
         0;
-
     border-radius:
         4px;
-
     background:
         var(--green);
-
     color:
         #ffffff;
-
     font-size:
         10px;
-
     font-weight:
         700;
-
     transition:
         .15s;
-
 }
-
-
 .complete-sale:hover {
-
     background:
         #116c32;
-
 }
-
-
 .complete-sale:disabled {
-
     opacity:
         .65;
-
     cursor:
         wait;
-
 }
-
-
 /* =========================================================
    SUCCESS MODAL
 ========================================================= */
-
 .success-box {
-
     width:
         380px;
-
     max-width:
         100%;
-
     padding:
         25px;
-
     background:
         #ffffff;
-
     border-radius:
         7px;
-
     text-align:
         center;
-
     box-shadow:
         0 15px 45px
         rgba(
@@ -3167,141 +1924,85 @@ select:focus {
             0,
             .18
         );
-
 }
-
-
 .success-icon {
-
     width:
         55px;
-
     height:
         55px;
-
     display:
         grid;
-
     place-items:
         center;
-
     margin:
         0 auto 11px;
-
     border-radius:
         50%;
-
     background:
         var(--green-bg);
-
     color:
         var(--green);
-
     font-size:
         27px;
-
     font-weight:
         700;
-
 }
-
-
 .success-box h2 {
-
     font-size:
         18px;
-
     margin-bottom:
         5px;
-
 }
-
-
 .success-box p {
-
     color:
         var(--muted);
-
     font-size:
         9px;
-
     margin-bottom:
         12px;
-
 }
-
-
 .success-total {
-
     color:
         var(--blue);
-
     font-size:
         23px;
-
     font-weight:
         700;
-
     margin-bottom:
         15px;
-
 }
-
-
 .success-box button {
-
     width:
         100%;
-
     height:
         38px;
-
     border:
         0;
-
     border-radius:
         4px;
-
     background:
         var(--blue);
-
     color:
         #ffffff;
-
     font-size:
         10px;
-
     font-weight:
         700;
-
 }
-
-
 .success-box button:hover {
-
     background:
         var(--blue-dark);
-
 }
-
-
 /* =========================================================
    RESPONSIVE - 1200px
 ========================================================= */
-
 @media (max-width: 1200px) {
-
     .pos-layout {
-
         grid-template-columns:
             minmax(0, 1fr)
             315px;
-
     }
-
-
     .products-grid {
-
         grid-template-columns:
             repeat(
                 2,
@@ -3310,61 +2011,36 @@ select:focus {
                     1fr
                 )
             );
-
     }
-
 }
-
-
 /* =========================================================
    RESPONSIVE - 950px
 ========================================================= */
-
 @media (max-width: 950px) {
-
     .pos-layout {
-
         grid-template-columns:
             1fr;
-
     }
-
-
     .cart-section {
-
         position:
             relative;
-
         top:
             auto;
-
         height:
             520px;
-
         min-height:
             520px;
-
     }
-
-
     .products-grid {
-
         max-height:
             none;
-
     }
-
 }
-
-
 /* =========================================================
    RESPONSIVE - 850px
 ========================================================= */
-
 @media (max-width: 850px) {
-
     .products-grid {
-
         grid-template-columns:
             repeat(
                 2,
@@ -3373,322 +2049,174 @@ select:focus {
                     1fr
                 )
             );
-
     }
-
-
     .topbar {
-
         padding:
             0 15px;
-
     }
-
-
     .search-box {
-
         width:
             240px;
-
     }
-
 }
-
-
 /* =========================================================
    RESPONSIVE - 650px
 ========================================================= */
-
 @media (max-width: 650px) {
-
     #sidebar-container {
-
         width:
             0;
-
         min-width:
             0;
-
         flex:
             0 0 0;
-
     }
-
-
     .staff-main {
-
         width:
             100%;
-
     }
-
-
     .topbar {
-
         padding:
             0 12px;
-
     }
-
-
     .search-box {
-
         width:
             210px;
-
     }
-
-
     .profile-text {
-
         display:
             none;
-
     }
-
-
     .pos-content {
-
         padding:
             15px 10px;
-
     }
-
-
     .page-heading {
-
         align-items:
             flex-start;
-
         gap:
             10px;
-
     }
-
-
     .products-toolbar {
-
         flex-wrap:
             wrap;
-
     }
-
-
     .product-search {
-
         width:
             100%;
-
         flex-basis:
             100%;
-
     }
-
-
     .products-toolbar select {
-
         flex:
             1;
-
         min-width:
             0;
-
     }
-
-
     .products-grid {
-
         grid-template-columns:
             1fr;
-
     }
-
-
     .payment-methods {
-
         grid-template-columns:
             repeat(
                 2,
                 1fr
             );
-
     }
-
-
     .payment-method.split-method {
-
         grid-column:
             1 / -1;
-
     }
-
-
     .split-payment-grid {
-
         grid-template-columns:
             1fr;
-
     }
-
 }
-
-
 /* =========================================================
    RESPONSIVE - 450px
 ========================================================= */
-
 @media (max-width: 450px) {
-
     .topbar {
-
         height:
             54px;
-
         min-height:
             54px;
-
     }
-
-
     .search-box {
-
         width:
             170px;
-
     }
-
-
     .avatar {
-
         width:
             30px;
-
         height:
             30px;
-
     }
-
-
     .page-heading h1 {
-
         font-size:
             20px;
-
     }
-
-
     .staff-status {
-
         font-size:
             8px;
-
         padding:
             0 8px;
-
     }
-
-
     .products-section {
-
         padding:
             9px;
-
     }
-
-
     .cart-section {
-
         min-height:
             480px;
-
         height:
             480px;
-
     }
-
-
     .payment-box {
-
         max-height:
             96vh;
-
     }
-
-
     .payment-methods {
-
         padding:
             0 12px;
-
     }
-
-
     .payment-header {
-
         padding:
             13px;
-
     }
-
-
     .amount-due {
-
         margin:
             10px 13px;
-
     }
-
-
     .payment-discount-area {
-
         margin:
             0 13px 10px;
-
     }
-
-
     .cash-payment-area {
-
         padding:
             0 13px;
-
     }
-
-
     .split-payment-area {
-
         margin:
             0 13px 10px;
-
     }
-
-
     .payment-destination,
     .change-box,
     .payment-error {
-
         margin-left:
             13px;
-
         margin-right:
             13px;
-
     }
-
-
     .complete-sale {
-
         width:
             calc(
                 100% - 26px
             );
-
         margin-left:
             13px;
-
         margin-right:
             13px;
-
     }
-
 }

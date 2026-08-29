@@ -1,214 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>StockMaster - Staff POS</title>
-
     <link rel="stylesheet" href="staff-sidebar.css">
     <link rel="stylesheet" href="CSS/pos.css">
 </head>
-
 <body>
-
     <div class="staff-app">
-
         <!-- =====================================================
              STAFF SIDEBAR
         ====================================================== -->
-
         <div id="sidebar-container"></div>
-
-
         <!-- =====================================================
              MAIN CONTENT
         ====================================================== -->
-
         <main class="staff-main">
-
             <!-- =================================================
                  TOP BAR
             ================================================== -->
-
             <header class="topbar">
-
                 <div class="search-box">
-
                     <span>⌕</span>
-
                     <input
                         type="text"
                         id="globalSearch"
                         placeholder="Search products, packages, insurance..."
                     >
-
                 </div>
-
-
                 <div class="profile">
-
                     <div class="profile-text">
-
                         <strong id="staffName">
                             Loading...
                         </strong>
-
                         <small id="staffRole">
                             Staff / Cashier
                         </small>
-
                     </div>
-
-
                     <div
                         class="avatar"
                         id="staffAvatar"
                     >
                         --
                     </div>
-
                 </div>
-
             </header>
-
-
             <!-- =================================================
                  POS CONTENT
             ================================================== -->
-
             <section class="pos-content">
-
                 <!-- PAGE HEADING -->
-
                 <div class="page-heading">
-
                     <div>
-
                         <h1>
                             POS Terminal
                         </h1>
-
                         <p>
                             Create a new sales transaction.
                         </p>
-
                     </div>
-
-
                     <div
                         class="staff-status"
                         id="staffStatus"
                     >
-
                         <span></span>
-
                         Online
-
                     </div>
-
                 </div>
-
-
                 <!-- =================================================
                      ERROR MESSAGE
                 ================================================== -->
-
                 <div
                     id="posError"
                     class="pos-error"
                 >
-
                     <strong>
                         Unable to load POS
                     </strong>
-
                     <span id="posErrorMessage"></span>
-
                     <button
                         id="retryButton"
                         type="button"
                     >
                         Try Again
                     </button>
-
                 </div>
-
-
                 <!-- =================================================
                      MAIN POS LAYOUT
                 ================================================== -->
-
                 <div class="pos-layout">
-
-
                     <!-- =================================================
                          PRODUCTS SECTION
                     ================================================== -->
-
                     <section class="products-section">
-
                         <div class="products-toolbar">
-
-
                             <!-- PRODUCT SEARCH -->
-
                             <div class="product-search">
-
                                 <span>
                                     ⌕
                                 </span>
-
                                 <input
                                     type="text"
                                     id="productSearch"
                                     placeholder="Search product, package, insurance or SKU..."
                                 >
-
                             </div>
-
-
                             <!-- CATEGORY FILTER -->
-
                             <select
                                 id="categoryFilter"
                             >
-
                                 <option value="all">
                                     All Categories
                                 </option>
-
                             </select>
-
-
                             <!-- TYPE FILTER -->
-
                             <select
                                 id="typeFilter"
                             >
-
                                 <option value="all">
                                     All Types
                                 </option>
-
                                 <option value="product">
                                     Products
                                 </option>
-
                                 <option value="package">
                                     Packages
                                 </option>
-
                                 <option value="insurance">
                                     Insurance
                                 </option>
-
                             </select>
-
-
                             <!-- REFRESH -->
-
                             <button
                                 id="refreshProducts"
                                 type="button"
@@ -216,147 +139,91 @@
                             >
                                 ↻
                             </button>
-
                         </div>
-
-
                         <!-- =================================================
                              PRODUCTS GRID
                         ================================================== -->
-
                         <div
                             id="productsGrid"
                             class="products-grid"
                         >
-
                             <div class="loading-products">
-
                                 Loading products...
-
                             </div>
-
                         </div>
-
                     </section>
-
-
-
                     <!-- =================================================
                          CURRENT SALE / CART
                     ================================================== -->
-
                     <aside class="cart-section">
-
-
                         <!-- CART HEADER -->
-
                         <div class="cart-header">
-
                             <div>
-
                                 <h2>
                                     Current Sale
                                 </h2>
-
                                 <p id="cartCount">
                                     0 items
                                 </p>
-
                             </div>
-
-
                             <button
                                 id="clearCart"
                                 type="button"
                             >
                                 Clear
                             </button>
-
                         </div>
-
-
                         <!-- =================================================
                              CART ITEMS
                         ================================================== -->
-
                         <div
                             id="cartItems"
                             class="cart-items"
                         >
-
                             <div class="empty-cart">
-
                                 <div class="empty-cart-icon">
                                     ₱
                                 </div>
-
                                 <strong>
                                     No items in cart
                                 </strong>
-
                                 <span>
                                     Add products, packages or insurance.
                                 </span>
-
                             </div>
-
                         </div>
-
-
                         <!-- =================================================
                              CART SUMMARY
                         ================================================== -->
-
                         <div class="cart-summary">
-
-
                             <!-- SUBTOTAL -->
-
                             <div class="summary-row">
-
                                 <span>
                                     Subtotal
                                 </span>
-
                                 <strong id="subtotal">
                                     ₱0.00
                                 </strong>
-
                             </div>
-
-
                             <!-- DISCOUNT -->
-
                             <div class="summary-row">
-
                                 <span>
                                     Discount
                                 </span>
-
                                 <strong id="cartDiscount">
                                     ₱0.00
                                 </strong>
-
                             </div>
-
-
                             <!-- TOTAL -->
-
                             <div class="summary-row total-row">
-
                                 <span>
                                     Total
                                 </span>
-
                                 <strong id="total">
                                     ₱0.00
                                 </strong>
-
                             </div>
-
-
                             <!-- CHECKOUT -->
-
                             <button
                                 id="checkoutButton"
                                 class="checkout-button"
@@ -365,50 +232,30 @@
                             >
                                 Proceed to Payment
                             </button>
-
                         </div>
-
                     </aside>
-
                 </div>
-
             </section>
-
         </main>
-
     </div>
-
-
-
     <!-- =========================================================
          PAYMENT MODAL
     ========================================================== -->
-
     <div
         id="paymentModal"
         class="modal"
     >
-
         <div class="payment-box">
-
-
             <!-- PAYMENT HEADER -->
-
             <div class="payment-header">
-
                 <div>
-
                     <h2>
                         Payment
                     </h2>
-
                     <p>
                         Complete the customer's payment.
                     </p>
-
                 </div>
-
-
                 <button
                     id="closePayment"
                     type="button"
@@ -416,46 +263,41 @@
                 >
                     ×
                 </button>
-
             </div>
-
-
-
             <!-- =================================================
                  AMOUNT DUE
             ================================================== -->
-
             <div class="amount-due">
-
                 <span>
                     Amount Due
                 </span>
-
                 <strong id="paymentTotal">
                     ₱0.00
                 </strong>
-
             </div>
-
-
-
+                <div class="payment-customer-field">
+                    <label for="customerName">
+                        Customer Name
+                    </label>
+                    <input
+                        type="text"
+                        id="customerName"
+                        maxlength="100"
+                        autocomplete="off"
+                        placeholder="Enter customer name (optional)"
+                    >
+                </div>
             <!-- =================================================
                  DISCOUNT
             ================================================== -->
-
             <div class="payment-discount-area">
-
                 <label for="discount">
                     Discount Amount
                 </label>
-
-
                 <div class="payment-discount-input">
-
                     <span>
                         ₱
                     </span>
-
                     <input
                         type="number"
                         id="discount"
@@ -465,189 +307,125 @@
                         value="0"
                         placeholder="0.00"
                     >
-
                 </div>
-
-
                 <small>
                     Enter the discount amount before completing the payment.
                 </small>
-
             </div>
-
-
-
             <!-- =================================================
                  PAYMENT METHODS
             ================================================== -->
-
             <div class="payment-method-title">
-
                 Payment Method
-
             </div>
-
-
             <div class="payment-methods">
-
-
                 <!-- CASH -->
-
                 <button
                     class="payment-method active"
                     type="button"
                     data-method="Cash"
                 >
-
                     <span>
                         ₱
                     </span>
-
                     <strong>
                         Cash
                     </strong>
-
                     <small>
                         Cash payment
                     </small>
-
                 </button>
-
-
                 <!-- GCASH -->
-
                 <button
                     class="payment-method"
                     type="button"
                     data-method="GCash"
                 >
-
                     <span>
                         G
                     </span>
-
                     <strong>
                         GCash
                     </strong>
-
                     <small>
                         GCash payment
                     </small>
-
                 </button>
-
-
                 <!-- BDO -->
-
                 <button
                     class="payment-method"
                     type="button"
                     data-method="BDO"
                 >
-
                     <span>
                         B
                     </span>
-
                     <strong>
                         BDO
                     </strong>
-
                     <small>
                         BDO payment
                     </small>
-
                 </button>
-
-
                 <!-- BIBO -->
-
                 <button
                     class="payment-method"
                     type="button"
                     data-method="BIBO"
                 >
-
                     <span>
                         B
                     </span>
-
                     <strong>
                         BIBO
                     </strong>
-
                     <small>
                         BIBO payment
                     </small>
-
                 </button>
-
-
                 <!-- BPI -->
-
                 <button
                     class="payment-method"
                     type="button"
                     data-method="BPI"
                 >
-
                     <span>
                         B
                     </span>
-
                     <strong>
                         BPI
                     </strong>
-
                     <small>
                         BPI payment
                     </small>
-
                 </button>
-
-
                 <!-- SPLIT PAYMENT -->
-
                 <button
                     class="payment-method split-method"
                     type="button"
                     data-method="Split"
                 >
-
                     <span>
                         +
                     </span>
-
                     <strong>
                         Split Payment
                     </strong>
-
                     <small>
                         Multiple methods
                     </small>
-
                 </button>
-
             </div>
-
-
-
             <!-- =================================================
                  CASH PAYMENT
             ================================================== -->
-
             <div
                 id="cashPaymentArea"
                 class="cash-payment-area"
             >
-
                 <label for="cashReceived">
-
                     Cash Received
-
                 </label>
-
-
                 <input
                     type="number"
                     id="cashReceived"
@@ -656,77 +434,52 @@
                     inputmode="decimal"
                     placeholder="0.00"
                 >
-
-
                 <!-- QUICK CASH -->
-
                 <div class="quick-cash">
-
                     <button
                         type="button"
                         data-cash="exact"
                     >
                         Exact
                     </button>
-
                     <button
                         type="button"
                         data-cash="100"
                     >
                         ₱100
                     </button>
-
                     <button
                         type="button"
                         data-cash="500"
                     >
                         ₱500
                     </button>
-
                     <button
                         type="button"
                         data-cash="1000"
                     >
                         ₱1,000
                     </button>
-
                 </div>
-
             </div>
-
-
-
             <!-- =================================================
                  SPLIT PAYMENT
             ================================================== -->
-
             <div
                 id="splitPaymentArea"
                 class="split-payment-area"
             >
-
                 <div class="split-payment-title">
-
                     Split Payment Amounts
-
                 </div>
-
-
                 <div class="split-payment-grid">
-
-
                     <!-- CASH -->
-
                     <label for="splitCash">
-
                         Cash
-
                         <div class="split-input">
-
                             <span>
                                 ₱
                             </span>
-
                             <input
                                 type="number"
                                 id="splitCash"
@@ -734,24 +487,15 @@
                                 step="0.01"
                                 placeholder="0.00"
                             >
-
                         </div>
-
                     </label>
-
-
                     <!-- GCASH -->
-
                     <label for="splitGCash">
-
                         GCash
-
                         <div class="split-input">
-
                             <span>
                                 ₱
                             </span>
-
                             <input
                                 type="number"
                                 id="splitGCash"
@@ -759,24 +503,15 @@
                                 step="0.01"
                                 placeholder="0.00"
                             >
-
                         </div>
-
                     </label>
-
-
                     <!-- BDO -->
-
                     <label for="splitBDO">
-
                         BDO
-
                         <div class="split-input">
-
                             <span>
                                 ₱
                             </span>
-
                             <input
                                 type="number"
                                 id="splitBDO"
@@ -784,24 +519,15 @@
                                 step="0.01"
                                 placeholder="0.00"
                             >
-
                         </div>
-
                     </label>
-
-
                     <!-- BIBO -->
-
                     <label for="splitBIBO">
-
                         BIBO
-
                         <div class="split-input">
-
                             <span>
                                 ₱
                             </span>
-
                             <input
                                 type="number"
                                 id="splitBIBO"
@@ -809,24 +535,15 @@
                                 step="0.01"
                                 placeholder="0.00"
                             >
-
                         </div>
-
                     </label>
-
-
                     <!-- BPI -->
-
                     <label for="splitBPI">
-
                         BPI
-
                         <div class="split-input">
-
                             <span>
                                 ₱
                             </span>
-
                             <input
                                 type="number"
                                 id="splitBPI"
@@ -834,102 +551,61 @@
                                 step="0.01"
                                 placeholder="0.00"
                             >
-
                         </div>
-
                     </label>
-
                 </div>
-
-
-
                 <!-- SPLIT SUMMARY -->
-
                 <div class="split-summary">
-
-
                     <div>
-
                         <span>
                             Total Paid
                         </span>
-
                         <strong id="splitTotalPaid">
                             ₱0.00
                         </strong>
-
                     </div>
-
-
                     <div>
-
                         <span>
                             Remaining
                         </span>
-
                         <strong id="splitRemaining">
                             ₱0.00
                         </strong>
-
                     </div>
-
                 </div>
-
             </div>
-
-
-
             <!-- =================================================
                  PAYMENT DESTINATION
             ================================================== -->
-
             <div class="payment-destination">
-
                 <span>
                     Funds Destination
                 </span>
-
                 <strong id="paymentDestination">
                     Cash
                 </strong>
-
             </div>
-
-
-
             <!-- =================================================
                  CHANGE
             ================================================== -->
-
             <div class="change-box">
-
                 <span>
                     Change
                 </span>
-
                 <strong id="changeAmount">
                     ₱0.00
                 </strong>
-
             </div>
-
-
-
             <!-- =================================================
                  PAYMENT ERROR
             ================================================== -->
-
             <div
                 id="paymentError"
                 class="payment-error"
             ></div>
-
-
-
             <!-- =================================================
                  COMPLETE SALE
             ================================================== -->
-
             <button
                 id="completeSale"
                 class="complete-sale"
@@ -937,142 +613,86 @@
             >
                 Complete Sale
             </button>
-
         </div>
-
     </div>
-
-
-
     <!-- =========================================================
          SUCCESS MODAL
     ========================================================== -->
-
     <div
         id="successModal"
         class="modal"
     >
-
         <div class="success-box">
-
-
             <div class="success-icon">
                 ✓
             </div>
-
-
             <h2>
                 Sale Completed
             </h2>
-
-
             <p id="successMessage">
-
                 The transaction was successfully recorded.
-
             </p>
-
-
             <div
                 class="success-total"
                 id="successTotal"
             >
                 ₱0.00
             </div>
-
-
             <button
                 id="newSaleButton"
                 type="button"
             >
                 New Sale
             </button>
-
         </div>
-
     </div>
-
-
-
     <!-- =========================================================
          STAFF SIDEBAR SCRIPT
     ========================================================== -->
-
     <script type="module">
-
         fetch("staff-sidebar.html")
-
             .then(response => {
-
                 if (!response.ok) {
-
                     throw new Error(
                         "Unable to load staff sidebar."
                     );
-
                 }
-
                 return response.text();
-
             })
-
             .then(html => {
-
                 const sidebar =
                     document.getElementById(
                         "sidebar-container"
                     );
-
                 if (sidebar) {
-
                     sidebar.innerHTML =
                         html;
-
                 }
-
-
                 const script =
                     document.createElement(
                         "script"
                     );
-
-
                 script.type =
                     "module";
-
-
                 script.src =
                     "staff-sidebar.js";
-
-
                 document.body.appendChild(
                     script
                 );
-
             })
-
             .catch(error => {
-
                 console.error(
                     "Staff sidebar error:",
                     error
                 );
-
             });
-
     </script>
-
-
-
     <!-- =========================================================
          STAFF POS JAVASCRIPT
     ========================================================== -->
-
     <script
         type="module"
         src="JS/pos.js"
     ></script>
-
 </body>
-
 </html>

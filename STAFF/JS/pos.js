@@ -2366,6 +2366,54 @@ async function completeTransaction() {
                             timestamp
                     }
                 );
+                transaction.set(
+                    cashFlowRef,
+                    {
+                        type: "cashIn",
+                        flowType: "SALE",
+                        category: "Sales",
+                        amount: total,
+                        cashIn: total,
+                        cashOut: 0,
+                        transactionId: saleRef.id,
+                        referenceId: saleRef.id,
+                        transactionNumber,
+                        customer,
+                        orderType: isReservation ? "Reservation" : "Sale",
+                        isReservation,
+                        paymentMethod: selectedPaymentMethod === "Split" ? "Split Payment" : selectedPaymentMethod,
+                        paymentBreakdown: {
+                            Cash: paymentBreakdown.Cash,
+                            GCash: paymentBreakdown.GCash,
+                            BDO: paymentBreakdown.BDO,
+                            BIBO: paymentBreakdown.BIBO,
+                            BPI: paymentBreakdown.BPI
+                        },
+                        tenderBreakdown: {
+                            Cash: tenderBreakdown.Cash,
+                            GCash: tenderBreakdown.GCash,
+                            BDO: tenderBreakdown.BDO,
+                            BIBO: tenderBreakdown.BIBO,
+                            BPI: tenderBreakdown.BPI
+                        },
+                        amountPaid: received,
+                        totalPaid: received,
+                        tenderedTotal: received,
+                        change: paymentBreakdown.change || 0,
+                        paymentStatus: "Paid",
+                        paymentCompleted: true,
+                        status: isReservation ? "Pending" : "Completed",
+                        cashierName,
+                        cashierUid: currentUser.uid,
+                        cashierEmail: currentUser.email || "",
+                        staffName: cashierName,
+                        staffUid: currentUser.uid,
+                        staffEmail: currentUser.email || "",
+                        createdBy: currentUser.uid,
+                        createdAt: timestamp,
+                        date: timestamp
+                    }
+                );
                 if (!isReservation) {
                     transaction.set(
                         movementRef,
@@ -2425,101 +2473,7 @@ async function completeTransaction() {
                         }
                     );
                 }
-                transaction.set(
-                    cashFlowRef,
-                    {
-                        type:
-                            "cashIn",
-                        flowType:
-                            "SALE",
-                        category:
-                            "Sales",
-                        description:
-                            isReservation
-                                ? `Reservation Payment ${transactionNumber}`
-                                : `Sale ${transactionNumber}`,
-                        referenceId:
-                            saleRef.id,
-                        transactionId:
-                            saleRef.id,
-                        transactionNumber,
-                        orderType:
-                            isReservation
-                                ? "Reservation"
-                                : "Sale",
-                        isReservation,
-                        amount:
-                            total,
-                        cashIn:
-                            total,
-                        cashOut:
-                            0,
-                        discount,
-                        paymentMethod:
-                            selectedPaymentMethod,
-                        paymentStatus:
-                            "Paid",
-                        paymentCompleted:
-                            true,
-                        paymentBreakdown: {
-                            Cash:
-                                paymentBreakdown.Cash,
-                            GCash:
-                                paymentBreakdown.GCash,
-                            BDO:
-                                paymentBreakdown.BDO,
-                            BIBO:
-                                paymentBreakdown.BIBO,
-                            BPI:
-                                paymentBreakdown.BPI
-                        },
-                        tenderBreakdown: {
-                            Cash:
-                                tenderBreakdown.Cash,
-                            GCash:
-                                tenderBreakdown.GCash,
-                            BDO:
-                                tenderBreakdown.BDO,
-                            BIBO:
-                                tenderBreakdown.BIBO,
-                            BPI:
-                                tenderBreakdown.BPI
-                        },
-                        splitPayment:
-                            selectedPaymentMethod ===
-                            "Split",
-                        splitPaymentType:
-                            selectedPaymentMethod ===
-                            "Split"
-                                ? paymentBreakdown
-                                    .splitPaymentType
-                                : null,
-                        splitPayments:
-                            selectedPaymentMethod ===
-                            "Split"
-                                ? paymentBreakdown
-                                    .paymentTypes
-                                : [],
-                        customer,
-                        delivery:
-                            isReservation
-                                ? deliveryRequested
-                                : false,
-                        staffName:
-                            cashierName,
-                        staffUid:
-                            currentUser.uid,
-                        staffEmail:
-                            currentUser.email ||
-                            "",
-                        createdBy:
-                            currentUser.uid,
-                        createdAt:
-                            timestamp,
-                        date:
-                            timestamp
-                    }
-                );
+                
             }
         );
         if (successTotal) {

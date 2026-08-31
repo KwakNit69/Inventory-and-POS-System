@@ -73,55 +73,163 @@ function addPaymentAmount(result, account, value) {
     if (normalized && ACCOUNT_NAMES.includes(normalized) && amount > 0) result[normalized] += amount;
 }
 function getPaymentBreakdown(data) {
-    const amounts = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 };
-    const breakdown = data?.paymentBreakdown || data?.payment_breakdown || data?.payments || {};
-    if (Array.isArray(breakdown)) {
-        breakdown.forEach(payment => {
-            addPaymentAmount(amounts, payment?.method || payment?.paymentMethod || payment?.account || payment?.type, payment?.amount ?? payment?.value ?? payment?.total);
-        });
-    } else if (breakdown && typeof breakdown === "object") {
-        Object.entries(breakdown).forEach(([key, value]) => {
-            if (value && typeof value === "object" && !Array.isArray(value)) {
-                addPaymentAmount(amounts, key, value.amount ?? value.value ?? value.total);
-            } else {
-                addPaymentAmount(amounts, key, value);
-            }
-        });
-    }
-    const splitPayments = data?.splitPayments || data?.splitPayment || data?.split_payment;
-    if (Array.isArray(splitPayments)) {
-        splitPayments.forEach(payment => {
-            addPaymentAmount(amounts, payment?.method || payment?.paymentMethod || payment?.account || payment?.type, payment?.amount ?? payment?.value ?? payment?.total);
-        });
-    } else if (splitPayments && typeof splitPayments === "object") {
-        Object.entries(splitPayments).forEach(([key, value]) => {
-            const amount = value && typeof value === "object" ? value.amount ?? value.value ?? value.total : value;
-            addPaymentAmount(amounts, key, amount);
-        });
-    }
-    const directAliases = {
-        Cash: ["cash", "cashAmount"],
-        GCash: ["gcash", "gCash", "gcashAmount"],
-        BDO: ["bdo", "bdoAmount"],
-        BIBO: ["bibo", "biboAmount"],
-        BPI: ["bpi", "bpiAmount"]
+    const amounts = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0,
+        BPI: 0
     };
-    ACCOUNT_NAMES.forEach(account => {
-        if (amounts[account] > 0) return;
-        for (const key of directAliases[account]) {
-            const value = Number(data?.[key]) || 0;
-            if (value > 0) {
-                amounts[account] = value;
-                break;
+
+    const addBreakdown = source => {
+        if (!source) return;
+
+        if (Array.isArray(source)) {
+            source.forEach(payment => {
+                addPaymentAmount(
+                    amounts,
+                    payment?.method ||
+                    payment?.paymentMethod ||
+                    payment?.account ||
+                    payment?.type,
+                    payment?.amount ??
+                    payment?.value ??
+                    payment?.total
+                );
+            });
+
+            return;
+        }
+
+        if (typeof source === "object") {
+            Object.entries(source).forEach(([key, value]) => {
+                const amount =
+                    value &&
+                    typeof value === "object" &&
+                    !Array.isArray(value)
+                        ? value.amount ??
+                          value.value ??
+                          value.total
+                        : value;
+
+                addPaymentAmount(
+                    amounts,
+                    key,
+                    amount
+                );
+            });
+        }
+    };
+
+    /*
+     * IMPORTANT:
+     *
+     * paymentBreakdown and splitPayments can contain
+     * the SAME payment information.
+     *
+     * Therefore, NEVER add both together.
+     *
+     * Priority:
+     * 1. paymentBreakdown
+     * 2. splitPayments
+     * 3. direct payment fields
+     * 4. paymentMethod + sale total
+     */
+
+    const primaryBreakdown =
+        data?.paymentBreakdown ??
+        data?.payment_breakdown ??
+        data?.payments;
+
+    addBreakdown(primaryBreakdown);
+
+    let total =
+        getPaymentBreakdownTotal(amounts);
+
+    if (total <= 0) {
+        const splitPayments =
+            data?.splitPayments ??
+            data?.splitPayment ??
+            data?.split_payment;
+
+        addBreakdown(splitPayments);
+
+        total =
+            getPaymentBreakdownTotal(amounts);
+    }
+
+    /*
+     * Direct payment fields are only fallbacks.
+     * They are NOT added to an existing breakdown.
+     */
+
+    if (total <= 0) {
+        const directAliases = {
+            Cash: [
+                "cash",
+                "cashAmount"
+            ],
+            GCash: [
+                "gcash",
+                "gCash",
+                "gcashAmount"
+            ],
+            BDO: [
+                "bdo",
+                "bdoAmount"
+            ],
+            BIBO: [
+                "bibo",
+                "biboAmount"
+            ],
+            BPI: [
+                "bpi",
+                "bpiAmount"
+            ]
+        };
+
+        for (const account of ACCOUNT_NAMES) {
+            for (
+                const key of directAliases[account]
+            ) {
+                const value =
+                    Number(data?.[key]) || 0;
+
+                if (value > 0) {
+                    amounts[account] = value;
+                    break;
+                }
             }
         }
-    });
-    const total = ACCOUNT_NAMES.reduce((sum, account) => sum + (Number(amounts[account]) || 0), 0);
-    if (total === 0) {
-        const method = normalizePaymentMethod(data?.paymentMethod || data?.payment || data?.method || "");
-        const amount = getAmount(data);
-        if (ACCOUNT_NAMES.includes(method) && amount > 0) amounts[method] = amount;
+
+        total =
+            getPaymentBreakdownTotal(amounts);
     }
+
+    /*
+     * Final fallback.
+     */
+
+    if (total <= 0) {
+        const method =
+            normalizePaymentMethod(
+                data?.paymentMethod ||
+                data?.payment ||
+                data?.method ||
+                ""
+            );
+
+        const amount =
+            getAmount(data);
+
+        if (
+            ACCOUNT_NAMES.includes(method) &&
+            amount > 0
+        ) {
+            amounts[method] = amount;
+        }
+    }
+
     return amounts;
 }
 function getPaymentBreakdownTotal(breakdown) {
@@ -182,47 +290,67 @@ function normalizeCashFlow(id, data) {
         createdByEmail: String(getValue(data, ["createdByEmail"], ""))
     };
 }
-function normalizeSale(id, data) {
+function isReservationSale(data) {
+    const orderType = String(data?.orderType ?? data?.order_type ?? data?.type ?? "").trim().toLowerCase();
+    return orderType === "reservation" ||
+        orderType === "reserve" ||
+        data?.isReservation === true ||
+        data?.isReserve === true;
+}
+function getCashFlowReferenceValues(data, id) {
+    const values = new Set();
+    const add = value => {
+        if (value !== undefined && value !== null && String(value).trim() !== "") {
+            values.add(String(value).trim().toLowerCase());
+        }
+    };
+    add(id);
+    add(data?.transactionNumber);
+    add(data?.transactionId);
+    add(data?.invoiceNumber);
+    add(data?.reference);
+    add(data?.referenceNumber);
+    add(data?.saleNumber);
+    add(data?.saleId);
+    add(data?.saleID);
+    return values;
+}
+function cashFlowMatchesSale(flow, saleId, saleData) {
+    const flowReferences = getCashFlowReferenceValues(flow, flow?.id);
+    const saleReferences = getCashFlowReferenceValues(saleData, saleId);
+    for (const reference of flowReferences) {
+        if (saleReferences.has(reference)) return true;
+    }
+    return false;
+}
+function normalizeSale(id, data, existingCashFlow = []) {
     const status = getSaleStatus(data);
     if (["cancelled", "canceled", "void", "voided", "refunded"].includes(status)) return null;
-
+    const isReservation = isReservationSale(data);
+    /*
+     * RESERVATIONS ARE PAID WHEN THEY ARE CREATED IN POS.
+     *
+     * The reservation payment is already recorded in the cashFlow
+     * collection by the POS. The Pending Transactions page only
+     * completes the order and deducts stock.
+     *
+     * Therefore a reservation must NEVER be generated here as a
+     * second Cash Flow SALE when Admin clicks "Order Done".
+     */
+    if (isReservation) return null;
     const amount = getAmount(data);
     if (amount <= 0) return null;
-
+    /*
+     * If this normal POS sale already has a matching cash-flow
+     * record, do not generate another virtual SALE record.
+     */
+    if (existingCashFlow.some(flow => cashFlowMatchesSale(flow, id, data))) return null;
     const date = getDateValue(data) || new Date(0);
     const reference = getSaleReference(data, id);
-    const customer = String(
-        getValue(
-            data,
-            ["customerName", "customer", "customer_name"],
-            "Walk-in Customer"
-        )
-    );
-
+    const customer = String(getValue(data, ["customerName", "customer", "customer_name"], "Walk-in Customer"));
     const paymentMethod = getPrimaryPaymentMethod(data);
-
-    /*
-     * paymentBreakdown represents MONEY RETAINED BY THE BUSINESS.
-     *
-     * Example:
-     * Sale total       = ₱650
-     * Cash received    = ₱700
-     * Change           = ₱50
-     *
-     * paymentBreakdown.Cash must be ₱650,
-     * NOT ₱700.
-     *
-     * The separate tenderBreakdown/cashReceived fields are
-     * customer tender information and must not inflate Cash Flow.
-     */
     let paymentBreakdown = getPaymentBreakdown(data);
     let paymentTotal = getPaymentBreakdownTotal(paymentBreakdown);
-
-    /*
-     * If the saved payment breakdown is missing, incomplete,
-     * or does not match the sale total, rebuild it safely
-     * from the sale's payment method.
-     */
     if (paymentTotal <= 0) {
         paymentBreakdown = {
             Cash: 0,
@@ -231,29 +359,14 @@ function normalizeSale(id, data) {
             BIBO: 0,
             BPI: 0
         };
-
         if (ACCOUNT_NAMES.includes(paymentMethod)) {
             paymentBreakdown[paymentMethod] = amount;
         } else {
-            /*
-             * Unknown payment method:
-             * treat the sale as Cash only when no usable
-             * payment information exists.
-             */
             paymentBreakdown.Cash = amount;
         }
-
         paymentTotal = amount;
     }
-
-    /*
-     * A valid retained-payment breakdown must equal the sale total.
-     *
-     * If it does not, normalize it so Cash Flow never reports
-     * more POS income than the actual sale total.
-     */
     if (Math.abs(paymentTotal - amount) > 0.005) {
-
         const normalized = {
             Cash: 0,
             GCash: 0,
@@ -261,26 +374,13 @@ function normalizeSale(id, data) {
             BIBO: 0,
             BPI: 0
         };
-
-        /*
-         * If the breakdown is too large because it contains
-         * customer tendered cash, prefer the sale's payment
-         * method and assign exactly the sale total there.
-         */
         if (ACCOUNT_NAMES.includes(paymentMethod)) {
             normalized[paymentMethod] = amount;
         } else {
             normalized.Cash = amount;
         }
-
         paymentBreakdown = normalized;
-        paymentTotal = amount;
     }
-
-    /*
-     * The Cash Flow SALE record must always represent the
-     * actual sale value, never cash tendered before change.
-     */
     return {
         id: `SALE-${id}`,
         firestoreId: id,
@@ -300,34 +400,24 @@ function normalizeSale(id, data) {
 }
 function rebuildCashFlow() {
     /*
-     * POS sales are generated from the authoritative `sales`
-     * collection. Do not keep an older Sale record from the
-     * `cashFlow` collection because that record may contain
-     * an outdated payment amount.
+     * IMPORTANT:
+     * Keep every real cash-flow document. In particular, a paid
+     * reservation is recorded in cashFlow when payment is made in
+     * POS and must remain there after Admin clicks "Order Done".
      *
-     * This prevents an old cash-flow sale such as:
-     *   total = ₱650
-     *   cashIn = ₱700
-     *
-     * from overriding the corrected sale:
-     *   total = ₱650
-     *   cashIn = ₱650
+     * Sales from the sales collection are only used as a fallback
+     * for normal POS sales that do not already have a corresponding
+     * cash-flow record.
      */
-    const nonSaleCashFlow = cashFlowData.filter(
-        item => item.category !== "Sale"
-    );
-
+    const existingCashFlow = [...cashFlowData];
     const generatedSales = salesData
-        .map(item => normalizeSale(item.id, item.data))
+        .map(item => normalizeSale(item.id, item.data, existingCashFlow))
         .filter(Boolean);
-
     cashFlowData = [
-        ...nonSaleCashFlow,
+        ...existingCashFlow,
         ...generatedSales
     ].sort((a, b) => b.date - a.date);
-
     filteredCashFlow = [...cashFlowData];
-
     calculateBalances();
     updateSummary();
     updateAccountBalances();
@@ -462,7 +552,7 @@ function renderTable() {
         const cashOut = record.cashOut > 0 ? `<span class="cash-out">-${formatMoney(record.cashOut)}</span>` : "<span>—</span>";
         const balance = runningBalances[record.id] ?? 0;
         const accountText = record.account ? `<div class="flow-account">${escapeHTML(record.account)}</div>` : "";
-        row.innerHTML = `<td><div class="flow-id">${escapeHTML(record.id)}</div></td><td><div class="flow-date">${escapeHTML(formatDate(record.date))}</div></td><td><span class="flow-type ${typeClass}">${record.type === "in" ? "Cash In" : "Cash Out"}</span></td><td><span class="category-badge">${escapeHTML(record.category)}</span>${accountText}</td><td><div class="flow-description">${escapeHTML(record.description)}</div><div class="flow-reference">${escapeHTML(record.reference)}</div></td><td>${cashIn}</td><td>${cashOut}</td><td><span class="balance-value">${formatMoney(balance)}</span></td>`;
+        row.innerHTML = `<td><div class="flow-id">${escapeHTML(record.id)}</div></td><td><div class="flow-date">${escapeHTML(formatDate(record.date))}</div></td><td><span class="flow-type ${typeClass}">${record.type === "in" ? "Cash In" : "Cash Out"}</span></td><td>${accountText || "<span>—</span>"}</td><td><span class="category-badge">${escapeHTML(record.category)}</span></td><td><div class="flow-description">${escapeHTML(record.description)}</div><div class="flow-reference">${escapeHTML(record.reference)}</div></td><td>${cashIn}</td><td>${cashOut}</td><td><span class="balance-value">${formatMoney(balance)}</span></td>`;
         tableBody.appendChild(row);
     }
     updatePagination();

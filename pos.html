@@ -108,17 +108,50 @@
                     <span>Amount Due</span>
                     <strong id="paymentTotal">₱0.00</strong>
                 </div>
+                <div class="payment-order-type">
+                    <label class="payment-label">Order Type</label>
+                    <div class="order-type-options">
+                        <button type="button" class="order-type-option active" data-order-type="sale">
+                            <span class="order-type-icon">✓</span>
+                            <span>
+                                <strong>Regular Sale</strong>
+                                <small>Complete the sale now</small>
+                            </span>
+                        </button>
+                        <button type="button" class="order-type-option" data-order-type="reservation">
+                            <span class="order-type-icon">◷</span>
+                            <span>
+                                <strong>Reservation</strong>
+                                <small>Complete later</small>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <div class="reservation-notice" id="reservationNotice">
+                    <strong>Reservation mode</strong>
+                    <span>No stock, sales, or cash-flow records will change until the administrator clicks Order Done.</span>
+                </div>
                 <div class="payment-customer-field">
-                    <label for="customerName">Customer Name</label>
+                    <label for="customerName">Customer Name <span id="customerRequiredMark" class="required-mark">*</span></label>
                     <input
                         type="text"
                         id="customerName"
                         maxlength="100"
                         autocomplete="off"
-                        placeholder="Enter customer name (optional)"
+                        placeholder="Enter customer name"
                     >
                 </div>
-                <label class="payment-label">Payment Method</label>
+                <div class="delivery-field" id="deliveryField">
+                    <label class="delivery-option">
+                        <input type="checkbox" id="deliveryCheckbox">
+                        <span>
+                            <strong>For Delivery</strong>
+                            <small>Mark this reservation for delivery.</small>
+                        </span>
+                    </label>
+                </div>
+                <div id="paymentSection">
+                    <label class="payment-label">Payment Method</label>
                 <div class="payment-methods">
                     <button type="button" class="payment-method active" data-method="Cash"><span>₱</span>Cash</button>
                     <button type="button" class="payment-method" data-method="GCash"><span>G</span>GCash</button>
@@ -127,6 +160,7 @@
                     <button type="button" class="payment-method" data-method="BPI"><span>B</span>BPI</button>
                     <button type="button" class="payment-method split-method" data-method="Split"><span>+</span>Split
                         Payment</button>
+                    </div>
                 </div>
                 <div class="payment-discount-field" id="paymentDiscountField">
                     <label for="paymentDiscount">Discount Amount</label>
@@ -215,6 +249,7 @@
                     <div><span>Transaction</span><strong id="receiptTransaction">—</strong></div>
                     <div><span>Date</span><strong id="receiptDate">—</strong></div>
                     <div><span>Customer</span><strong id="receiptCustomer">Walk-in Customer</strong></div>
+                    <div><span>Order Type</span><strong id="receiptOrderType">Regular Sale</strong></div>
                 </div>
                 <div class="receipt-line"></div>
                 <div class="receipt-items" id="receiptItems"></div>

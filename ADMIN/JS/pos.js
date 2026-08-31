@@ -8,9 +8,6 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-// ==========================================
-// Sidebar Loader
-// ==========================================
 fetch("sidebar.html")
     .then((r) => {
         if (!r.ok) throw new Error("Could not load sidebar.html");
@@ -23,9 +20,6 @@ fetch("sidebar.html")
         document.body.appendChild(script);
     })
     .catch(console.error);
-// ==========================================
-// State Management
-// ==========================================
 let products = [];
 let packages = [];
 let insurances = [];
@@ -33,13 +27,12 @@ let cart = [];
 let selectedType = "all";
 let selectedCategory = "all";
 let selectedPaymentMethod = "Cash";
+let selectedOrderType = "sale";
+let deliveryRequested = false;
 let splitPayments = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 };
 let currentUser = null;
 let currentStaffName = "Unknown Staff";
 let currentStaffStatus = "Active";
-// ==========================================
-// DOM Elements
-// ==========================================
 const productGrid = document.getElementById("productGrid");
 const emptyProducts = document.getElementById("emptyProducts");
 const categoryButtons = document.getElementById("categoryButtons");
@@ -47,9 +40,6 @@ const cartItems = document.getElementById("cartItems");
 const emptyCart = document.getElementById("emptyCart");
 const paymentModal = document.getElementById("paymentModal");
 const receiptModal = document.getElementById("receiptModal");
-// ==========================================
-// Utility & Calculation Functions
-// ==========================================
 const money = (value) =>
     new Intl.NumberFormat("en-PH", {
         style: "currency",
@@ -111,9 +101,6 @@ function getPackageContents(pkg) {
         })
         .join(", ");
 }
-// ==========================================
-// Data Fetching & User Profile
-// ==========================================
 async function loadProfile(user) {
     try {
         const snapshot = await getDoc(doc(db, "users", user.uid));
@@ -186,9 +173,6 @@ async function loadData() {
     buildCategories();
     renderProducts();
 }
-// ==========================================
-// Catalog UI & Filtering
-// ==========================================
 function buildCategories() {
     const categories = [
         ...new Set(products.map((product) => product.category).filter(Boolean))
@@ -264,9 +248,6 @@ function renderProductCard(item) {
     button.addEventListener("click", () => addToCart(item));
     productGrid.appendChild(button);
 }
-// ==========================================
-// Cart Operations
-// ==========================================
 function addToCart(item) {
     if (item.type === "product" && item.stock <= 0) {
         alert("This product is out of stock.");
@@ -382,9 +363,6 @@ cartItems.addEventListener("click", (event) => {
     }
     renderCart();
 });
-// ==========================================
-// Filter & Search Event Listeners
-// ==========================================
 document.getElementById("productSearch").addEventListener("input", renderProducts);
 document.getElementById("globalSearch").addEventListener("input", (event) => {
     document.getElementById("productSearch").value = event.target.value;
@@ -428,9 +406,6 @@ document.getElementById("clearCart").addEventListener("click", () => {
         renderCart();
     }
 });
-// ==========================================
-// Payment & Split Calculations
-// ==========================================
 function bindDiscount() {
     const input = discountInput();
     if (!input || input.dataset.bound) return;
@@ -466,7 +441,6 @@ function updateSplit() {
     const overpayment = Math.max(0, amountPaid - amountDue);
     document.getElementById("splitTotalPaid").textContent = money(amountPaid);
     document.getElementById("splitRemaining").textContent = money(remaining);
-    // Split payments must be exact. Never create change from a split payment.
     document.getElementById("changeAmount").textContent = money(0);
     const paymentError = document.getElementById("paymentError");
     if (paymentError) {
@@ -494,6 +468,62 @@ function updatePayment() {
         document.getElementById("changeAmount").textContent = money(0);
     }
 }
+function updateOrderTypeUI() {
+    const isReservation = selectedOrderType === "reservation";
+    const paymentSection = document.getElementById("paymentSection");
+    const cashField = document.getElementById("cashField");
+    const splitFields = document.getElementById("splitPaymentFields");
+    const changeBox = document.getElementById("changeBox");
+    const reservationNotice = document.getElementById("reservationNotice");
+    const deliveryField = document.getElementById("deliveryField");
+    const requiredMark = document.getElementById("customerRequiredMark");
+    const customerInput = document.getElementById("customerName");
+    const button = document.getElementById("completePayment");
+    const description = paymentModal?.querySelector(".modal-header p");
+    document.querySelectorAll(".order-type-option").forEach((option) => {
+        option.classList.toggle(
+            "active",
+            option.dataset.orderType === selectedOrderType
+        );
+    });
+    if (paymentSection) {
+        paymentSection.style.display = "block";
+    }
+    if (cashField) {
+        cashField.style.display =
+            selectedPaymentMethod === "Cash" ? "block" : "none";
+    }
+    if (splitFields) {
+        splitFields.style.display =
+            selectedPaymentMethod === "Split" ? "block" : "none";
+    }
+    if (changeBox) {
+        changeBox.style.display = "flex";
+    }
+    if (reservationNotice) {
+        reservationNotice.classList.toggle("show", isReservation);
+    }
+    if (deliveryField) {
+        deliveryField.classList.toggle("show", isReservation);
+    }
+    if (requiredMark) {
+        requiredMark.style.display = isReservation ? "inline" : "none";
+    }
+    if (customerInput) {
+        customerInput.placeholder = isReservation
+            ? "Enter customer name (required)"
+            : "Enter customer name (optional)";
+    }
+    if (button) {
+        button.textContent = isReservation ? "Create Reservation" : "Complete Sale";
+        button.classList.toggle("reservation-button", isReservation);
+    }
+    if (description) {
+        description.textContent = isReservation
+            ? "Take payment and create a reservation. Stock and sales will be updated when the order is done."
+            : "Complete the customer's payment.";
+    }
+}
 function openPayment() {
     bindDiscount();
     if (!cart.length) return;
@@ -501,19 +531,38 @@ function openPayment() {
     document.getElementById("cashReceived").value = "";
     document.getElementById("customerName").value = "";
     document.getElementById("paymentError").textContent = "";
+    document.getElementById("deliveryCheckbox").checked = false;
     selectedPaymentMethod = "Cash";
+    selectedOrderType = "sale";
+    deliveryRequested = false;
     resetSplit();
     document
         .querySelectorAll(".payment-method")
         .forEach((button) =>
             button.classList.toggle("active", button.dataset.method === "Cash")
         );
-    document.getElementById("cashField").style.display = "block";
-    document.getElementById("splitPaymentFields").style.display = "none";
+    updateOrderTypeUI();
     updatePayment();
     paymentModal.classList.add("show");
 }
 document.getElementById("checkoutButton").addEventListener("click", openPayment);
+document.querySelectorAll(".order-type-option").forEach((button) => {
+    button.addEventListener("click", () => {
+        selectedOrderType = button.dataset.orderType === "reservation"
+            ? "reservation"
+            : "sale";
+        deliveryRequested =
+            selectedOrderType === "reservation"
+                ? Boolean(document.getElementById("deliveryCheckbox")?.checked)
+                : false;
+        document.getElementById("paymentError").textContent = "";
+        updateOrderTypeUI();
+        updatePayment();
+    });
+});
+document.getElementById("deliveryCheckbox").addEventListener("change", (event) => {
+    deliveryRequested = Boolean(event.target.checked);
+});
 document.querySelectorAll(".payment-method").forEach((button) => {
     button.addEventListener("click", () => {
         document
@@ -547,9 +596,6 @@ document.getElementById("cashReceived").addEventListener("input", (event) => {
         updateSplit();
     });
 });
-// ==========================================
-// Inventory Checks & Sale Completion
-// ==========================================
 function inventoryRequirements() {
     const requirements = new Map();
     cart.forEach((item) => {
@@ -592,42 +638,58 @@ function validateInventory() {
 }
 async function completeSale() {
     if (!cart.length) return;
+    const isReservation = selectedOrderType === "reservation";
     const amountDue = total();
     const subtotalAmount = subtotal();
     const discountAmount = discount();
     const cashInput = document.getElementById("cashReceived");
     const paymentError = document.getElementById("paymentError");
+    const customerInput = document.getElementById("customerName");
+    const customer = customerInput?.value.trim() || "Walk-in Customer";
     const cash = Number(cashInput?.value) || 0;
+    if (isReservation && !customerInput?.value.trim()) {
+        paymentError.textContent = "Customer name is required for a reservation.";
+        customerInput?.focus();
+        return;
+    }
     let amountPaid = amountDue;
     let change = 0;
-    /*
-     * paymentBreakdown = money retained by the business.
-     * tenderBreakdown = money actually given/tendered by the customer.
-     */
-    let paymentBreakdown = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 };
-    let tenderBreakdown = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 };
+    let paymentBreakdown = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0,
+        BPI: 0
+    };
+    let tenderBreakdown = {
+        Cash: 0,
+        GCash: 0,
+        BDO: 0,
+        BIBO: 0,
+        BPI: 0
+    };
     if (selectedPaymentMethod === "Cash") {
         if (cash < amountDue) {
-            paymentError.textContent = `Insufficient payment. Amount due is ${money(amountDue)}.`;
+            paymentError.textContent =
+                `Insufficient payment. Amount due is ${money(amountDue)}.`;
             return;
         }
         amountPaid = cash;
         change = Math.max(0, cash - amountDue);
-        // Only the amount retained belongs in the payment breakdown.
         paymentBreakdown.Cash = amountDue;
-        // Tendered amount is stored separately.
         tenderBreakdown.Cash = cash;
     } else if (selectedPaymentMethod === "Split") {
         amountPaid = splitTotal();
         if (amountPaid < amountDue) {
-            paymentError.textContent = `Insufficient split payment. Remaining amount is ${money(amountDue - amountPaid)}.`;
+            paymentError.textContent =
+                `Insufficient split payment. Remaining amount is ${money(amountDue - amountPaid)}.`;
             return;
         }
         if (amountPaid > amountDue) {
-            paymentError.textContent = `Split payment exceeds the amount due by ${money(amountPaid - amountDue)}.`;
+            paymentError.textContent =
+                `Split payment exceeds the amount due by ${money(amountPaid - amountDue)}.`;
             return;
         }
-        // Exact split payment: retained amounts equal the tendered amounts.
         paymentBreakdown = {
             Cash: Number(splitPayments.Cash || 0),
             GCash: Number(splitPayments.GCash || 0),
@@ -640,7 +702,6 @@ async function completeSale() {
     } else {
         amountPaid = amountDue;
         change = 0;
-        // Non-cash payment is exact and retained in its selected account.
         paymentBreakdown[selectedPaymentMethod] = amountDue;
         tenderBreakdown[selectedPaymentMethod] = amountDue;
     }
@@ -651,20 +712,12 @@ async function completeSale() {
     }
     const button = document.getElementById("completePayment");
     button.disabled = true;
-    button.textContent = "Processing...";
+    button.textContent = isReservation ? "Creating Reservation..." : "Processing...";
     try {
-        const transactionNumber = document.getElementById("transactionNumber").textContent;
-        const customerInput = document.getElementById("customerName");
-        const customer = customerInput?.value.trim() || "Walk-in Customer";
+        const transactionNumber =
+            document.getElementById("transactionNumber").textContent;
         const batch = writeBatch(db);
         const requirements = inventoryRequirements();
-        for (const [id, quantity] of requirements) {
-            const product = products.find((item) => item.id === id);
-            batch.update(doc(db, "products", id), {
-                stock: product.stock - quantity,
-                updatedAt: serverTimestamp()
-            });
-        }
         const saleItems = cart.map((item) => {
             const data = getItemData(item);
             return {
@@ -678,14 +731,35 @@ async function completeSale() {
                 image: data?.image || item.image || ""
             };
         });
-        batch.set(doc(collection(db, "sales")), {
+        const saleRef = doc(collection(db, "sales"));
+        if (!isReservation) {
+            for (const [id, quantity] of requirements) {
+                const product = products.find((item) => item.id === id);
+                batch.update(doc(db, "products", id), {
+                    stock: product.stock - quantity,
+                    updatedAt: serverTimestamp()
+                });
+            }
+        }
+        batch.set(saleRef, {
             transactionNumber,
             customer,
             items: saleItems,
             subtotal: subtotalAmount,
             discount: discountAmount,
             total: amountDue,
-            paymentMethod: selectedPaymentMethod === "Split" ? "Split Payment" : selectedPaymentMethod,
+            orderType: isReservation ? "Reservation" : "Sale",
+            isReservation,
+            delivery: isReservation ? deliveryRequested : false,
+            forDelivery: isReservation ? deliveryRequested : false,
+            deliveryType: isReservation
+                ? deliveryRequested
+                    ? "Delivery"
+                    : "Pickup"
+                : "Pickup",
+            paymentMethod: selectedPaymentMethod === "Split"
+                ? "Split Payment"
+                : selectedPaymentMethod,
             paymentBreakdown,
             tenderBreakdown,
             cashReceived:
@@ -701,25 +775,35 @@ async function completeSale() {
             staffName: currentStaffName,
             cashier: currentStaffName,
             staffStatus: currentStaffStatus,
-            status: "Completed",
+            status: isReservation ? "Pending" : "Completed",
+            paymentStatus: "Paid",
+            paymentCompleted: true,
+            paymentRecordedAt: serverTimestamp(),
+            paymentReceivedAt: serverTimestamp(),
+            stockDeducted: isReservation ? false : true,
+            reservationCreatedAt: isReservation ? serverTimestamp() : null,
             createdAt: serverTimestamp()
         });
-        batch.set(doc(collection(db, "inventoryMovements")), {
-            type: "sale",
-            transactionNumber,
-            items: saleItems,
-            createdBy: currentUser?.uid || null,
-            staffName: currentStaffName,
-            staffStatus: currentStaffStatus,
-            createdAt: serverTimestamp()
-        });
+        if (!isReservation) {
+            batch.set(doc(collection(db, "inventoryMovements")), {
+                type: "sale",
+                transactionNumber,
+                items: saleItems,
+                createdBy: currentUser?.uid || null,
+                staffName: currentStaffName,
+                staffStatus: currentStaffStatus,
+                createdAt: serverTimestamp()
+            });
+        }
         await batch.commit();
-        requirements.forEach((quantity, id) => {
-            const product = products.find((item) => item.id === id);
-            if (product) {
-                product.stock -= quantity;
-            }
-        });
+        if (!isReservation) {
+            requirements.forEach((quantity, id) => {
+                const product = products.find((item) => item.id === id);
+                if (product) {
+                    product.stock -= quantity;
+                }
+            });
+        }
         generateReceipt(
             amountDue,
             discountAmount,
@@ -729,29 +813,39 @@ async function completeSale() {
             customer,
             subtotalAmount,
             paymentBreakdown,
-            amountPaid
+            amountPaid,
+            isReservation
         );
         paymentModal.classList.remove("show");
         receiptModal.classList.add("show");
         cart = [];
         document.getElementById("paymentDiscount").value = "0";
         document.getElementById("customerName").value = "";
-        document.getElementById("transactionNumber").textContent = generateTransactionNumber();
+        document.getElementById("deliveryCheckbox").checked = false;
+        document.getElementById("transactionNumber").textContent =
+            generateTransactionNumber();
+        selectedOrderType = "sale";
+        deliveryRequested = false;
         resetSplit();
         renderCart();
         renderProducts();
     } catch (error) {
         console.error(error);
-        paymentError.textContent = error.message || "Unable to complete sale.";
+        paymentError.textContent =
+            error.message ||
+            (isReservation
+                ? "Unable to create reservation."
+                : "Unable to complete sale.");
     } finally {
         button.disabled = false;
-        button.textContent = "Complete Sale";
+        button.textContent =
+            selectedOrderType === "reservation"
+                ? "Create Reservation"
+                : "Complete Sale";
+        updateOrderTypeUI();
     }
 }
 document.getElementById("completePayment").addEventListener("click", completeSale);
-// ==========================================
-// Receipt Rendering & Printing
-// ==========================================
 function generateReceipt(
     amountDue,
     discountAmount,
@@ -761,8 +855,21 @@ function generateReceipt(
     customer,
     subtotalAmount,
     paymentBreakdown,
-    amountPaid
+    amountPaid,
+    isReservation = false
 ) {
+    const receiptHeading = document.querySelector(".receipt-success h2");
+    const receiptMessage = document.querySelector(".receipt-success p");
+    if (receiptHeading) {
+        receiptHeading.textContent = isReservation
+            ? "Reservation Created"
+            : "Sale Completed";
+    }
+    if (receiptMessage) {
+        receiptMessage.textContent = isReservation
+            ? "Reservation has been recorded and payment has been received."
+            : "Transaction has been recorded successfully.";
+    }
     document.getElementById("receiptTransaction").textContent = transactionNumber;
     document.getElementById("receiptDate").textContent =
         new Date().toLocaleString("en-PH", {
@@ -770,11 +877,15 @@ function generateReceipt(
             timeStyle: "short"
         });
     document.getElementById("receiptCustomer").textContent = customer;
+    document.getElementById("receiptOrderType").textContent =
+        isReservation ? "Reservation" : "Regular Sale";
     document.getElementById("receiptSubtotal").textContent = money(subtotalAmount);
     document.getElementById("receiptDiscount").textContent = `-${money(discountAmount)}`;
     document.getElementById("receiptTotal").textContent = money(amountDue);
     document.getElementById("receiptPayment").textContent =
-        selectedPaymentMethod === "Split" ? "Split Payment" : selectedPaymentMethod;
+        selectedPaymentMethod === "Split"
+            ? "Split Payment"
+            : selectedPaymentMethod;
     const cashRow = document.getElementById("receiptCashRow");
     const splitRow = document.getElementById("receiptSplitRow");
     if (selectedPaymentMethod === "Split") {
@@ -787,13 +898,14 @@ function generateReceipt(
         )} | BIBO ${money(paymentBreakdown?.BIBO || 0)} | BPI ${money(
             paymentBreakdown?.BPI || 0
         )}`;
+        document.getElementById("receiptChange").textContent = money(change);
     } else {
         cashRow.style.display = "flex";
         splitRow.style.display = "none";
         document.getElementById("receiptCash").textContent =
             selectedPaymentMethod === "Cash" ? money(cash) : money(amountPaid);
+        document.getElementById("receiptChange").textContent = money(change);
     }
-    document.getElementById("receiptChange").textContent = money(change);
     const receiptItems = document.getElementById("receiptItems");
     receiptItems.innerHTML = "";
     cart.forEach((item) => {
@@ -852,9 +964,6 @@ document.getElementById("printReceipt").addEventListener("click", () => {
 </html>`);
     printWindow.document.close();
 });
-// ==========================================
-// Initialization & Auth Listener
-// ==========================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) return;
     currentUser = user;

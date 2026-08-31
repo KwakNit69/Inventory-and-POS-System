@@ -9,8 +9,7 @@ import {
     doc,
     runTransaction
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-/* =========================================================
-   ELEMENTS
+  /* ELEMENTS
 ========================================================= */
 const productsGrid =
     document.getElementById("productsGrid");
@@ -92,8 +91,7 @@ const staffAvatar =
     document.getElementById("staffAvatar");
 const staffStatus =
     document.getElementById("staffStatus");
-/* =========================================================
-   STATE
+   /* STATE
 ========================================================= */
 let currentUser = null;
 let currentProfile = {};
@@ -101,8 +99,9 @@ let products = [];
 let categories = [];
 let cart = [];
 let selectedPaymentMethod = "Cash";
-/* =========================================================
-   BASIC HELPERS
+let selectedOrderType = "sale";
+let deliveryRequested = false;
+   /* BASIC HELPERS
 ========================================================= */
 const money = value => {
     return new Intl.NumberFormat(
@@ -317,8 +316,7 @@ const generateTransactionNumber = () => {
         `TXN-${date}-${random}`
     );
 };
-/* =========================================================
-   ERROR HANDLING
+   /* ERROR HANDLING
 ========================================================= */
 function showError(error) {
     console.error(
@@ -343,8 +341,7 @@ function hideError() {
         );
     }
 }
-/* =========================================================
-   STAFF INFORMATION
+   /* STAFF INFORMATION
 ========================================================= */
 async function loadStaffInfo(user) {
     let profile = {};
@@ -421,8 +418,7 @@ async function loadStaffInfo(user) {
         }
     }
 }
-/* =========================================================
-   CART CALCULATIONS
+   /* CART CALCULATIONS
 ========================================================= */
 function cartSubtotal() {
     return cart.reduce(
@@ -481,8 +477,7 @@ function cartQuantity() {
         0
     );
 }
-/* =========================================================
-   LOAD CATEGORIES
+   /* LOAD CATEGORIES
 ========================================================= */
 async function loadCategories() {
     const categoryMap =
@@ -596,8 +591,7 @@ async function loadCategories() {
         }
     );
 }
-/* =========================================================
-   LOAD PRODUCTS / PACKAGES / INSURANCE
+   /* LOAD PRODUCTS / PACKAGES / INSURANCE
 ========================================================= */
 async function loadProducts() {
     if (productsGrid) {
@@ -607,7 +601,7 @@ async function loadProducts() {
              </div>`;
     }
     const loadedItems = [];
-    /* -------------------------------------------------------
+/*
        PRODUCTS
     ------------------------------------------------------- */
     const productSnapshot =
@@ -632,7 +626,7 @@ async function loadProducts() {
             });
         }
     );
-    /* -------------------------------------------------------
+/*
        PACKAGES
     ------------------------------------------------------- */
     try {
@@ -697,7 +691,7 @@ async function loadProducts() {
             error
         );
     }
-    /* -------------------------------------------------------
+/*
        INSURANCE
     ------------------------------------------------------- */
     try {
@@ -764,8 +758,7 @@ async function loadProducts() {
     await loadCategories();
     renderProducts();
 }
-/* =========================================================
-   FIND PRODUCT
+   /* FIND PRODUCT
 ========================================================= */
 function getProductById(
     productId
@@ -778,8 +771,7 @@ function getProductById(
                 productId
     );
 }
-/* =========================================================
-   PACKAGE AVAILABILITY
+    /* PACKAGE AVAILABILITY
 ========================================================= */
 function checkPackageAvailability(
     packageItem
@@ -797,9 +789,8 @@ function checkPackageAvailability(
                 "This package has no products configured."
         };
     }
-    /*
        IMPORTANT:
-       A package is available only when
+/* A package is available only when
        EVERY component has enough stock.
     */
     for (
@@ -849,8 +840,7 @@ function checkPackageAvailability(
             "Available"
     };
 }
-/* =========================================================
-   RENDER PRODUCTS
+   /* RENDER PRODUCTS
 ========================================================= */
 function renderProducts() {
     if (!productsGrid) {
@@ -960,8 +950,7 @@ function renderProducts() {
             }
         );
 }
-/* =========================================================
-   PRODUCT CARD
+   /* PRODUCT CARD
 ========================================================= */
 function createProductCard(
     item
@@ -1111,8 +1100,7 @@ function createProductCard(
         </article>
     `;
 }
-/* =========================================================
-   ADD TO CART
+   /*ADD TO CART
 ========================================================= */
 function addToCart(
     productId
@@ -1134,7 +1122,7 @@ function addToCart(
                 cartItem.productId ===
                 productId
         );
-    /* -------------------------------------------------------
+/*
        INSURANCE
     ------------------------------------------------------- */
     if (
@@ -1171,7 +1159,7 @@ function addToCart(
         renderCart();
         return;
     }
-    /* -------------------------------------------------------
+/*
        PACKAGE
     ------------------------------------------------------- */
     if (
@@ -1190,8 +1178,7 @@ function addToCart(
             );
             return;
         }
-        /*
-           Do not allow package quantity
+/* Do not allow package quantity
            beyond the actual available
            component stock.
         */
@@ -1247,7 +1234,7 @@ function addToCart(
         renderCart();
         return;
     }
-    /* -------------------------------------------------------
+/*
        NORMAL PRODUCT
     ------------------------------------------------------- */
     const stock =
@@ -1297,8 +1284,7 @@ function addToCart(
     }
     renderCart();
 }
-/* =========================================================
-   MAXIMUM PACKAGE QUANTITY
+ /*  MAXIMUM PACKAGE QUANTITY
 ========================================================= */
 function getMaximumPackageQuantity(
     packageItem
@@ -1348,8 +1334,7 @@ function getMaximumPackageQuantity(
         ? maximum
         : 0;
 }
-/* =========================================================
-   CHANGE CART QUANTITY
+   /*  CHANGE CART QUANTITY
 ========================================================= */
 function changeQuantity(
     productId,
@@ -1384,7 +1369,7 @@ function changeQuantity(
         );
         return;
     }
-    /* -------------------------------------------------------
+/*
        PRODUCT STOCK
     ------------------------------------------------------- */
     if (
@@ -1403,7 +1388,7 @@ function changeQuantity(
             return;
         }
     }
-    /* -------------------------------------------------------
+/*
        PACKAGE STOCK
     ------------------------------------------------------- */
     if (
@@ -1432,8 +1417,7 @@ function changeQuantity(
         newQuantity;
     renderCart();
 }
-/* =========================================================
-   REMOVE FROM CART
+   /*  REMOVE FROM CART
 ========================================================= */
 function removeFromCart(
     productId
@@ -1446,8 +1430,7 @@ function removeFromCart(
         );
     renderCart();
 }
-/* =========================================================
-   RENDER CART
+   /*  RENDER CART
 ========================================================= */
 function renderCart() {
     const subtotal =
@@ -1626,8 +1609,7 @@ function renderCart() {
             }
         );
 }
-/* =========================================================
-   SPLIT PAYMENT
+  /* SPLIT PAYMENT
 ========================================================= */
 function resetSplitPayment() {
     if (splitCash) {
@@ -1665,8 +1647,7 @@ function resetSplitPayment() {
             money(0);
     }
 }
-/*
-   BPI IS INCLUDED.
+/* BPI IS INCLUDED.
 */
 function getSplitAmounts() {
     return {
@@ -1752,8 +1733,7 @@ function updateSplitPayment() {
             );
     }
 }
-/* =========================================================
-   PAYMENT MODAL
+ /*  PAYMENT MODAL
 ========================================================= */
 function openPaymentModal() {
     if (!cart.length) {
@@ -1771,6 +1751,19 @@ function openPaymentModal() {
         "";
     selectedPaymentMethod =
         "Cash";
+    selectedOrderType =
+        "sale";
+    deliveryRequested =
+        false;
+    const deliveryCheckbox =
+        document.getElementById(
+            "deliveryCheckbox"
+        );
+    if (deliveryCheckbox) {
+        deliveryCheckbox.checked =
+            false;
+    }
+    updateOrderTypeUI();
     document
         .querySelectorAll(
             ".payment-method"
@@ -1810,8 +1803,7 @@ function closePaymentModal() {
     paymentError.textContent =
         "";
 }
-/* =========================================================
-   UPDATE PAYMENT
+   /*  UPDATE PAYMENT
 ========================================================= */
 function updatePaymentTotal() {
     const total =
@@ -1846,8 +1838,7 @@ function updatePaymentTotal() {
             money(0);
     }
 }
-/* =========================================================
-   PAYMENT BREAKDOWN
+   /*  PAYMENT BREAKDOWN
 ========================================================= */
 function getPaymentBreakdown(total) {
     if (selectedPaymentMethod === "Cash") {
@@ -1863,8 +1854,7 @@ function getPaymentBreakdown(total) {
     const splitTotal = getSplitTotal();
     return { Cash: amounts.Cash, GCash: amounts.GCash, BDO: amounts.BDO, BIBO: amounts.BIBO, BPI: amounts.BPI, totalPaid: splitTotal, tenderedTotal: splitTotal, change: 0, paymentTypes, splitPaymentType: paymentTypes.map(item => item.method).join(" + ") || "Split", tenderBreakdown: { ...amounts } };
 }
-/* =========================================================
-   PAYMENT VALIDATION
+/*   PAYMENT VALIDATION
 ========================================================= */
 function validatePayment(total) {
     if (selectedPaymentMethod === "Cash") {
@@ -1884,8 +1874,7 @@ function validatePayment(total) {
     }
     return true;
 }
-/* =========================================================
-   STOCK DEDUCTIONS
+ /*  STOCK DEDUCTIONS
 ========================================================= */
 function getStockDeductions() {
     const deductions =
@@ -1911,14 +1900,12 @@ function getStockDeductions() {
         const item
         of cart
     ) {
-        /* Insurance does not use physical stock. */
         if (
             item.itemType ===
             "insurance"
         ) {
             continue;
         }
-        /* Normal product */
         if (
             item.itemType ===
             "product"
@@ -1929,7 +1916,6 @@ function getStockDeductions() {
             );
             continue;
         }
-        /* Package */
         if (
             item.itemType ===
             "package"
@@ -1961,9 +1947,51 @@ function getStockDeductions() {
     }
     return deductions;
 }
-/* =========================================================
-   COMPLETE TRANSACTION
+   /*  COMPLETE TRANSACTION
 ========================================================= */
+function updateOrderTypeUI() {
+    const isReservation = selectedOrderType === "reservation";
+    document.querySelectorAll(".order-type-option").forEach(option => {
+        option.classList.toggle(
+            "active",
+            option.dataset.orderType === selectedOrderType
+        );
+    });
+    const notice = document.getElementById("reservationNotice");
+    const deliveryField = document.getElementById("deliveryField");
+    const customerInput = document.getElementById("customerName");
+    if (notice) {
+        notice.classList.toggle("show", isReservation);
+    }
+    if (deliveryField) {
+        deliveryField.classList.toggle("show", isReservation);
+    }
+    if (customerInput) {
+        customerInput.placeholder = isReservation
+            ? "Enter customer name (required)"
+            : "Enter customer name (optional)";
+    }
+    if (completeSale) {
+        completeSale.textContent = isReservation
+            ? "Create Reservation"
+            : "Complete Sale";
+    }
+    const description = paymentModal?.querySelector(".payment-header p");
+    if (description) {
+        description.textContent = isReservation
+            ? "Take payment and create a reservation. Stock remains unchanged until Order Done."
+            : "Complete the customer's payment.";
+    }
+}
+function resetOrderType() {
+    selectedOrderType = "sale";
+    deliveryRequested = false;
+    const deliveryCheckbox = document.getElementById("deliveryCheckbox");
+    if (deliveryCheckbox) {
+        deliveryCheckbox.checked = false;
+    }
+    updateOrderTypeUI();
+}
 async function completeTransaction() {
     if (!currentUser) {
         paymentError.textContent =
@@ -1975,12 +2003,28 @@ async function completeTransaction() {
             "Your cart is empty.";
         return;
     }
+    const isReservation =
+        selectedOrderType === "reservation";
     const subtotal =
         cartSubtotal();
     const discount =
         getDiscount();
     const total =
         cartTotal();
+    const customerInput =
+        document.getElementById("customerName");
+    const customer =
+        customerInput?.value.trim() ||
+        "Walk-in Customer";
+    if (
+        isReservation &&
+        !customerInput?.value.trim()
+    ) {
+        paymentError.textContent =
+            "Customer name is required for a reservation.";
+        customerInput?.focus();
+        return;
+    }
     if (
         !validatePayment(
             total
@@ -2005,7 +2049,9 @@ async function completeTransaction() {
     completeSale.disabled =
         true;
     completeSale.textContent =
-        "Processing...";
+        isReservation
+            ? "Creating Reservation..."
+            : "Processing...";
     paymentError.textContent =
         "";
     try {
@@ -2050,9 +2096,6 @@ async function completeTransaction() {
                 "userRole"
             ) ||
             "Staff / Cashier";
-        /*
-           Build sale items.
-        */
         const saleItems =
             cart.map(
                 item => ({
@@ -2095,27 +2138,17 @@ async function completeTransaction() {
                             ? item.productId
                             : null,
                     stockDeducted:
-                        item.itemType !==
-                        "insurance"
+                        isReservation
+                            ? false
+                            : item.itemType !==
+                              "insurance"
                 })
             );
-        /*
-           Calculate physical stock
-           required by this transaction.
-        */
         const stockDeductions =
             getStockDeductions();
-        /* =====================================================
-           FIRESTORE TRANSACTION
-        ===================================================== */
         await runTransaction(
             db,
             async transaction => {
-                /*
-                   IMPORTANT:
-                   Read every affected product
-                   before updating any of them.
-                */
                 const deductionRefs =
                     [
                         ...stockDeductions.keys()
@@ -2140,77 +2173,74 @@ async function completeTransaction() {
                         !snapshot.exists()
                     ) {
                         throw new Error(
-                            "A product required for this sale no longer exists."
+                            "A product required for this transaction no longer exists."
                         );
                     }
                     snapshots.push(
                         snapshot
                     );
                 }
-                /*
-                   UPDATE INVENTORY
-                */
-                for (
-                    let index = 0;
-                    index <
-                    deductionRefs.length;
-                    index++
-                ) {
-                    const ref =
-                        deductionRefs[
-                            index
-                        ];
-                    const snapshot =
-                        snapshots[
-                            index
-                        ];
-                    const required =
-                        stockDeductions.get(
-                            ref.id
-                        ) || 0;
-                    const data =
-                        snapshot.data();
-                    const currentStock =
-                        Number(
-                            data.stock ??
-                            data.currentStock ??
-                            data.quantity ??
-                            0
-                        );
-                    if (
-                        currentStock <
-                        required
+                if (!isReservation) {
+                    for (
+                        let index = 0;
+                        index <
+                        deductionRefs.length;
+                        index++
                     ) {
-                        throw new Error(
-                            `${getName(
-                                data
-                            )} does not have enough stock. ` +
-                            `Available: ${currentStock}, ` +
-                            `required: ${required}.`
+                        const ref =
+                            deductionRefs[
+                                index
+                            ];
+                        const snapshot =
+                            snapshots[
+                                index
+                            ];
+                        const required =
+                            stockDeductions.get(
+                                ref.id
+                            ) || 0;
+                        const data =
+                            snapshot.data();
+                        const currentStock =
+                            Number(
+                                data.stock ??
+                                data.currentStock ??
+                                data.quantity ??
+                                0
+                            );
+                        if (
+                            currentStock <
+                            required
+                        ) {
+                            throw new Error(
+                                `${getName(
+                                    data
+                                )} does not have enough stock. ` +
+                                `Available: ${currentStock}, ` +
+                                `required: ${required}.`
+                            );
+                        }
+                        transaction.update(
+                            ref,
+                            {
+                                stock:
+                                    currentStock -
+                                    required,
+                                updatedAt:
+                                    timestamp,
+                                updatedBy:
+                                    currentUser.uid
+                            }
                         );
                     }
-                    transaction.update(
-                        ref,
-                        {
-                            stock:
-                                currentStock -
-                                required,
-                            updatedAt:
-                                timestamp,
-                            updatedBy:
-                                currentUser.uid
-                        }
-                    );
                 }
-                /* =================================================
-                   SALES DOCUMENT
-                ================================================= */
                 transaction.set(
                     saleRef,
                     {
                         transactionId:
                             saleRef.id,
                         transactionNumber,
+                        customer,
                         items:
                             saleItems,
                         itemCount:
@@ -2218,6 +2248,25 @@ async function completeTransaction() {
                         subtotal,
                         discount,
                         total,
+                        orderType:
+                            isReservation
+                                ? "Reservation"
+                                : "Sale",
+                        isReservation,
+                        delivery:
+                            isReservation
+                                ? deliveryRequested
+                                : false,
+                        forDelivery:
+                            isReservation
+                                ? deliveryRequested
+                                : false,
+                        deliveryType:
+                            isReservation
+                                ? deliveryRequested
+                                    ? "Delivery"
+                                    : "Pickup"
+                                : "Pickup",
                         paymentMethod:
                             selectedPaymentMethod,
                         paymentBreakdown: {
@@ -2233,11 +2282,16 @@ async function completeTransaction() {
                                 paymentBreakdown.BPI
                         },
                         tenderBreakdown: {
-                            Cash: tenderBreakdown.Cash,
-                            GCash: tenderBreakdown.GCash,
-                            BDO: tenderBreakdown.BDO,
-                            BIBO: tenderBreakdown.BIBO,
-                            BPI: tenderBreakdown.BPI
+                            Cash:
+                                tenderBreakdown.Cash,
+                            GCash:
+                                tenderBreakdown.GCash,
+                            BDO:
+                                tenderBreakdown.BDO,
+                            BIBO:
+                                tenderBreakdown.BIBO,
+                            BPI:
+                                tenderBreakdown.BPI
                         },
                         splitPayment:
                             selectedPaymentMethod ===
@@ -2256,6 +2310,8 @@ async function completeTransaction() {
                                 : [],
                         amountPaid:
                             received,
+                        totalPaid:
+                            received,
                         change:
                             selectedPaymentMethod ===
                             "Cash"
@@ -2266,7 +2322,19 @@ async function completeTransaction() {
                                 )
                                 : 0,
                         status:
-                            "Completed",
+                            isReservation
+                                ? "Pending"
+                                : "Completed",
+                        paymentStatus:
+                            "Paid",
+                        paymentCompleted:
+                            true,
+                        paymentRecordedAt:
+                            timestamp,
+                        paymentReceivedAt:
+                            timestamp,
+                        stockDeducted:
+                            !isReservation,
                         cashierName,
                         cashierRole,
                         cashierUid:
@@ -2288,75 +2356,75 @@ async function completeTransaction() {
                         createdByEmail:
                             currentUser.email ||
                             "",
+                        reservationCreatedAt:
+                            isReservation
+                                ? timestamp
+                                : null,
                         createdAt:
                             timestamp,
                         date:
                             timestamp
                     }
                 );
-                /* =================================================
-                   INVENTORY MOVEMENT
-                ================================================= */
-                transaction.set(
-                    movementRef,
-                    {
-                        type:
-                            "OUT",
-                        movementType:
-                            "SALE",
-                        reason:
-                            "Sale",
-                        referenceId:
-                            saleRef.id,
-                        transactionId:
-                            saleRef.id,
-                        transactionNumber,
-                        items:
-                            saleItems,
-                        stockDeductions:
-                            [
-                                ...stockDeductions.entries()
-                            ]
-                                .map(
-                                    ([
-                                        productId,
-                                        quantity
-                                    ]) => ({
-                                        productId,
-                                        quantity
-                                    })
-                                ),
-                        totalQuantity:
-                            [
-                                ...stockDeductions.values()
-                            ]
-                                .reduce(
-                                    (
-                                        sum,
-                                        value
-                                    ) =>
-                                        sum +
-                                        value,
-                                    0
-                                ),
-                        staffName:
-                            cashierName,
-                        staffUid:
-                            currentUser.uid,
-                        staffEmail:
-                            currentUser.email ||
-                            "",
-                        createdBy:
-                            currentUser.uid,
-                        createdAt:
-                            timestamp,
-                        date:
-                            timestamp
-                    }
-                );
-                /* =================================================
-                   CASH FLOW
-                ================================================= */
+                if (!isReservation) {
+                    transaction.set(
+                        movementRef,
+                        {
+                            type:
+                                "OUT",
+                            movementType:
+                                "SALE",
+                            reason:
+                                "Sale",
+                            referenceId:
+                                saleRef.id,
+                            transactionId:
+                                saleRef.id,
+                            transactionNumber,
+                            items:
+                                saleItems,
+                            stockDeductions:
+                                [
+                                    ...stockDeductions.entries()
+                                ]
+                                    .map(
+                                        ([
+                                            productId,
+                                            quantity
+                                        ]) => ({
+                                            productId,
+                                            quantity
+                                        })
+                                    ),
+                            totalQuantity:
+                                [
+                                    ...stockDeductions.values()
+                                ]
+                                    .reduce(
+                                        (
+                                            sum,
+                                            value
+                                        ) =>
+                                            sum +
+                                            value,
+                                        0
+                                    ),
+                            staffName:
+                                cashierName,
+                            staffUid:
+                                currentUser.uid,
+                            staffEmail:
+                                currentUser.email ||
+                                "",
+                            createdBy:
+                                currentUser.uid,
+                            createdAt:
+                                timestamp,
+                            date:
+                                timestamp
+                        }
+                    );
+                }
                 transaction.set(
                     cashFlowRef,
                     {
@@ -2367,12 +2435,19 @@ async function completeTransaction() {
                         category:
                             "Sales",
                         description:
-                            `Sale ${transactionNumber}`,
+                            isReservation
+                                ? `Reservation Payment ${transactionNumber}`
+                                : `Sale ${transactionNumber}`,
                         referenceId:
                             saleRef.id,
                         transactionId:
                             saleRef.id,
                         transactionNumber,
+                        orderType:
+                            isReservation
+                                ? "Reservation"
+                                : "Sale",
+                        isReservation,
                         amount:
                             total,
                         cashIn:
@@ -2382,6 +2457,10 @@ async function completeTransaction() {
                         discount,
                         paymentMethod:
                             selectedPaymentMethod,
+                        paymentStatus:
+                            "Paid",
+                        paymentCompleted:
+                            true,
                         paymentBreakdown: {
                             Cash:
                                 paymentBreakdown.Cash,
@@ -2395,11 +2474,16 @@ async function completeTransaction() {
                                 paymentBreakdown.BPI
                         },
                         tenderBreakdown: {
-                            Cash: tenderBreakdown.Cash,
-                            GCash: tenderBreakdown.GCash,
-                            BDO: tenderBreakdown.BDO,
-                            BIBO: tenderBreakdown.BIBO,
-                            BPI: tenderBreakdown.BPI
+                            Cash:
+                                tenderBreakdown.Cash,
+                            GCash:
+                                tenderBreakdown.GCash,
+                            BDO:
+                                tenderBreakdown.BDO,
+                            BIBO:
+                                tenderBreakdown.BIBO,
+                            BPI:
+                                tenderBreakdown.BPI
                         },
                         splitPayment:
                             selectedPaymentMethod ===
@@ -2416,6 +2500,11 @@ async function completeTransaction() {
                                 ? paymentBreakdown
                                     .paymentTypes
                                 : [],
+                        customer,
+                        delivery:
+                            isReservation
+                                ? deliveryRequested
+                                : false,
                         staffName:
                             cashierName,
                         staffUid:
@@ -2433,16 +2522,15 @@ async function completeTransaction() {
                 );
             }
         );
-        /* =====================================================
-           SUCCESS
-        ===================================================== */
         if (successTotal) {
             successTotal.textContent =
                 money(total);
         }
         if (successMessage) {
             successMessage.textContent =
-                `Transaction ${transactionNumber} was completed by ${cashierName}.`;
+                isReservation
+                    ? `Reservation ${transactionNumber} was created and payment was recorded by ${cashierName}.`
+                    : `Transaction ${transactionNumber} was completed by ${cashierName}.`;
         }
         closePaymentModal();
         successModal.classList.add(
@@ -2453,48 +2541,51 @@ async function completeTransaction() {
             discountElement.value =
                 "0";
         }
+        resetOrderType();
         renderCart();
         await loadProducts();
     } catch (error) {
         console.error(
-            "Sale error:",
+            "Transaction error:",
             error
         );
         paymentError.textContent =
             error?.message ||
-            "Unable to complete sale.";
+            (
+                isReservation
+                    ? "Unable to create reservation."
+                    : "Unable to complete sale."
+            );
     } finally {
         completeSale.disabled =
             false;
         completeSale.textContent =
-            "Complete Sale";
+            selectedOrderType ===
+            "reservation"
+                ? "Create Reservation"
+                : "Complete Sale";
     }
 }
-/* =========================================================
-   EVENT LISTENERS
+  /* EVENT LISTENERS
 ========================================================= */
-/* Search */
 if (productSearch) {
     productSearch.addEventListener(
         "input",
         renderProducts
     );
 }
-/* Category */
 if (categoryFilter) {
     categoryFilter.addEventListener(
         "change",
         renderProducts
     );
 }
-/* Type */
 if (typeFilter) {
     typeFilter.addEventListener(
         "change",
         renderProducts
     );
 }
-/* Refresh */
 if (refreshProducts) {
     refreshProducts.addEventListener(
         "click",
@@ -2510,7 +2601,6 @@ if (refreshProducts) {
         }
     );
 }
-/* Discount */
 if (discountElement) {
     discountElement.addEventListener(
         "input",
@@ -2545,21 +2635,71 @@ if (discountElement) {
         }
     );
 }
-/* Checkout */
 if (checkoutButton) {
     checkoutButton.addEventListener(
         "click",
         openPaymentModal
     );
 }
-/* Close Payment */
 if (closePayment) {
     closePayment.addEventListener(
         "click",
         closePaymentModal
     );
 }
-/* Payment method */
+document
+    .querySelectorAll(
+        ".order-type-option"
+    )
+    .forEach(
+        button => {
+            button.addEventListener(
+                "click",
+                () => {
+                    selectedOrderType =
+                        button.dataset.orderType ===
+                        "reservation"
+                            ? "reservation"
+                            : "sale";
+                    if (
+                        selectedOrderType !==
+                        "reservation"
+                    ) {
+                        deliveryRequested =
+                            false;
+                        const checkbox =
+                            document.getElementById(
+                                "deliveryCheckbox"
+                            );
+                        if (checkbox) {
+                            checkbox.checked =
+                                false;
+                        }
+                    }
+                    paymentError.textContent =
+                        "";
+                    updateOrderTypeUI();
+                    updatePaymentTotal();
+                }
+            );
+        }
+    );
+const deliveryCheckbox =
+    document.getElementById(
+        "deliveryCheckbox"
+    );
+if (deliveryCheckbox) {
+    deliveryCheckbox.addEventListener(
+        "change",
+        event => {
+            deliveryRequested =
+                Boolean(
+                    event.target.checked
+                );
+        }
+    );
+}
+updateOrderTypeUI();
 document
     .querySelectorAll(
         ".payment-method"
@@ -2634,7 +2774,6 @@ document
             );
         }
     );
-/* Cash received */
 if (cashReceived) {
     cashReceived.addEventListener(
         "input",
@@ -2643,7 +2782,6 @@ if (cashReceived) {
         }
     );
 }
-/* Quick cash */
 document
     .querySelectorAll(
         ".quick-cash button"
@@ -2670,49 +2808,42 @@ document
             );
         }
     );
-/* Split Cash */
 if (splitCash) {
     splitCash.addEventListener(
         "input",
         updateSplitPayment
     );
 }
-/* Split GCash */
 if (splitGCash) {
     splitGCash.addEventListener(
         "input",
         updateSplitPayment
     );
 }
-/* Split BDO */
 if (splitBDO) {
     splitBDO.addEventListener(
         "input",
         updateSplitPayment
     );
 }
-/* Split BIBO */
 if (splitBIBO) {
     splitBIBO.addEventListener(
         "input",
         updateSplitPayment
     );
 }
-/* Split BPI */
 if (splitBPI) {
     splitBPI.addEventListener(
         "input",
         updateSplitPayment
     );
 }
-/* Complete Sale */
 if (completeSale) {
     completeSale.addEventListener(
         "click",
         completeTransaction
     );
 }
-/* Clear Cart */
 if (clearCartButton) {
     clearCartButton.addEventListener(
         "click",
@@ -2737,7 +2868,6 @@ if (clearCartButton) {
         }
     );
 }
-/* New Sale */
 if (newSaleButton) {
     newSaleButton.addEventListener(
         "click",
@@ -2756,7 +2886,6 @@ if (newSaleButton) {
         }
     );
 }
-/* Close modal by clicking background */
 if (paymentModal) {
     paymentModal.addEventListener(
         "click",
@@ -2785,7 +2914,6 @@ if (successModal) {
         }
     );
 }
-/* Retry */
 if (retryButton) {
     retryButton.addEventListener(
         "click",
@@ -2801,8 +2929,7 @@ if (retryButton) {
         }
     );
 }
-/* =========================================================
-   AUTHENTICATION
+ /*  AUTHENTICATION
 ========================================================= */
 onAuthStateChanged(
     auth,

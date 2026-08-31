@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockMaster - Pending Transactions</title>
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="ADMIN/CSS/pending-transactions.css">
+</head>
+<body>
+    <div class="app-shell">
+        <div id="sidebar-container"></div>
+        <main class="dashboard-main">
+            <header class="topbar">
+                <div class="search-box">
+                    <span class="search-icon">⌕</span>
+                    <input id="globalSearch" type="text" placeholder="Search pending transactions...">
+                    <small>⌘</small>
+                    <small>K</small>
+                </div>
+                <div class="profile">
+                    <span class="notification">♧</span>
+                    <div class="profile-name">
+                        <strong id="profileName">Loading...</strong>
+                        <small id="profileRole">Administrator</small>
+                    </div>
+                    <div class="avatar" id="profileAvatar">--</div>
+                </div>
+            </header>
+            <section class="pending-content">
+                <div class="heading-row">
+                    <div>
+                        <h1>Pending Transactions</h1>
+                        <p>Review reservations and complete orders when they are ready.</p>
+                    </div>
+                    <button class="refresh-button" id="refreshPending" type="button">
+                        ↻ Refresh
+                    </button>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <span class="summary-label">PENDING ORDERS</span>
+                        <strong id="pendingCount">0</strong>
+                        <small>Reservations waiting for completion</small>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">PENDING VALUE</span>
+                        <strong id="pendingValue">₱0.00</strong>
+                        <small>Total value of pending orders</small>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">FOR DELIVERY</span>
+                        <strong id="deliveryCount">0</strong>
+                        <small>Pending orders marked for delivery</small>
+                    </div>
+                </div>
+                <div class="toolbar">
+                    <div class="filter-group">
+                        <button class="filter-button active" type="button" data-filter="all">
+                            All
+                        </button>
+                        <button class="filter-button" type="button" data-filter="reservation">
+                            Reservations
+                        </button>
+                        <button class="filter-button" type="button" data-filter="delivery">
+                            Delivery
+                        </button>
+                    </div>
+                    <div class="search-inline">
+                        <span>⌕</span>
+                        <input id="transactionSearch" type="text" placeholder="Search transaction or customer...">
+                    </div>
+                </div>
+                <div id="pendingError" class="page-error"></div>
+                <section class="panel">
+                    <div class="panel-title">
+                        <div>
+                            <strong>Pending Orders</strong>
+                            <small>
+                                Orders remain pending until the administrator marks them as done.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="pending-table">
+                            <thead>
+                                <tr>
+                                    <th>Transaction</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Delivery</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingTransactionsBody">
+                                <tr>
+                                    <td colspan="7" class="empty-cell">
+                                        Loading pending transactions...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+    <div class="modal-backdrop" id="detailsModal">
+        <div class="details-modal">
+            <div class="modal-header">
+                <div>
+                    <strong id="detailsTitle">Transaction Details</strong>
+                    <small id="detailsSubtitle"></small>
+                </div>
+                <button class="modal-close" id="closeDetails" type="button">
+                    ×
+                </button>
+            </div>
+            <div class="details-body">
+                <div class="details-grid">
+                    <div>
+                        <span>Customer</span>
+                        <strong id="detailCustomer">—</strong>
+                    </div>
+                    <div>
+                        <span>Transaction</span>
+                        <strong id="detailTransaction">—</strong>
+                    </div>
+                    <div>
+                        <span>Date</span>
+                        <strong id="detailDate">—</strong>
+                    </div>
+                    <div>
+                        <span>Delivery</span>
+                        <strong id="detailDelivery">—</strong>
+                    </div>
+                </div>
+                <div class="items-heading">Items</div>
+                <div id="detailItems" class="detail-items"></div>
+                <div class="detail-total">
+                    <span>Total</span>
+                    <strong id="detailTotal">₱0.00</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" id="cancelDetails" type="button">
+                    Close
+                </button>
+                <button class="done-button" id="modalOrderDone" type="button">
+                    Order Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="sidebar.js"></script>
+    <script type="module" src="ADMIN/JS/pending-transactions.js"></script>
+</body>
+</html>

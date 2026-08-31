@@ -275,7 +275,29 @@
                     ₱0.00
                 </strong>
             </div>
-                <div class="payment-customer-field">
+                <div class="order-type-area">
+                <div class="payment-method-title">Order Type</div>
+                <div class="order-type-options">
+                    <button class="order-type-option active" type="button" data-order-type="sale">
+                        <strong>Regular Sale</strong>
+                        <small>Complete sale and deduct stock</small>
+                    </button>
+                    <button class="order-type-option" type="button" data-order-type="reservation">
+                        <strong>Reservation</strong>
+                        <small>Take payment now, stock stays unchanged</small>
+                    </button>
+                </div>
+                <div id="reservationNotice" class="reservation-notice">
+                    Reservation payment is recorded immediately. Stock will only change when the administrator marks the order as done.
+                </div>
+                <div id="deliveryField" class="delivery-field">
+                    <label class="delivery-checkbox">
+                        <input type="checkbox" id="deliveryCheckbox">
+                        <span>For Delivery</span>
+                    </label>
+                </div>
+            </div>
+            <div class="payment-customer-field">
                     <label for="customerName">
                         Customer Name
                     </label>

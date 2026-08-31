@@ -602,6 +602,34 @@ function getCashSale(data) {
 
 function isCompleted(data) {
 
+    /*
+     * Order status and payment status are separate.
+     * A reservation may remain Pending while its payment
+     * has already been received.
+     */
+    const paymentStatus =
+        String(
+            data.paymentStatus ||
+            data.payment_status ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+    if (
+        [
+            "paid",
+            "completed",
+            "complete",
+            "success",
+            "successful",
+            "settled"
+        ].includes(paymentStatus) ||
+        data.paymentCompleted === true
+    ) {
+        return true;
+    }
+
     if (
         data.status === undefined ||
         data.status === null ||

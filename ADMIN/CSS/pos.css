@@ -663,6 +663,135 @@ button {
 .payment-method.split-method {
     grid-column: span 2
 }
+.payment-order-type {
+    margin-bottom: 14px
+}
+.order-type-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px
+}
+.order-type-option {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 9px;
+    border: 1px solid #d5dce4;
+    border-radius: 5px;
+    background: #fff;
+    color: #4f5d69;
+    text-align: left
+}
+.order-type-option:hover {
+    background: #f6f9fc
+}
+.order-type-option.active {
+    border-color: var(--blue);
+    background: #edf5fd;
+    color: var(--blue)
+}
+.order-type-icon {
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #eef3f7;
+    color: #61707d;
+    font-size: 11px;
+    font-weight: 700
+}
+.order-type-option.active .order-type-icon {
+    background: var(--blue);
+    color: #fff
+}
+.order-type-option strong,
+.order-type-option small {
+    display: block
+}
+.order-type-option strong {
+    font-size: 8px;
+    margin-bottom: 3px
+}
+.order-type-option small {
+    color: #89939d;
+    font-size: 6.5px;
+    font-weight: 400
+}
+.reservation-notice {
+    display: none;
+    gap: 4px;
+    flex-direction: column;
+    margin-bottom: 12px;
+    padding: 9px 10px;
+    border: 1px solid #d8e7f5;
+    border-radius: 5px;
+    background: #f3f8fd
+}
+.reservation-notice.show {
+    display: flex
+}
+.reservation-notice strong {
+    color: var(--blue);
+    font-size: 8px
+}
+.reservation-notice span {
+    color: #657482;
+    font-size: 7px;
+    line-height: 1.4
+}
+.required-mark {
+    display: none;
+    color: var(--red);
+    margin-left: 2px
+}
+.delivery-field {
+    display: none;
+    margin-bottom: 14px
+}
+.delivery-field.show {
+    display: block
+}
+.delivery-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid #dce3e9;
+    border-radius: 5px;
+    background: #f8fafc;
+    cursor: pointer
+}
+.delivery-option input {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--blue)
+}
+.delivery-option strong,
+.delivery-option small {
+    display: block
+}
+.delivery-option strong {
+    color: #43515e;
+    font-size: 8px;
+    margin-bottom: 2px
+}
+.delivery-option small {
+    color: #89939d;
+    font-size: 6.5px
+}
+#paymentSection {
+    display: block
+}
+.complete-payment.reservation-button {
+    border-color: var(--blue);
+    background: var(--blue)
+}
+.complete-payment.reservation-button:hover {
+    background: var(--blue-dark)
+}
 .payment-customer-field {
     margin-bottom: 14px
 }
@@ -1037,6 +1166,9 @@ button {
     }
     .payment-methods {
         grid-template-columns: repeat(2, 1fr)
+    }
+    .order-type-options {
+        grid-template-columns: 1fr
     }
     .payment-method.split-method {
         grid-column: span 2

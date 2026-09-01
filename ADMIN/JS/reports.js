@@ -100,6 +100,43 @@ function getItemPrice(item) {
   }
   return 0;
 }
+function getItemCost(item) {
+  const values = [
+    item.costPrice,
+    item.cost,
+    item.unitCost,
+    item.purchasePrice
+  ];
+  for (const value of values) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return 0;
+}
+function getItemProfit(item) {
+  const quantity = getQuantity(item);
+  const sellingPrice = getItemPrice(item);
+  const costPrice = getItemCost(item);
+  const directProfit = Number(item.profit);
+  if (Number.isFinite(directProfit)) return directProfit;
+  return (sellingPrice - costPrice) * quantity;
+}
+function getTotalCost(data) {
+  const direct = Number(data.totalCost);
+  if (Number.isFinite(direct)) return direct;
+  return getItems(data).reduce(
+    (sum, item) => sum + getItemCost(item) * getQuantity(item),
+    0
+  );
+}
+function getGrossProfit(data) {
+  const direct = Number(data.grossProfit ?? data.profit);
+  if (Number.isFinite(direct)) return direct;
+  return getItems(data).reduce(
+    (sum, item) => sum + getItemProfit(item),
+    0
+  );
+}
 function getItems(data) {
   const possible = [
     data.items,
@@ -343,6 +380,24 @@ function updateSummary(rows) {
       ? total / transactionCount
       : 0
   );
+  const totalCostElement = document.getElementById("totalCost");
+  const grossProfitElement = document.getElementById("grossProfit");
+  const profitMarginElement = document.getElementById("profitMargin");
+  const totalCost = rows.reduce(
+    (sum, row) => sum + getTotalCost(row),
+    0
+  );
+  const grossProfit = rows.reduce(
+    (sum, row) => sum + getGrossProfit(row),
+    0
+  );
+  if (totalCostElement) totalCostElement.textContent = money(totalCost);
+  if (grossProfitElement) grossProfitElement.textContent = money(grossProfit);
+  if (profitMarginElement) {
+    profitMarginElement.textContent = total > 0
+      ? `${((grossProfit / total) * 100).toFixed(2)}%`
+      : "0.00%";
+  }
 }
 function renderPayments(rows) {
   const paymentTotals = {
@@ -416,11 +471,15 @@ function renderProducts(rows) {
           name,
           category,
           quantity: 0,
-          revenue: 0
+          revenue: 0,
+          cost: 0,
+          profit: 0
         };
       }
       productMap[key].quantity += quantity;
       productMap[key].revenue += revenue;
+      productMap[key].cost += getItemCost(item) * quantity;
+      productMap[key].profit += getItemProfit(item);
     });
   });
   const products =
@@ -439,7 +498,7 @@ function renderProducts(rows) {
       .slice(0, 20)
       .map(
         product =>
-          `<tr><td><b>${escapeHtml(product.name)}</b></td><td>${escapeHtml(product.category)}</td><td>${product.quantity}</td><td>${money(product.revenue)}</td></tr>`
+          `<tr><td><b>${escapeHtml(product.name)}</b></td><td>${escapeHtml(product.category)}</td><td>${product.quantity}</td><td>${money(product.revenue)}</td><td>${money(product.cost)}</td><td>${money(product.profit)}</td></tr>`
       )
       .join("");
 }
@@ -844,6 +903,9 @@ function exportCSV() {
       "BIBO",
       "BPI",
       "Total",
+      "Total Cost",
+      "Gross Profit",
+      "Profit Margin",
       "Items"
     ].join(",")
   );
@@ -893,6 +955,9 @@ function exportCSV() {
         breakdown.BIBO,
         breakdown.BPI,
         row._total,
+        getTotalCost(row),
+        getGrossProfit(row),
+        row._total > 0 ? `${((getGrossProfit(row) / row._total) * 100).toFixed(2)}%` : "0.00%",
         itemCount
       ].join(",")
     );
@@ -949,6 +1014,59 @@ function exportCSV() {
       "",
       "",
       total,
+      ""
+    ].join(",")
+  );
+  const totalCost = rows.reduce(
+    (a, row) => a + getTotalCost(row),
+    0
+  );
+  const grossProfit = rows.reduce(
+    (a, row) => a + getGrossProfit(row),
+    0
+  );
+  lines.push(
+    [
+      "Total Cost",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      totalCost,
+      ""
+    ].join(",")
+  );
+  lines.push(
+    [
+      "Gross Profit",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      grossProfit,
+      ""
+    ].join(",")
+  );
+  lines.push(
+    [
+      "Profit Margin",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      total > 0 ? `${((grossProfit / total) * 100).toFixed(2)}%` : "0.00%",
       ""
     ].join(",")
   );

@@ -26,8 +26,12 @@ import {
 
 let products = [];
 let movements = [];
+let saleTransactions = [];
 let filteredProducts = [];
+let movementFromDate = "";
+let movementToDate = "";
 let currentPage = 1;
+let movementCurrentPage = 1;
 let currentUser = null;
 
 const productsPerPage = 6;
@@ -85,67 +89,17 @@ const movementTableBody =
 const movementEmpty =
     document.getElementById("movementEmpty");
 
+const movementFromDateInput =
+    document.getElementById("movementFromDate");
 
-/* =========================================================
-   SIDEBAR
-========================================================= */
+const movementToDateInput =
+    document.getElementById("movementToDate");
 
-function loadSidebar() {
+const applyMovementDateFilter =
+    document.getElementById("applyMovementDateFilter");
 
-    const container =
-        document.getElementById("sidebar-container");
-
-    if (!container) return;
-
-    fetch("sidebar.html")
-
-        .then(response => {
-
-            if (!response.ok) {
-                throw new Error(
-                    `Sidebar HTTP ${response.status}`
-                );
-            }
-
-            return response.text();
-
-        })
-
-        .then(html => {
-
-            container.innerHTML = html;
-
-            const oldScript =
-                document.querySelector(
-                    "script[data-sidebar]"
-                );
-
-            if (oldScript) {
-                oldScript.remove();
-            }
-
-            const script =
-                document.createElement("script");
-
-            script.src =
-                "sidebar.js?v=10";
-
-            script.dataset.sidebar =
-                "true";
-
-            document.body.appendChild(script);
-
-        })
-
-        .catch(error => {
-
-            console.error(
-                "Sidebar error:",
-                error
-            );
-
-        });
-}
+const clearMovementDateFilter =
+    document.getElementById("clearMovementDateFilter");
 
 
 /* =========================================================
@@ -277,271 +231,77 @@ function normalizeProduct(id, data) {
 /* =========================================================
    MOVEMENT NORMALIZATION
 ========================================================= */
-
-/*
-    IMPORTANT FIX
-
-    Normal inventory movement documents look like:
-
-        productName
-        quantity
-        type
-        reason
-        userName
-
-    But POS sale documents look like:
-
-        type: "sale"
-        items: [
-            {
-                name: "...",
-                quantity: 2,
-                price: 100
-            }
-        ]
-
-    Therefore one POS sale can produce multiple
-    inventory movement rows.
-
-    This function returns an ARRAY.
-*/
-
-function normalizeMovement(id, data) {
-
-    const date =
-        data.createdAt?.toDate
-            ? data.createdAt.toDate()
-
-            : data.createdAt
-                ? new Date(data.createdAt)
-
-                : null;
-
-
-    /* =====================================================
-       NORMAL INVENTORY MOVEMENT
-    ===================================================== */
-
-    if (
-        data.type !== "sale" &&
-        data.type !== "Sale"
-    ) {
-
-        return [
-
-            {
-
-                id:
-                    String(id),
-
-                product:
-                    String(
-                        data.productName ||
-                        data.product ||
-                        ""
-                    ),
-
-                type:
-                    String(
-                        data.type ||
-                        ""
-                    ),
-
-                quantity:
-                    Number(
-                        data.quantity ||
-                        0
-                    ),
-
-                reason:
-                    String(
-                        data.reason ||
-                        ""
-                    ),
-
-                user:
-                    String(
-                        data.userName ||
-                        data.user ||
-                        data.staffName ||
-                        "Administrator"
-                    ),
-
-                notes:
-                    String(
-                        data.notes ||
-                        ""
-                    ),
-
-                transactionNumber:
-                    String(
-                        data.transactionNumber ||
-                        ""
-                    ),
-
-                createdAt:
-                    date
-            }
-
-        ];
-
-    }
-
-
-    /* =====================================================
-       POS SALE
-    ===================================================== */
-
-    const items =
-        Array.isArray(
-            data.items
-        )
-            ? data.items
-            : [];
-
-
-    const staff =
-        data.staffName ||
-        data.userName ||
-        data.user ||
-        "Administrator";
-
-
-    /*
-        If a sale somehow has no items,
-        still display the transaction.
-    */
-
-    if (!items.length) {
-
-        return [
-
-            {
-
-                id:
-                    String(id),
-
-                product:
-                    "Sale",
-
-                type:
-                    "Sale",
-
-                quantity:
-                    0,
-
-                reason:
-                    "Sale",
-
-                user:
-                    String(staff),
-
-                notes:
-                    String(
-                        data.transactionNumber
-                            ? `Transaction ${data.transactionNumber}`
-                            : ""
-                    ),
-
-                transactionNumber:
-                    String(
-                        data.transactionNumber ||
-                        ""
-                    ),
-
-                createdAt:
-                    date
-            }
-
-        ];
-
-    }
-
-
-    /*
-        Create one movement for every
-        product contained in the POS sale.
-    */
-
-    return items.map(
-        (item, index) => {
-
-            const quantity =
-                Number(
-                    item.quantity ||
-                    0
-                );
-
-
-            return {
-
-                id:
-                    `${String(id)}-${index}`,
-
-                product:
-                    String(
-                        item.name ||
-                        item.productName ||
-                        item.product ||
-                        item.sku ||
-                        "Unknown Product"
-                    ),
-
-                type:
-                    "Sale",
-
-                /*
-                    A sale removes inventory.
-
-                    Example:
-
-                    Sold 3 units
-                    => -3
-
-                    This is ONLY for displaying
-                    the movement.
-
-                    We do NOT update the product
-                    stock here because the POS
-                    already updated it.
-                */
-
-                quantity:
-                    -Math.abs(
-                        quantity
-                    ),
-
-                reason:
-                    "Sale",
-
-                user:
-                    String(
-                        staff
-                    ),
-
-                notes:
-                    String(
-                        data.transactionNumber
-                            ? `Transaction ${data.transactionNumber}`
-                            : ""
-                    ),
-
-                transactionNumber:
-                    String(
-                        data.transactionNumber ||
-                        ""
-                    ),
-
-                createdAt:
-                    date
-            };
-
-        }
-    );
-
+function getMovementDate(data) {
+    const value = data.createdAt || data.date || data.paymentRecordedAt || data.reservationCreatedAt || null;
+    if (!value) return null;
+    if (value?.toDate) return value.toDate();
+    if (value instanceof Date) return value;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
-
-
+function getItemQuantity(item) {
+    return Number(item?.quantity ?? item?.qty ?? item?.count ?? 0) || 0;
+}
+function getItemProductName(item) {
+    return String(item?.name || item?.productName || item?.product || item?.sku || "Unknown Product");
+}
+function getSaleType(data) {
+    const value = String(data.orderType || data.saleType || data.type || "sale").toLowerCase();
+    return value.includes("reserv") ? "Reservation" : "Sale";
+}
+function getTransactionNumber(id, data) {
+    return String(data.transactionNumber || data.transactionNo || data.trxNumber || data.referenceNumber || `SALE-${String(id).slice(0, 8).toUpperCase()}`);
+}
+function normalizeMovement(id, data) {
+    const date = getMovementDate(data);
+    const rawType = String(data.type || "").toLowerCase();
+    if (rawType === "sale" || rawType === "reservation") return [];
+    return [{
+        id: String(id),
+        product: String(data.productName || data.product || data.sku || "Unknown Product"),
+        type: String(data.type || "Stock Movement"),
+        quantity: Number(data.quantity || 0),
+        reason: String(data.reason || ""),
+        user: String(data.userName || data.user || data.staffName || data.cashierName || "Administrator"),
+        notes: String(data.notes || ""),
+        transactionNumber: String(data.transactionNumber || data.transactionNo || data.trxNumber || ""),
+        createdAt: date
+    }];
+}
+function normalizeSaleTransaction(id, data) {
+    const date = getMovementDate(data);
+    const type = getSaleType(data);
+    const staff = String(data.staffName || data.cashierName || data.userName || data.createdByName || data.user || "Administrator");
+    const transactionNumber = getTransactionNumber(id, data);
+    const items = Array.isArray(data.items) ? data.items : [];
+    if (!items.length) {
+        return [{
+            id: String(id),
+            product: "Sale Transaction",
+            type,
+            quantity: 0,
+            reason: type === "Reservation" ? "Reservation" : "Sale",
+            user: staff,
+            notes: `Transaction ${transactionNumber}`,
+            transactionNumber,
+            createdAt: date
+        }];
+    }
+    return items.map((item, index) => {
+        const quantity = getItemQuantity(item);
+        return {
+            id: `${String(id)}-${index}`,
+            product: getItemProductName(item),
+            type,
+            quantity: type === "Reservation" ? 0 : -Math.abs(quantity),
+            reason: type === "Reservation" ? "Reservation" : "Sale",
+            user: staff,
+            notes: `Transaction ${transactionNumber}`,
+            transactionNumber,
+            createdAt: date
+        };
+    });
+}
 /* =========================================================
    LOAD PRODUCTS
 ========================================================= */
@@ -681,77 +441,36 @@ function listenToProducts() {
 /* =========================================================
    MOVEMENTS
 ========================================================= */
-
 function listenToMovements() {
-
-    const movementsQuery =
-        query(
-
-            collection(
-                db,
-                "inventoryMovements"
-            ),
-
-            orderBy(
-                "createdAt",
-                "desc"
-            )
-
-        );
-
-
-    return onSnapshot(
-
-        movementsQuery,
-
-        snapshot => {
-
-            /*
-                IMPORTANT:
-
-                normalizeMovement()
-                returns an ARRAY.
-
-                flatMap() combines all arrays
-                into one movement list.
-
-                This allows one POS sale
-                containing multiple products
-                to appear as multiple rows.
-            */
-
-            movements =
-                snapshot.docs.flatMap(
-                    item =>
-                        normalizeMovement(
-                            item.id,
-                            item.data()
-                        )
-                );
-
-
-            renderMovements();
-
-        },
-
-        error => {
-
-            console.error(
-                "Movement loading error:",
-                error
-            );
-
-            movements = [];
-
-            renderMovements();
-
-        }
-
-    );
-
+    const movementsQuery = query(collection(db, "inventoryMovements"), orderBy("createdAt", "desc"));
+    return onSnapshot(movementsQuery, snapshot => {
+        movements = snapshot.docs.flatMap(item => normalizeMovement(item.id, item.data()));
+        mergeAndRenderMovements();
+    }, error => {
+        console.error("Movement loading error:", error);
+        movements = [];
+        mergeAndRenderMovements();
+    });
 }
-
-
+function listenToSalesForMovements() {
+    return onSnapshot(query(collection(db, "sales")), snapshot => {
+        saleTransactions = snapshot.docs.flatMap(item => normalizeSaleTransaction(item.id, item.data()));
+        mergeAndRenderMovements();
+    }, error => {
+        console.error("Sales movement loading error:", error);
+        saleTransactions = [];
+        mergeAndRenderMovements();
+    });
+}
+function mergeAndRenderMovements() {
+    const inventoryRows = movements.filter(item => item.type !== "Sale" && item.type !== "Reservation");
+    movements = [...inventoryRows, ...saleTransactions].sort((a, b) => {
+        const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+        const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+        return bTime - aTime;
+    });
+    renderMovements();
+}
 /* =========================================================
    SUMMARY
 ========================================================= */
@@ -1683,211 +1402,102 @@ function updatePagination() {
 /* =========================================================
    MOVEMENT TABLE
 ========================================================= */
-
-function renderMovements() {
-
-    if (!movementTableBody) {
-        return;
-    }
-
-
-    movementTableBody.innerHTML =
-        "";
-
-
-    if (
-        !movements.length
-    ) {
-
-        if (movementEmpty) {
-
-            movementEmpty.style.display =
-                "block";
-
-        }
-
-        return;
-
-    }
-
-
-    if (movementEmpty) {
-
-        movementEmpty.style.display =
-            "none";
-
-    }
-
-
-    movements
-
-        .slice(
-            0,
-            10
-        )
-
-        .forEach(
-            movement => {
-
-                const row =
-                    document.createElement(
-                        "tr"
-                    );
-
-
-                const date =
-                    movement.createdAt
-
-                        ? movement.createdAt.toLocaleString(
-                            "en-PH",
-                            {
-                                year:
-                                    "numeric",
-
-                                month:
-                                    "short",
-
-                                day:
-                                    "2-digit",
-
-                                hour:
-                                    "2-digit",
-
-                                minute:
-                                    "2-digit"
-                            }
-                        )
-
-                        : "—";
-
-
-                /*
-                    SALE IS NOW TREATED AS AN
-                    OUTGOING INVENTORY MOVEMENT.
-                */
-
-                const typeClass =
-
-                    movement.type ===
-                        "Stock In"
-
-                        ? "movement-in"
-
-                        :
-
-                    movement.type ===
-                        "Stock Out" ||
-
-                    movement.type ===
-                        "Sale"
-
-                        ? "movement-out"
-
-                        :
-
-                    "movement-adjustment";
-
-
-                const quantityClass =
-
-                    movement.quantity >= 0
-
-                        ? "quantity-in"
-
-                        : "quantity-out";
-
-
-                const quantityText =
-
-                    movement.quantity > 0
-
-                        ? `+${movement.quantity}`
-
-                        : movement.quantity;
-
-
-                row.innerHTML = `
-
-                    <td>
-
-                        ${escapeHTML(
-                            date
-                        )}
-
-                    </td>
-
-
-                    <td>
-
-                        <strong>
-
-                            ${escapeHTML(
-                                movement.product
-                            )}
-
-                        </strong>
-
-                    </td>
-
-
-                    <td>
-
-                        <span
-                            class="movement-type ${typeClass}"
-                        >
-
-                            ${escapeHTML(
-                                movement.type
-                            )}
-
-                        </span>
-
-                    </td>
-
-
-                    <td>
-
-                        <span
-                            class="${quantityClass}"
-                        >
-
-                            ${quantityText}
-
-                        </span>
-
-                    </td>
-
-
-                    <td>
-
-                        ${escapeHTML(
-                            movement.reason
-                        )}
-
-                    </td>
-
-
-                    <td>
-
-                        ${escapeHTML(
-                            movement.user
-                        )}
-
-                    </td>
-
-                `;
-
-
-                movementTableBody.appendChild(
-                    row
-                );
-
-            }
-        );
-
+function getMovementPaginationElement() {
+    let pagination = document.getElementById("movementPagination");
+    if (pagination) return pagination;
+    const section = movementTableBody?.closest(".movements-section");
+    const tableContainer = movementTableBody?.closest(".movements-table-container");
+    if (!section || !tableContainer) return null;
+    pagination = document.createElement("div");
+    pagination.id = "movementPagination";
+    pagination.className = "movement-pagination";
+    tableContainer.insertAdjacentElement("afterend", pagination);
+    return pagination;
 }
-
-
+function renderMovementPagination(total) {
+    const pagination = getMovementPaginationElement();
+    if (!pagination) return;
+    const perPage = 10;
+    const totalPages = Math.max(1, Math.ceil(total / perPage));
+    if (movementCurrentPage > totalPages) movementCurrentPage = totalPages;
+    if (total === 0) {
+        pagination.innerHTML = "";
+        pagination.style.display = "none";
+        return;
+    }
+    const start = (movementCurrentPage - 1) * perPage + 1;
+    const end = Math.min(movementCurrentPage * perPage, total);
+    pagination.style.display = "flex";
+    pagination.innerHTML = `
+        <div class="movement-pagination-info">
+            Showing <strong>${start}-${end}</strong> of <strong>${total}</strong> transactions
+        </div>
+        <div class="movement-pagination-controls">
+            <button type="button" class="movement-page-button" data-movement-page="prev" ${movementCurrentPage <= 1 ? "disabled" : ""} aria-label="Previous page">‹</button>
+            <span class="movement-page-status">Page <strong>${movementCurrentPage}</strong> of <strong>${totalPages}</strong></span>
+            <button type="button" class="movement-page-button" data-movement-page="next" ${movementCurrentPage >= totalPages ? "disabled" : ""} aria-label="Next page">›</button>
+        </div>`;
+    pagination.querySelector('[data-movement-page="prev"]')?.addEventListener("click", () => {
+        if (movementCurrentPage > 1) {
+            movementCurrentPage--;
+            renderMovements();
+        }
+    });
+    pagination.querySelector('[data-movement-page="next"]')?.addEventListener("click", () => {
+        if (movementCurrentPage < totalPages) {
+            movementCurrentPage++;
+            renderMovements();
+        }
+    });
+}
+function renderMovements() {
+    if (!movementTableBody) return;
+    movementTableBody.innerHTML = "";
+    const from = movementFromDate ? new Date(`${movementFromDate}T00:00:00`) : null;
+    const to = movementToDate ? new Date(`${movementToDate}T23:59:59.999`) : null;
+    const visibleMovements = movements.filter(movement => {
+        if (!(movement.createdAt instanceof Date) || Number.isNaN(movement.createdAt.getTime())) return !from && !to;
+        if (from && movement.createdAt < from) return false;
+        if (to && movement.createdAt > to) return false;
+        return true;
+    });
+    if (!visibleMovements.length) {
+        movementCurrentPage = 1;
+        if (movementEmpty) {
+            movementEmpty.style.display = "block";
+            movementEmpty.textContent = movements.length ? "No transactions found for the selected dates." : "No stock movements recorded yet.";
+        }
+        renderMovementPagination(0);
+        return;
+    }
+    if (movementEmpty) movementEmpty.style.display = "none";
+    const perPage = 10;
+    const totalPages = Math.ceil(visibleMovements.length / perPage);
+    if (movementCurrentPage > totalPages) movementCurrentPage = totalPages;
+    const startIndex = (movementCurrentPage - 1) * perPage;
+    const pageMovements = visibleMovements.slice(startIndex, startIndex + perPage);
+    pageMovements.forEach(movement => {
+        const row = document.createElement("tr");
+        const date = movement.createdAt instanceof Date ? movement.createdAt.toLocaleString("en-PH", { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
+        const type = String(movement.type || "Movement");
+        const normalizedType = type.toLowerCase();
+        const typeClass = normalizedType.includes("stock in") ? "movement-in" : normalizedType.includes("sale") || normalizedType.includes("stock out") ? "movement-out" : normalizedType.includes("reservation") ? "movement-reservation" : "movement-adjustment";
+        const quantity = Number(movement.quantity || 0);
+        const quantityClass = quantity > 0 ? "quantity-in" : quantity < 0 ? "quantity-out" : "quantity-neutral";
+        const quantityText = quantity > 0 ? `+${quantity}` : quantity;
+        const transaction = movement.transactionNumber || "—";
+        row.innerHTML = `
+            <td>${escapeHTML(date)}</td>
+            <td><strong>${escapeHTML(movement.product || "Unknown Product")}</strong></td>
+            <td><span class="movement-type ${typeClass}">${escapeHTML(type)}</span></td>
+            <td><span class="${quantityClass}">${escapeHTML(quantityText)}</span></td>
+            <td>${escapeHTML(movement.reason || "—")}</td>
+            <td>${escapeHTML(transaction)}</td>
+            <td>${escapeHTML(movement.user || "Administrator")}</td>`;
+        movementTableBody.appendChild(row);
+    });
+    renderMovementPagination(visibleMovements.length);
+}
 /* =========================================================
    CURRENT STOCK
 ========================================================= */
@@ -2798,11 +2408,28 @@ if (globalSearch) {
 
 
 /* =========================================================
-   START SIDEBAR
+   MOVEMENT DATE FILTER
 ========================================================= */
-
-loadSidebar();
-
+function applyMovementDateFilters() {
+    movementCurrentPage = 1;
+    movementFromDate = movementFromDateInput?.value || "";
+    movementToDate = movementToDateInput?.value || "";
+    if (movementFromDate && movementToDate && movementFromDate > movementToDate) {
+        alert("From Date cannot be later than To Date.");
+        return;
+    }
+    renderMovements();
+}
+function clearMovementDateFilters() {
+    movementCurrentPage = 1;
+    movementFromDate = "";
+    movementToDate = "";
+    if (movementFromDateInput) movementFromDateInput.value = "";
+    if (movementToDateInput) movementToDateInput.value = "";
+    renderMovements();
+}
+if (applyMovementDateFilter) applyMovementDateFilter.addEventListener("click", applyMovementDateFilters);
+if (clearMovementDateFilter) clearMovementDateFilter.addEventListener("click", clearMovementDateFilters);
 
 /* =========================================================
    AUTH
@@ -2892,6 +2519,7 @@ onAuthStateChanged(
         listenToProducts();
 
         listenToMovements();
+        listenToSalesForMovements();
 
     }
 

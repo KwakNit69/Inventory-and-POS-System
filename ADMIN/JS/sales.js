@@ -464,6 +464,35 @@ function normalizeSale(snapshot) {
                     Number(
                         item.price
                     ) || 0,
+                sellingPrice:
+                    Number(
+                        item.sellingPrice ??
+                        item.price
+                    ) || 0,
+                costPrice:
+                    Number(
+                        item.costPrice
+                    ) || 0,
+                profit:
+                    Number(
+                        item.profit
+                    ) || (
+                        (
+                            Number(
+                                item.sellingPrice ??
+                                item.price
+                            ) || 0
+                        ) -
+                        (
+                            Number(
+                                item.costPrice
+                            ) || 0
+                        )
+                    ) * (
+                        Number(
+                            item.quantity
+                        ) || 0
+                    ),
                 total:
                     Number(
                         item.total
@@ -542,6 +571,36 @@ function normalizeSale(snapshot) {
             Number(data.discount) || 0,
         total:
             Number(data.total) || 0,
+        totalCost:
+            Number(
+                data.totalCost
+            ) || items.reduce(
+                (sum, item) =>
+                    sum +
+                    (
+                        Number(item.costPrice) || 0
+                    ) *
+                    (
+                        Number(item.quantity) || 0
+                    ),
+                0
+            ),
+        grossProfit:
+            Number(
+                data.grossProfit ??
+                data.profit
+            ) || items.reduce(
+                (sum, item) =>
+                    sum +
+                    (
+                        Number(item.profit) || 0
+                    ),
+                0
+            ),
+        potentialProfit:
+            Number(
+                data.potentialProfit
+            ) || 0,
         cash:
             Number(
                 data.cashReceived ??
@@ -574,6 +633,45 @@ function normalizeSale(snapshot) {
             data
     };
 }
+/* =========================================================
+   COMPLETION / PROFIT HELPERS
+========================================================= */
+function isCompletedSale(sale) {
+    return String(sale?.status || "").trim().toLowerCase() === "completed";
+}
+function getSaleCost(sale) {
+    return Number(sale?.totalCost) || sale.items.reduce(
+        (sum, item) =>
+            sum +
+            (Number(item.costPrice) || 0) *
+            (Number(item.quantity) || 0),
+        0
+    );
+}
+function getSaleProfit(sale) {
+    if (!isCompletedSale(sale)) {
+        return 0;
+    }
+    if (Number.isFinite(Number(sale?.grossProfit)) && Number(sale?.grossProfit) !== 0) {
+        return Number(sale.grossProfit);
+    }
+    return sale.items.reduce(
+        (sum, item) =>
+            sum +
+            (Number(item.profit) || (
+                (
+                    Number(item.sellingPrice ?? item.price) || 0
+                ) -
+                (Number(item.costPrice) || 0)
+            ) *
+            (Number(item.quantity) || 0)),
+        0
+    );
+}
+function getCompletedSales(list = filteredSales) {
+    return list.filter(isCompletedSale);
+}
+
 /* =========================================================
    PAYMENT AMOUNTS
 ========================================================= */
@@ -1138,76 +1236,48 @@ function render() {
    UPDATE SUMMARY
 ========================================================= */
 function updateSummary() {
-    /*
-       IMPORTANT:
-       Summary now uses filteredSales
-       so the cards match the selected
-       date filter.
-    */
-    const completed =
-        filteredSales.filter(
-            s =>
-                !s.status ||
-                s.status
-                    .toLowerCase() ===
-                "completed" ||
-                String(
-                    s.paymentStatus ||
-                    ""
-                ).toLowerCase() ===
-                "paid" ||
-                s.paymentCompleted === true
-        );
-    const total =
-        completed.reduce(
-            (sum, s) =>
-                sum +
-                (
-                    Number(s.total) ||
-                    0
-                ),
-            0
-        );
-    const count =
-        completed.length;
-    const average =
-        count
-            ? total / count
-            : 0;
-    const selectedFilter =
-        dateFilter.value;
-    const selectedSpecificDate =
-        specificDateFilter.value;
-    document.getElementById(
-        "totalSales"
-    ).textContent =
-        money(total);
-    document.getElementById(
-        "totalTransactions"
-    ).textContent =
-        count;
-    document.getElementById(
-        "averageTransaction"
-    ).textContent =
-        money(average);
-    document.getElementById(
-        "todaySales"
-    ).textContent =
-        money(total);
-    document.getElementById(
-        "totalSalesNote"
-    ).textContent =
-        `${getDateFilterLabel(
-            selectedFilter,
-            selectedSpecificDate
-        )} sales`;
-    document.getElementById(
-        "todaySalesNote"
-    ).textContent =
-        getDateFilterLabel(
-            selectedFilter,
-            selectedSpecificDate
-        );
+    const completed = getCompletedSales(filteredSales);
+    const total = completed.reduce(
+        (sum, sale) =>
+            sum + (Number(sale.total) || 0),
+        0
+    );
+    const totalCost = completed.reduce(
+        (sum, sale) =>
+            sum + getSaleCost(sale),
+        0
+    );
+    const grossProfit = completed.reduce(
+        (sum, sale) =>
+            sum + getSaleProfit(sale),
+        0
+    );
+    const count = completed.length;
+    const average = count ? total / count : 0;
+    const selectedFilter = dateFilter.value;
+    const selectedSpecificDate = specificDateFilter.value;
+    const totalSalesElement = document.getElementById("totalSales");
+    const totalTransactionsElement = document.getElementById("totalTransactions");
+    const averageTransactionElement = document.getElementById("averageTransaction");
+    const todaySalesElement = document.getElementById("todaySales");
+    if (totalSalesElement) totalSalesElement.textContent = money(total);
+    if (totalTransactionsElement) totalTransactionsElement.textContent = count;
+    if (averageTransactionElement) averageTransactionElement.textContent = money(average);
+    if (todaySalesElement) todaySalesElement.textContent = money(total);
+    const totalSalesNote = document.getElementById("totalSalesNote");
+    const todaySalesNote = document.getElementById("todaySalesNote");
+    if (totalSalesNote) totalSalesNote.textContent = `${getDateFilterLabel(selectedFilter, selectedSpecificDate)} sales`;
+    if (todaySalesNote) todaySalesNote.textContent = getDateFilterLabel(selectedFilter, selectedSpecificDate);
+    const totalCostElement = document.getElementById("totalCost");
+    const grossProfitElement = document.getElementById("grossProfit");
+    const profitMarginElement = document.getElementById("profitMargin");
+    if (totalCostElement) totalCostElement.textContent = money(totalCost);
+    if (grossProfitElement) grossProfitElement.textContent = money(grossProfit);
+    if (profitMarginElement) {
+        profitMarginElement.textContent = total > 0
+            ? `${((grossProfit / total) * 100).toFixed(2)}%`
+            : "0.00%";
+    }
 }
 /* =========================================================
    BREAKDOWN
@@ -1252,7 +1322,7 @@ function renderBreakdown() {
        every sale so breakdown follows
        the selected date.
     */
-    filteredSales.forEach(
+    getCompletedSales(filteredSales).forEach(
         sale => {
             const amounts =
                 getPaymentAmounts(
@@ -1429,6 +1499,10 @@ function openTransaction(id) {
         money(
             sale.total
         );
+    const detailTotalCost = document.getElementById("detailTotalCost");
+    const detailProfit = document.getElementById("detailProfit");
+    if (detailTotalCost) detailTotalCost.textContent = money(getSaleCost(sale));
+    if (detailProfit) detailProfit.textContent = money(getSaleProfit(sale));
     document.getElementById(
         "detailCash"
     ).textContent =
@@ -1652,6 +1726,9 @@ function exportSalesCSV() {
         "Subtotal",
         "Discount",
         "Total",
+        "Total Cost",
+        "Gross Profit",
+        "Profit Margin",
         "Cashier",
         "Status"
     ];
@@ -1671,6 +1748,11 @@ function exportSalesCSV() {
                 sale.subtotal,
                 sale.discount,
                 sale.total,
+                isCompletedSale(sale) ? getSaleCost(sale) : 0,
+                isCompletedSale(sale) ? getSaleProfit(sale) : 0,
+                isCompletedSale(sale) && Number(sale.total) > 0
+                    ? `${((getSaleProfit(sale) / Number(sale.total)) * 100).toFixed(2)}%`
+                    : "0.00%",
                 sale.cashier,
                 sale.status
             ]

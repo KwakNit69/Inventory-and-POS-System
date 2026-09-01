@@ -1,7 +1,6 @@
 import { auth, db } from "../../Firebase/firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-
 const salesBody = document.getElementById("salesBody");
 const salesSearch = document.getElementById("salesSearch");
 const dateFilter = document.getElementById("dateFilter");
@@ -33,21 +32,17 @@ const modalTotal = document.getElementById("modalTotal");
 const modalItems = document.getElementById("modalItems");
 const modalPaid = document.getElementById("modalPaid");
 const modalChange = document.getElementById("modalChange");
-
 let currentUser = null;
 let sales = [];
 let filteredSales = [];
 let currentPage = 1;
 const pageSize = 10;
-
 const money = value => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value) || 0);
-
 const initials = name => {
     const parts = String(name || "Staff").trim().split(/\s+/);
     if (parts.length > 1) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     return String(name || "ST").substring(0, 2).toUpperCase();
 };
-
 const getDate = value => {
     if (!value) return null;
     if (typeof value.toDate === "function") return value.toDate();
@@ -59,11 +54,8 @@ const getDate = value => {
     if (typeof value === "number") return new Date(value);
     return null;
 };
-
 const getTotal = sale => Number(sale.total ?? sale.amount ?? sale.grandTotal ?? sale.totalAmount ?? 0);
-
 const getDiscount = sale => Number(sale.discountAmount ?? sale.discount ?? sale.discountValue ?? sale.discountPrice ?? 0);
-
 const getSubtotal = sale => {
     const direct = Number(sale.subtotal ?? sale.subTotal ?? sale.beforeDiscount ?? sale.amountBeforeDiscount ?? 0);
     if (direct > 0) return direct;
@@ -71,14 +63,11 @@ const getSubtotal = sale => {
     const discount = getDiscount(sale);
     return total + discount;
 };
-
 const getItems = sale => {
     if (Array.isArray(sale.items)) return sale.items.reduce((sum, item) => sum + Number(item.quantity ?? item.qty ?? 1), 0);
     return Number(sale.itemCount ?? sale.itemsCount ?? sale.quantity ?? 0);
 };
-
 const getPayment = sale => {
-
     const raw =
         String(
             sale.paymentMethod ??
@@ -86,22 +75,32 @@ const getPayment = sale => {
             sale.method ??
             "Unknown"
         ).trim();
-
     if (raw.toLowerCase() === "split") {
         return "Split Payment";
     }
-
     return raw || "Unknown";
 };
-
 const getCashier = sale => String(sale.cashierUid ?? sale.cashierId ?? sale.userId ?? sale.createdBy ?? sale.staffUid ?? "");
-
 const getSaleDate = sale => getDate(sale.createdAt ?? sale.dateTime ?? sale.timestamp ?? sale.date ?? sale.created_at);
-
 const getTransaction = sale => String(sale.transactionNumber ?? sale.transactionId ?? sale.referenceNumber ?? sale.id);
-
 const getStatus = sale => String(sale.status ?? "Completed");
-
+const isCompletedSale = sale => getStatus(sale).trim().toLowerCase() === "completed";
+const getSaleCost = sale => {
+    if (!isCompletedSale(sale)) return 0;
+    if (Number.isFinite(Number(sale.totalCost))) return Number(sale.totalCost) || 0;
+    return Array.isArray(sale.items) ? sale.items.reduce((sum, item) => sum + (Number(item.costPrice) || 0) * (Number(item.quantity ?? item.qty ?? 1) || 0), 0) : 0;
+};
+const getSaleProfit = sale => {
+    if (!isCompletedSale(sale)) return 0;
+    if (Number.isFinite(Number(sale.grossProfit)) && Number(sale.grossProfit) !== 0) return Number(sale.grossProfit);
+    if (Number.isFinite(Number(sale.profit)) && Number(sale.profit) !== 0) return Number(sale.profit);
+    return Array.isArray(sale.items) ? sale.items.reduce((sum, item) => {
+        const quantity = Number(item.quantity ?? item.qty ?? 1) || 0;
+        const sellingPrice = Number(item.sellingPrice ?? item.price ?? item.unitPrice ?? 0) || 0;
+        const costPrice = Number(item.costPrice) || 0;
+        return sum + (Number(item.profit) || (sellingPrice - costPrice) * quantity);
+    }, 0) : 0;
+};
 /*
  * Payment fields used by the new Admin/Staff POS format.
  */
@@ -114,27 +113,21 @@ const getTotalPaid = sale =>
         sale.cash ??
         sale.total
     ) || 0;
-
 const getChange = sale =>
     Math.max(
         0,
         Number(sale.change) || 0
     );
-
-
 const showError = error => {
     console.error("Sales error:", error);
     salesError.classList.add("show");
     salesErrorMessage.textContent = error?.message || "Unable to load sales from Firebase.";
 };
-
 const hideError = () => salesError.classList.remove("show");
-
 const isToday = date => {
     const now = new Date();
     return date && date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
 };
-
 const isThisWeek = date => {
     if (!date) return false;
     const now = new Date();
@@ -145,18 +138,15 @@ const isThisWeek = date => {
     start.setHours(0, 0, 0, 0);
     return date >= start && date <= now;
 };
-
 const isThisMonth = date => {
     const now = new Date();
     return date && date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
 };
-
 const loadStaffInfo = user => {
     const name = sessionStorage.getItem("userName") || user.displayName || user.email?.split("@")[0] || "Staff";
     staffName.textContent = name;
     staffAvatar.textContent = initials(name);
 };
-
 /*
  * =========================================================
  * PAYMENT AMOUNTS
@@ -167,7 +157,6 @@ const loadStaffInfo = user => {
  * by the customer and may include change.
  */
 const getPaymentAmounts = sale => {
-
     const amounts = {
         Cash: 0,
         GCash: 0,
@@ -175,7 +164,6 @@ const getPaymentAmounts = sale => {
         BIBO: 0,
         BPI: 0
     };
-
     const payment =
         String(
             sale.paymentMethod ??
@@ -185,10 +173,8 @@ const getPaymentAmounts = sale => {
         )
         .trim()
         .toLowerCase();
-
     const total =
         getTotal(sale);
-
     const singleMethod = {
         cash: "Cash",
         gcash: "GCash",
@@ -196,74 +182,57 @@ const getPaymentAmounts = sale => {
         bibo: "BIBO",
         bpi: "BPI"
     };
-
     if (singleMethod[payment]) {
         amounts[singleMethod[payment]] = total;
         return amounts;
     }
-
     const breakdown =
         sale.paymentBreakdown || {};
-
     let breakdownTotal = 0;
-
     Object.keys(amounts).forEach(method => {
-
         const amount =
             Number(breakdown[method]) || 0;
-
         if (amount > 0) {
             amounts[method] = amount;
             breakdownTotal += amount;
         }
     });
-
     if (
         breakdownTotal > 0 &&
         Math.abs(breakdownTotal - total) <= 0.005
     ) {
         return amounts;
     }
-
     Object.keys(amounts).forEach(method => {
         amounts[method] = 0;
     });
-
     if (Array.isArray(sale.splitPayments)) {
-
         sale.splitPayments.forEach(item => {
-
             const raw =
                 String(item.method || "")
                     .trim()
                     .toLowerCase();
-
             const method =
                 singleMethod[raw];
-
             const amount =
                 Number(item.amount) || 0;
-
             if (method && amount > 0) {
                 amounts[method] += amount;
             }
         });
     }
-
     const legacyTotal =
         Object.values(amounts)
             .reduce(
                 (sum, value) => sum + value,
                 0
             );
-
     if (
         legacyTotal > 0 &&
         Math.abs(legacyTotal - total) <= 0.005
     ) {
         return amounts;
     }
-
     /*
      * Safe fallback for old records.
      * Never let customer tendered cash inflate revenue.
@@ -271,17 +240,12 @@ const getPaymentAmounts = sale => {
     Object.keys(amounts).forEach(method => {
         amounts[method] = 0;
     });
-
     amounts.Cash = total;
-
     return amounts;
 };
-
 const getPaymentTransactions = sale => {
-
     const amounts =
         getPaymentAmounts(sale);
-
     return {
         Cash: amounts.Cash > 0 ? 1 : 0,
         GCash: amounts.GCash > 0 ? 1 : 0,
@@ -290,7 +254,6 @@ const getPaymentTransactions = sale => {
         BPI: amounts.BPI > 0 ? 1 : 0
     };
 };
-
 const loadSales = async () => {
     hideError();
     salesBody.innerHTML = '<tr><td colspan="9" class="empty-cell">Loading sales...</td></tr>';
@@ -307,7 +270,6 @@ const loadSales = async () => {
     updateSummary();
     applyFilters();
 };
-
 const updateSummary = () => {
     const today =
         sales.filter(
@@ -317,17 +279,14 @@ const updateSummary = () => {
                     .toLowerCase() ===
                 "completed"
         );
-
     const total =
         today.reduce(
             (sum, sale) =>
                 sum + getTotal(sale),
             0
         );
-
     const count =
         today.length;
-
     const items =
         today.reduce(
             (sum, sale) =>
@@ -338,8 +297,15 @@ const updateSummary = () => {
     transactionCount.textContent = count;
     itemsSold.textContent = items;
     averageSale.textContent = money(count ? total / count : 0);
+    const todayCost = today.reduce((sum, sale) => sum + getSaleCost(sale), 0);
+    const todayProfit = today.reduce((sum, sale) => sum + getSaleProfit(sale), 0);
+    const profitElement = document.getElementById("todayProfit");
+    const costElement = document.getElementById("todayCost");
+    const marginElement = document.getElementById("todayProfitMargin");
+    if (profitElement) profitElement.textContent = money(todayProfit);
+    if (costElement) costElement.textContent = money(todayCost);
+    if (marginElement) marginElement.textContent = total > 0 ? `${((todayProfit / total) * 100).toFixed(2)}%` : "0.00%";
 };
-
 const applyFilters = () => {
     const search = salesSearch.value.trim().toLowerCase();
     const date = dateFilter.value;
@@ -355,12 +321,9 @@ const applyFilters = () => {
         if (date === "week") matchesDate = isThisWeek(saleDate);
         if (date === "month") matchesDate = isThisMonth(saleDate);
         let matchesPayment = true;
-
         if (payment !== "all") {
-
             const filterValue =
                 payment.toLowerCase();
-
             if (
                 filterValue === "split" ||
                 filterValue === "split payment"
@@ -370,7 +333,6 @@ const applyFilters = () => {
                         .toLowerCase() ===
                     "split payment";
             } else {
-
                 const method =
                     filterValue === "cash" ? "Cash" :
                     filterValue === "gcash" ? "GCash" :
@@ -378,7 +340,6 @@ const applyFilters = () => {
                     filterValue === "bibo" ? "BIBO" :
                     filterValue === "bpi" ? "BPI" :
                     null;
-
                 if (method) {
                     matchesPayment =
                         getPaymentAmounts(sale)[method] > 0;
@@ -390,13 +351,11 @@ const applyFilters = () => {
                 }
             }
         }
-
         return matchesSearch && matchesDate && matchesPayment;
     });
     currentPage = 1;
     renderTable();
 };
-
 const renderTable = () => {
     const totalPages = Math.max(1, Math.ceil(filteredSales.length / pageSize));
     if (currentPage > totalPages) currentPage = totalPages;
@@ -438,9 +397,7 @@ const renderTable = () => {
         button.addEventListener("click", () => openSale(button.dataset.id));
     });
 };
-
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
-
 const openSale = id => {
     const sale = sales.find(item => item.id === id);
     if (!sale) return;
@@ -455,11 +412,16 @@ const openSale = id => {
     modalSubtotal.textContent = money(subtotal);
     modalDiscount.textContent = money(discount);
     modalTotal.textContent = money(total);
+    const modalCost = document.getElementById("modalCost");
+    const modalProfit = document.getElementById("modalProfit");
+    const modalMargin = document.getElementById("modalProfitMargin");
+    if (modalCost) modalCost.textContent = money(getSaleCost(sale));
+    if (modalProfit) modalProfit.textContent = money(getSaleProfit(sale));
+    if (modalMargin) modalMargin.textContent = total > 0 ? `${((getSaleProfit(sale) / total) * 100).toFixed(2)}%` : "0.00%";
     modalPaid.textContent =
         money(
             getTotalPaid(sale)
         );
-
     modalChange.textContent =
         money(
             getChange(sale)
@@ -478,18 +440,15 @@ const openSale = id => {
     }
     saleModal.classList.add("show");
 };
-
 salesSearch.addEventListener("input", applyFilters);
 dateFilter.addEventListener("change", applyFilters);
 paymentFilter.addEventListener("change", applyFilters);
-
 resetFilters.addEventListener("click", () => {
     salesSearch.value = "";
     dateFilter.value = "all";
     paymentFilter.value = "all";
     applyFilters();
 });
-
 refreshSales.addEventListener("click", async () => {
     if (!currentUser) return;
     try {
@@ -498,7 +457,6 @@ refreshSales.addEventListener("click", async () => {
         showError(error);
     }
 });
-
 retryButton.addEventListener("click", async () => {
     if (!currentUser) return;
     try {
@@ -507,14 +465,12 @@ retryButton.addEventListener("click", async () => {
         showError(error);
     }
 });
-
 previousPage.addEventListener("click", () => {
     if (currentPage > 1) {
         currentPage--;
         renderTable();
     }
 });
-
 nextPage.addEventListener("click", () => {
     const totalPages = Math.max(1, Math.ceil(filteredSales.length / pageSize));
     if (currentPage < totalPages) {
@@ -522,17 +478,13 @@ nextPage.addEventListener("click", () => {
         renderTable();
     }
 });
-
 closeModal.addEventListener("click", () => saleModal.classList.remove("show"));
-
 saleModal.addEventListener("click", event => {
     if (event.target === saleModal) saleModal.classList.remove("show");
 });
-
 document.addEventListener("keydown", event => {
     if (event.key === "Escape") saleModal.classList.remove("show");
 });
-
 onAuthStateChanged(auth, async user => {
     if (!user) {
         window.location.href = "../login.html?role=staff";

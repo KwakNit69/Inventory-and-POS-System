@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -8,7 +7,6 @@
     <link rel="stylesheet" href="ADMIN/CSS/dashboard.css">
     <link rel="stylesheet" href="sidebar.css">
 </head>
-
 <body>
     <div class="app-shell">
         <div id="sidebar-container"></div>
@@ -41,20 +39,16 @@
                         <button data-period="month">This Month</button>
                         <button data-period="custom">Specific Date</button>
                     </div>
-
                     <div class="custom-date-filter" id="customDateFilter">
                         <label>
                             <span>From</span>
                             <input type="date" id="startDate">
                         </label>
-
                         <span class="date-arrow">→</span>
-
                         <label>
                             <span>To</span>
                             <input type="date" id="endDate">
                         </label>
-
                         <button type="button" id="applyDateFilter">Apply</button>
                     </div>
                 </div>
@@ -124,6 +118,14 @@
                                 <small id="totalFundsNote">Cash + GCash + BDO + BIBO + BPI</small>
                             </div>
                         </div>
+                        <div class="fund-card profit-card">
+                            <div class="fund-icon">↗</div>
+                            <div class="fund-info">
+                                <span>Total Profit</span>
+                                <strong id="totalProfit">₱0.00</strong>
+                                <small id="totalProfitNote">Gross profit for selected period</small>
+                            </div>
+                        </div>
                     </div>
                 </section>
                 <section class="activity-section">
@@ -182,13 +184,11 @@
                             <h2>Cash Flow Report</h2>
                             <p>Monthly ending balance, total cash receipts, and total cash payments.</p>
                         </div>
-
                         <div class="report-year-control">
                             <label for="reportYear">Report Year</label>
                             <select id="reportYear"></select>
                         </div>
                     </div>
-
                     <div class="report-charts">
                         <section class="report-chart-card">
                             <h3>MONTHLY ENDING BALANCE</h3>
@@ -196,14 +196,12 @@
                                 <canvas id="monthlyEndingChart"></canvas>
                             </div>
                         </section>
-
                         <section class="report-chart-card">
                             <h3>TOTAL CASH IN / RECEIPTS</h3>
                             <div class="report-chart-wrap">
                                 <canvas id="monthlyCashInChart"></canvas>
                             </div>
                         </section>
-
                         <section class="report-chart-card">
                             <h3>TOTAL CASH OUT / PAYMENTS</h3>
                             <div class="report-chart-wrap">
@@ -211,7 +209,6 @@
                             </div>
                         </section>
                     </div>
-
                     <div class="monthly-table-wrap">
                         <table class="monthly-report-table">
                             <thead>
@@ -247,7 +244,6 @@
                                     <td id="reportBeginning-10">-</td>
                                     <td id="reportBeginning-11">-</td>
                                 </tr>
-
                                 <tr>
                                     <th>Total Cash In / Receipts</th>
                                     <td id="reportCashIn-0">-</td>
@@ -263,7 +259,6 @@
                                     <td id="reportCashIn-10">-</td>
                                     <td id="reportCashIn-11">-</td>
                                 </tr>
-
                                 <tr>
                                     <th>Total Cash Out / Payments</th>
                                     <td id="reportCashOut-0">-</td>
@@ -279,7 +274,6 @@
                                     <td id="reportCashOut-10">-</td>
                                     <td id="reportCashOut-11">-</td>
                                 </tr>
-
                                 <tr class="ending-row">
                                     <th>Ending Cash Balance</th>
                                     <td id="reportEnding-0">-</td>
@@ -299,7 +293,6 @@
                         </table>
                     </div>
                 </section>
-
                 <div id="dashboardError" class="dashboard-error"></div>
                 <div class="overview">
                     <section class="panel chart-panel">
@@ -350,5 +343,4 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="ADMIN/JS/dashboard.js"></script>
 </body>
-
 </html>

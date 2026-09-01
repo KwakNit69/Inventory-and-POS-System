@@ -397,77 +397,43 @@
 
 
                 <!-- STOCK MOVEMENTS -->
-
                 <div class="movements-section">
-
-                    <div class="section-header">
-
-                        <div>
-
-                            <h2>
-                                Recent Stock Movements
-                            </h2>
-
-                            <p>
-                                Track the latest inventory changes.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="movements-table-container">
-
-                        <table class="movements-table">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>
-                                        DATE
-                                    </th>
-
-                                    <th>
-                                        PRODUCT
-                                    </th>
-
-                                    <th>
-                                        TYPE
-                                    </th>
-
-                                    <th>
-                                        QUANTITY
-                                    </th>
-
-                                    <th>
-                                        REASON
-                                    </th>
-
-                                    <th>
-                                        STAFF / ADMIN
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-
-                            <tbody id="movementTableBody"></tbody>
-
-                        </table>
-
-
-                        <div class="movement-empty" id="movementEmpty">
-                            No stock movements recorded yet.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
+    <div class="section-header">
+        <div>
+            <h2>Stock Movement History</h2>
+            <p>Track every inventory transaction and stock change.</p>
+        </div>
+    </div>
+    <div class="movement-date-filter">
+        <div class="movement-date-field">
+            <label for="movementFromDate">From Date</label>
+            <input type="date" id="movementFromDate">
+        </div>
+        <div class="movement-date-field">
+            <label for="movementToDate">To Date</label>
+            <input type="date" id="movementToDate">
+        </div>
+        <button class="movement-filter-btn" id="applyMovementDateFilter" type="button">Apply</button>
+        <button class="movement-clear-btn" id="clearMovementDateFilter" type="button">Clear</button>
+    </div>
+    <div class="movements-table-container">
+        <table class="movements-table">
+            <thead>
+                <tr>
+                    <th>DATE</th>
+                    <th>PRODUCT</th>
+                    <th>TYPE</th>
+                    <th>QUANTITY</th>
+                    <th>REASON</th>
+                    <th>TRANSACTION #</th>
+                    <th>STAFF / ADMIN</th>
+                </tr>
+            </thead>
+            <tbody id="movementTableBody"></tbody>
+        </table>
+        <div class="movement-empty" id="movementEmpty">No stock movements recorded yet.</div>
+    </div>
+</div></section>
 
         </main>
 
@@ -644,7 +610,8 @@
     </div>
 
 
-    <script type="module" src="ADMIN/JS/inventory.js?v=11"></script>
+    <script src="sidebar.js?v=10"></script>
+    <script type="module" src="ADMIN/JS/inventory.js?v=12"></script>
 
 </body>
 

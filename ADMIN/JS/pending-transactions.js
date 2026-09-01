@@ -77,6 +77,52 @@ const getItems = transaction => {
         0
     );
 };
+const getCostPrice = item => {
+    const value = Number(
+        item.costPrice ??
+        item.cost ??
+        item.unitCost ??
+        item.purchasePrice ??
+        0
+    );
+    return Number.isFinite(value) ? value : 0;
+};
+const getSellingPrice = item => {
+    const value = Number(
+        item.sellingPrice ??
+        item.price ??
+        item.unitPrice ??
+        0
+    );
+    return Number.isFinite(value) ? value : 0;
+};
+const getItemQuantity = item =>
+    Number(item.quantity ?? item.qty ?? 1) || 0;
+const calculateSaleCost = items =>
+    (Array.isArray(items) ? items : []).reduce(
+        (sum, item) =>
+            sum +
+            getCostPrice(item) *
+            getItemQuantity(item),
+        0
+    );
+const calculateSaleProfit = items =>
+    (Array.isArray(items) ? items : []).reduce(
+        (sum, item) => {
+            const quantity = getItemQuantity(item);
+            const directProfit = Number(item.profit);
+            if (Number.isFinite(directProfit)) {
+                return sum + directProfit;
+            }
+            return sum +
+                (
+                    getSellingPrice(item) -
+                    getCostPrice(item)
+                ) *
+                quantity;
+        },
+        0
+    );
 const getCustomer = transaction =>
     String(
         transaction.customer ??
@@ -740,6 +786,14 @@ const completePendingOrder = async transactionData => {
                         staffEmail:
                             currentUser?.email ||
                             "",
+                        totalCost:
+                            calculateSaleCost(
+                                currentSale.items
+                            ),
+                        grossProfit:
+                            calculateSaleProfit(
+                                currentSale.items
+                            ),
                         createdAt:
                             timestamp,
                         date:
@@ -778,6 +832,19 @@ const completePendingOrder = async transactionData => {
                         stockDeducted: true,
                         inventoryMovementId:
                             movementRef.id,
+                        totalCost:
+                            calculateSaleCost(
+                                currentSale.items
+                            ),
+                        grossProfit:
+                            calculateSaleProfit(
+                                currentSale.items
+                            ),
+                        profit:
+                            calculateSaleProfit(
+                                currentSale.items
+                            ),
+                        potentialProfit: 0,
                         cashFlowRecorded:
                             currentSale.cashFlowRecorded === true
                     }

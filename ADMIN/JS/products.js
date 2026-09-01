@@ -138,6 +138,7 @@ async function loadProducts() {
         sku: data.sku || "",
         category: data.category || "",
         price: Number(data.price) || 0,
+        costPrice: data.costPrice === undefined || data.costPrice === null || data.costPrice === "" ? null : Number(data.costPrice),
         stock: Number(data.stock) || 0,
         lowStock: Number(data.lowStock) || 10,
         description: data.description || "",
@@ -272,6 +273,7 @@ function renderProducts() {
       </td>
       <td>${escapeHTML(product.sku)}</td>
       <td>${escapeHTML(product.category)}</td>
+      <td>${product.costPrice === null || !Number.isFinite(product.costPrice) ? "—" : `₱${product.costPrice.toFixed(2)}`}</td>
       <td>₱${product.price.toFixed(2)}</td>
       <td class="${product.stock <= 0 ? "stock-out" : product.stock <= product.lowStock ? "stock-low" : ""}">${product.stock}</td>
       <td><span class="status ${status.className}">${status.text}</span></td>
@@ -439,6 +441,7 @@ function openEditProduct(id) {
   const productName = document.getElementById("productName");
   const productSku = document.getElementById("productSku");
   const productCategory = document.getElementById("productCategory");
+  const productCostPrice = document.getElementById("productCostPrice");
   const productPrice = document.getElementById("productPrice");
   const productStock = document.getElementById("productStock");
   const productLowStock = document.getElementById("productLowStock");
@@ -449,6 +452,7 @@ function openEditProduct(id) {
   if (productName) productName.value = product.name;
   if (productSku) productSku.value = product.sku;
   if (productCategory) productCategory.value = product.category;
+  if (productCostPrice) productCostPrice.value = product.costPrice === null || !Number.isFinite(product.costPrice) ? "" : product.costPrice;
   if (productPrice) productPrice.value = product.price;
   if (productStock) productStock.value = product.stock;
   if (productLowStock) productLowStock.value = product.lowStock;
@@ -513,6 +517,7 @@ async function saveProduct(event) {
     const skuInput = document.getElementById("productSku");
     if (skuInput) skuInput.value = sku;
     const category = document.getElementById("productCategory").value;
+    const costPrice = Number(document.getElementById("productCostPrice").value);
     const price = Number(document.getElementById("productPrice").value);
     const stock = Number(document.getElementById("productStock").value);
     const lowStock = Number(document.getElementById("productLowStock").value);
@@ -524,6 +529,10 @@ async function saveProduct(event) {
     }
     if (!category) {
       alert("Please select a category.");
+      return;
+    }
+    if (!Number.isFinite(costPrice) || costPrice < 0) {
+      alert("Please enter a valid cost price.");
       return;
     }
     if (!Number.isFinite(price) || price < 0) {
@@ -549,6 +558,7 @@ async function saveProduct(event) {
       name,
       sku,
       category,
+      costPrice,
       price,
       stock,
       lowStock,

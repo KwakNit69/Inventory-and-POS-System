@@ -3,7 +3,6 @@
     margin: 0;
     padding: 0
 }
-
 :root {
     --blue: #1976d2;
     --blue-dark: #075eb5;
@@ -19,40 +18,33 @@
     --red: #d74343;
     --red-bg: #fdecec
 }
-
 body {
     background: var(--background);
     color: var(--text);
     font: 13px Arial, sans-serif;
     min-height: 100vh
 }
-
 button,
 input,
 select,
 textarea {
     font: inherit
 }
-
 button {
     cursor: pointer
 }
-
 button:disabled {
     cursor: not-allowed;
     opacity: .55
 }
-
 .app-shell {
     display: flex;
     min-height: 100vh
 }
-
 .products-main {
     flex: 1;
     min-width: 0
 }
-
 .topbar {
     height: 38px;
     background: #fff;
@@ -62,7 +54,6 @@ button:disabled {
     justify-content: space-between;
     padding: 0 20px
 }
-
 .search-box {
     height: 24px;
     width: 230px;
@@ -74,12 +65,10 @@ button:disabled {
     padding: 0 6px;
     background: #fafbfc
 }
-
 .search-box>span {
     font-size: 13px;
     color: #5c6671
 }
-
 .search-box input {
     flex: 1;
     min-width: 0;
@@ -88,7 +77,6 @@ button:disabled {
     background: transparent;
     font-size: 8px
 }
-
 .search-box small {
     width: 11px;
     height: 11px;
@@ -99,34 +87,28 @@ button:disabled {
     color: #7d8690;
     font-size: 6px
 }
-
 .profile {
     display: flex;
     align-items: center;
     gap: 10px
 }
-
 .notification {
     font-size: 14px;
     color: #344250
 }
-
 .profile-name {
     text-align: right
 }
-
 .profile-name strong {
     display: block;
     font-size: 8px
 }
-
 .profile-name small {
     display: block;
     margin-top: 2px;
     color: #0871cf;
     font-size: 7px
 }
-
 .avatar {
     width: 23px;
     height: 23px;
@@ -139,36 +121,30 @@ button:disabled {
     font-size: 7px;
     font-weight: 700
 }
-
 .products-content {
     padding: 18px 20px;
     max-width: 1250px
 }
-
 .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 14px
 }
-
 .page-header h1 {
     font-size: 20px;
     margin-bottom: 5px
 }
-
 .page-header p {
     font-size: 9px;
     color: var(--muted)
 }
-
 .header-actions {
     display: flex;
     gap: 7px;
     align-items: center;
     flex-wrap: wrap
 }
-
 .add-product-btn {
     height: 30px;
     padding: 0 12px;
@@ -178,38 +154,30 @@ button:disabled {
     color: #fff;
     font-size: 8px
 }
-
 .add-product-btn:hover {
     background: var(--blue-dark)
 }
-
 .add-product-btn span {
     font-size: 11px;
     margin-right: 3px
 }
-
 .secondary-action {
     background: #14263a
 }
-
 .secondary-action:hover {
     background: #0d1d2d
 }
-
 .insurance-action {
     background: #6b46c1
 }
-
 .insurance-action:hover {
     background: #55359b
 }
-
 .view-tabs {
     display: flex;
     margin-bottom: 12px;
     border-bottom: 1px solid var(--border)
 }
-
 .view-tab {
     height: 30px;
     padding: 0 17px;
@@ -220,32 +188,26 @@ button:disabled {
     font-size: 8px;
     font-weight: 700
 }
-
 .view-tab:first-child {
     border-radius: 4px 0 0 0
 }
-
 .view-tab:last-child {
     border-radius: 0 4px 0 0
 }
-
 .view-tab.active {
     background: var(--blue);
     border-color: var(--blue);
     color: #fff
 }
-
 .hidden-view {
     display: none !important
 }
-
 .product-summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 9px;
     margin-bottom: 12px
 }
-
 .summary-card {
     background: #fff;
     border: 1px solid var(--border);
@@ -255,20 +217,17 @@ button:disabled {
     align-items: center;
     gap: 10px
 }
-
 .summary-card>div:last-child span {
     display: block;
     font-size: 6px;
     color: #65717d;
     font-weight: 700
 }
-
 .summary-card strong {
     display: block;
     font-size: 16px;
     margin-top: 6px
 }
-
 .summary-icon {
     width: 28px;
     height: 28px;
@@ -278,27 +237,22 @@ button:disabled {
     font-size: 12px;
     font-weight: 700
 }
-
 .blue-icon {
     background: #e8f2fd;
     color: #1976d2
 }
-
 .green-icon {
     background: #eaf7ef;
     color: #16803c
 }
-
 .orange-icon {
     background: #fff4df;
     color: #c87500
 }
-
 .red-icon {
     background: #fdecec;
     color: #d74343
 }
-
 .product-toolbar {
     background: #fff;
     border: 1px solid var(--border);
@@ -307,7 +261,6 @@ button:disabled {
     gap: 7px;
     margin-bottom: 10px
 }
-
 .product-search {
     height: 29px;
     width: 280px;
@@ -318,19 +271,16 @@ button:disabled {
     padding: 0 8px;
     border-radius: 3px
 }
-
 .product-search span {
     font-size: 12px;
     color: #69737e
 }
-
 .product-search input {
     width: 100%;
     border: 0;
     outline: 0;
     font-size: 8px
 }
-
 .product-toolbar select,
 .reset-filter {
     height: 29px;
@@ -340,11 +290,9 @@ button:disabled {
     font-size: 8px;
     border-radius: 3px
 }
-
 .reset-filter:hover {
     background: #f3f6f8
 }
-
 .product-table-container {
     background: #fff;
     border: 1px solid var(--border);
@@ -353,13 +301,11 @@ button:disabled {
     position: relative;
     min-height: 220px
 }
-
 .product-table {
     width: 100%;
-    min-width: 1000px;
+    min-width: 1080px;
     border-collapse: collapse
 }
-
 .product-table th {
     background: #f7f9fb;
     text-align: left;
@@ -367,21 +313,18 @@ button:disabled {
     padding: 10px;
     color: #4f5b66
 }
-
 .product-table td {
     font-size: 8px;
     padding: 10px;
     border-bottom: 1px solid #edf0f3;
     vertical-align: middle
 }
-
 .product-cell {
     display: flex;
     align-items: center;
     gap: 8px;
     min-width: 190px
 }
-
 .product-image {
     width: 34px;
     height: 34px;
@@ -395,19 +338,16 @@ button:disabled {
     overflow: hidden;
     flex: none
 }
-
 .product-img-preview {
     width: 100%;
     height: 100%;
     object-fit: cover
 }
-
 .product-name {
     font-size: 8px;
     font-weight: 700;
     color: #172331
 }
-
 .product-description {
     font-size: 6px;
     color: #89939d;
@@ -417,7 +357,6 @@ button:disabled {
     overflow: hidden;
     text-overflow: ellipsis
 }
-
 .status {
     display: inline-block;
     padding: 4px 7px;
@@ -425,37 +364,30 @@ button:disabled {
     font-size: 6px;
     font-weight: 700
 }
-
 .status.in-stock {
     background: var(--green-bg);
     color: var(--green)
 }
-
 .status.low-stock {
     background: var(--orange-bg);
     color: var(--orange)
 }
-
 .status.out-of-stock {
     background: var(--red-bg);
     color: var(--red)
 }
-
 .stock-out {
     color: var(--red);
     font-weight: 700
 }
-
 .stock-low {
     color: var(--orange);
     font-weight: 700
 }
-
 .action-buttons {
     display: flex;
     gap: 4px
 }
-
 .action-btn {
     height: 25px;
     padding: 0 8px;
@@ -464,23 +396,18 @@ button:disabled {
     border-radius: 3px;
     font-size: 7px
 }
-
 .edit-btn {
     color: var(--blue)
 }
-
 .edit-btn:hover {
     background: #edf5fc
 }
-
 .delete-btn-small {
     color: var(--red)
 }
-
 .delete-btn-small:hover {
     background: #fff2f2
 }
-
 .loading-state,
 .error-state,
 .empty-state {
@@ -489,13 +416,11 @@ button:disabled {
     padding: 35px 15px;
     color: #7b8690
 }
-
 .loading-state {
     align-items: center;
     justify-content: center;
     flex-direction: column
 }
-
 .loading-spinner {
     width: 22px;
     height: 22px;
@@ -505,22 +430,18 @@ button:disabled {
     animation: spin .8s linear infinite;
     margin-bottom: 8px
 }
-
 @keyframes spin {
     to {
         transform: rotate(360deg)
     }
 }
-
 .error-state.show,
 .empty-state.show {
     display: block
 }
-
 .loading-state[style*="flex"] {
     display: flex
 }
-
 .error-icon,
 .delete-icon {
     width: 35px;
@@ -533,20 +454,17 @@ button:disabled {
     margin: 0 auto 10px;
     font-weight: 700
 }
-
 .error-state h3,
 .empty-state h3 {
     font-size: 10px;
     color: #35414d;
     margin-bottom: 5px
 }
-
 .error-state p,
 .empty-state p {
     font-size: 7px;
     margin-bottom: 10px
 }
-
 .error-state button {
     height: 27px;
     padding: 0 10px;
@@ -556,7 +474,6 @@ button:disabled {
     border-radius: 3px;
     font-size: 7px
 }
-
 .pagination {
     display: flex;
     justify-content: space-between;
@@ -565,13 +482,11 @@ button:disabled {
     font-size: 7px;
     color: #6d7781
 }
-
 .pagination-buttons {
     display: flex;
     align-items: center;
     gap: 6px
 }
-
 .pagination-buttons button {
     width: 25px;
     height: 24px;
@@ -580,12 +495,10 @@ button:disabled {
     border-radius: 3px;
     font-size: 13px
 }
-
 .pagination-buttons span {
     min-width: 20px;
     text-align: center
 }
-
 .modal-overlay {
     display: none;
     position: fixed;
@@ -596,11 +509,9 @@ button:disabled {
     z-index: 1000;
     padding: 15px
 }
-
 .modal-overlay.show {
     display: flex
 }
-
 .product-modal {
     width: 480px;
     max-width: 100%;
@@ -610,28 +521,23 @@ button:disabled {
     border-radius: 6px;
     padding: 18px
 }
-
 .package-modal {
     width: 570px
 }
-
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 15px
 }
-
 .modal-header h2 {
     font-size: 15px;
     margin-bottom: 4px
 }
-
 .modal-header p {
     font-size: 8px;
     color: #74808b
 }
-
 .close-modal {
     border: 0;
     background: transparent;
@@ -639,11 +545,9 @@ button:disabled {
     font-size: 20px;
     line-height: 1
 }
-
 .form-group {
     margin-bottom: 12px
 }
-
 .form-group label {
     display: block;
     font-size: 8px;
@@ -651,11 +555,9 @@ button:disabled {
     margin-bottom: 5px;
     color: #34414d
 }
-
 .form-group label span {
     color: var(--red)
 }
-
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -668,29 +570,24 @@ button:disabled {
     background: #fff;
     color: #26333f
 }
-
 .form-group input,
 .form-group select {
     height: 32px
 }
-
 .form-group textarea {
     resize: vertical
 }
-
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     border-color: var(--blue);
     box-shadow: 0 0 0 2px rgba(25, 118, 210, .08)
 }
-
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 9px
 }
-
 .price-input {
     display: flex;
     height: 32px;
@@ -698,7 +595,6 @@ button:disabled {
     border-radius: 3px;
     overflow: hidden
 }
-
 .price-input>span {
     width: 28px;
     display: grid;
@@ -707,31 +603,25 @@ button:disabled {
     color: #65717d;
     font-size: 8px
 }
-
 .price-input input {
     border: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important
 }
-
 .image-upload-status {
     margin-top: 5px;
     color: #7d8791;
     font-size: 7px
 }
-
 .image-upload-status.success {
     color: var(--green)
 }
-
 .image-upload-status.error {
     color: var(--red)
 }
-
 .image-upload-status.uploading {
     color: var(--blue)
 }
-
 .current-image-wrapper {
     display: none;
     margin-bottom: 12px;
@@ -740,18 +630,15 @@ button:disabled {
     border: 1px solid #e1e5e9;
     border-radius: 4px
 }
-
 .current-image-wrapper.show {
     display: block
 }
-
 .current-image-wrapper span {
     display: block;
     font-size: 7px;
     color: #68737d;
     margin-bottom: 5px
 }
-
 .current-image-wrapper img {
     width: 70px;
     height: 70px;
@@ -759,14 +646,12 @@ button:disabled {
     object-fit: cover;
     border: 1px solid #d5dce4
 }
-
 .form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 7px;
     padding-top: 5px
 }
-
 .cancel-btn,
 .save-btn,
 .delete-btn {
@@ -775,29 +660,24 @@ button:disabled {
     border-radius: 3px;
     font-size: 8px
 }
-
 .cancel-btn {
     border: 1px solid #d5dce4;
     background: #fff;
     color: #4e5b67
 }
-
 .save-btn {
     border: 0;
     background: var(--blue);
     color: #fff
 }
-
 .save-btn:hover {
     background: var(--blue-dark)
 }
-
 .delete-btn {
     border: 0;
     background: var(--red);
     color: #fff
 }
-
 .delete-modal {
     width: 350px;
     max-width: 100%;
@@ -806,25 +686,21 @@ button:disabled {
     padding: 20px;
     text-align: center
 }
-
 .delete-modal h2 {
     font-size: 15px;
     margin-bottom: 7px
 }
-
 .delete-modal p {
     font-size: 8px;
     color: #6d7781;
     line-height: 1.6
 }
-
 .delete-actions {
     display: flex;
     justify-content: center;
     gap: 7px;
     margin-top: 15px
 }
-
 .package-item-header {
     display: grid;
     grid-template-columns: 1fr 80px 30px;
@@ -834,14 +710,12 @@ button:disabled {
     font-size: 6px;
     font-weight: 700
 }
-
 .package-item-row {
     display: grid;
     grid-template-columns: 1fr 80px 30px;
     gap: 7px;
     margin-bottom: 7px
 }
-
 .package-item-row select,
 .package-item-row input {
     height: 30px;
@@ -853,7 +727,6 @@ button:disabled {
     font-size: 8px;
     outline: 0
 }
-
 .remove-item-btn {
     height: 30px;
     border: 1px solid #d8dee6;
@@ -862,7 +735,6 @@ button:disabled {
     color: var(--red);
     font-size: 15px
 }
-
 .add-item-btn {
     height: 29px;
     padding: 0 10px;
@@ -873,7 +745,6 @@ button:disabled {
     font-size: 8px;
     font-weight: 700
 }
-
 .package-availability-preview {
     display: flex;
     align-items: center;
@@ -885,23 +756,19 @@ button:disabled {
     color: #3e6850;
     font-size: 8px
 }
-
 .package-availability-preview strong {
     font-size: 14px;
     color: var(--green)
 }
-
 .package-table td:nth-child(4) {
     line-height: 1.7;
     font-size: 7px
 }
-
 .insurance-icon {
     background: #f0eafd;
     color: #6b46c1;
     font-weight: 700
 }
-
 .insurance-notice {
     display: flex;
     flex-direction: column;
@@ -915,283 +782,222 @@ button:disabled {
     font-size: 8px;
     line-height: 1.5
 }
-
 .insurance-notice strong {
     color: #6b46c1;
     font-size: 8px
 }
-
 .insurance-notice span {
     color: #766a87
 }
-
 @media(max-width:900px) {
     .product-summary {
         grid-template-columns: repeat(2, 1fr)
     }
-
     .page-header {
         align-items: flex-start;
         gap: 10px;
         flex-direction: column
     }
-
     .header-actions {
         width: 100%
     }
 }
-
 @media(max-width:650px) {
     .products-content {
         padding: 12px 9px
     }
-
     .topbar {
         padding: 0 10px
     }
-
     .search-box {
         width: 170px
     }
-
     .profile-name {
         display: none
     }
-
     .product-toolbar {
         flex-wrap: wrap
     }
-
     .product-search {
         width: 100%
     }
-
     .product-summary {
         grid-template-columns: 1fr
     }
-
     .form-row {
         grid-template-columns: 1fr
     }
-
     .header-actions {
         flex-direction: column
     }
-
     .header-actions button {
         width: 100%
     }
-
     .package-item-row,
     .package-item-header {
         grid-template-columns: 1fr 65px 30px
     }
-
     .product-modal {
         padding: 14px
     }
 }
-
-
 body {
     font-size: 15px
 }
-
 .search-box {
     height: 38px;
     width: 360px;
     padding: 0 10px;
     gap: 8px
 }
-
 .search-box>span {
     font-size: 18px
 }
-
 .search-box input {
     font-size: 13px
 }
-
 .search-box small {
     width: 16px;
     height: 16px;
     font-size: 9px
 }
-
 .profile {
     gap: 12px
 }
-
 .profile-name strong {
     font-size: 12px
 }
-
 .profile-name small {
     font-size: 10px
 }
-
 .avatar {
     width: 34px;
     height: 34px;
     font-size: 10px
 }
-
 .products-content {
     padding: 24px 28px
 }
-
 .page-header h1 {
     font-size: 28px
 }
-
 .page-header p {
     font-size: 13px
 }
-
 .add-product-btn {
     height: 40px;
     padding: 0 16px;
     font-size: 13px
 }
-
 .add-product-btn span {
     font-size: 17px
 }
-
 .view-tab {
     height: 40px;
     padding: 0 22px;
     font-size: 12px
 }
-
 .summary-card {
     padding: 16px;
     gap: 13px
 }
-
 .summary-card>div:last-child span {
     font-size: 10px
 }
-
 .summary-card strong {
     font-size: 22px
 }
-
 .summary-icon {
     width: 38px;
     height: 38px;
     font-size: 16px
 }
-
 .product-toolbar {
     padding: 12px;
     gap: 10px
 }
-
 .product-search {
     height: 40px;
     width: 360px;
     padding: 0 10px
 }
-
 .product-search span {
     font-size: 16px
 }
-
 .product-search input {
     font-size: 13px
 }
-
 .product-toolbar select,
 .reset-filter {
     height: 40px;
     padding: 0 12px;
     font-size: 12px
 }
-
 .product-table th {
     font-size: 10px;
     padding: 14px
 }
-
 .product-table td {
     font-size: 12px;
     padding: 14px
 }
-
 .product-name {
     font-size: 13px
 }
-
 .product-description {
     font-size: 10px
 }
-
 .product-image {
     width: 48px;
     height: 48px;
     font-size: 16px
 }
-
 .status {
     padding: 6px 10px;
     font-size: 10px
 }
-
 .action-btn {
     height: 32px;
     padding: 0 11px;
     font-size: 10px
 }
-
 .pagination {
     font-size: 10px;
     padding: 12px 2px
 }
-
 .modal-overlay {
     padding: 20px
 }
-
 .product-modal {
     width: 560px;
     padding: 24px;
     border-radius: 10px
 }
-
 .package-modal {
     width: 650px
 }
-
 .insurance-modal {
     width: 560px
 }
-
 .modal-header {
     margin-bottom: 20px
 }
-
 .modal-header h2 {
     font-size: 21px
 }
-
 .modal-header p {
     font-size: 12px
 }
-
 .close-modal {
     font-size: 28px
 }
-
 .form-group {
     margin-bottom: 16px
 }
-
 .form-group label {
     font-size: 12px;
     margin-bottom: 7px
 }
-
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -1199,48 +1005,39 @@ body {
     font-size: 13px;
     border-radius: 5px
 }
-
 .form-group input,
 .form-group select {
     height: 42px
 }
-
 .price-input {
     height: 42px
 }
-
 .price-input>span {
     width: 38px;
     font-size: 13px
 }
-
 .image-upload-status {
     font-size: 10px;
     margin-top: 7px
 }
-
 .current-image-wrapper {
     padding: 12px;
     margin-bottom: 16px
 }
-
 .current-image-wrapper span {
     font-size: 10px;
     margin-bottom: 8px
 }
-
 .current-image-wrapper img {
     width: 120px;
     height: 120px;
     border-radius: 7px;
     object-fit: cover
 }
-
 .form-actions {
     gap: 10px;
     padding-top: 8px
 }
-
 .cancel-btn,
 .save-btn,
 .delete-btn {
@@ -1249,177 +1046,141 @@ body {
     font-size: 12px;
     border-radius: 5px
 }
-
 .package-item-header {
     font-size: 10px;
     grid-template-columns: 1fr 100px 40px;
     gap: 10px
 }
-
 .package-item-row {
     grid-template-columns: 1fr 100px 40px;
     gap: 10px;
     margin-bottom: 10px
 }
-
 .package-item-row select,
 .package-item-row input {
     height: 40px;
     padding: 0 10px;
     font-size: 12px
 }
-
 .remove-item-btn {
     height: 40px;
     font-size: 18px
 }
-
 .add-item-btn {
     height: 40px;
     padding: 0 14px;
     font-size: 12px
 }
-
 .package-availability-preview {
     padding: 14px;
     margin: 7px 0 16px;
     font-size: 12px
 }
-
 .package-availability-preview strong {
     font-size: 19px
 }
-
 .package-table td:nth-child(4) {
     font-size: 10px
 }
-
 .insurance-icon {
     background: #f0eafd;
     color: #6b46c1;
     font-weight: 700
 }
-
 .insurance-icon .product-img-preview {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover
 }
-
 .insurance-notice {
     padding: 14px;
     margin-bottom: 16px;
     font-size: 12px;
     line-height: 1.6
 }
-
 .insurance-notice strong {
     font-size: 12px
 }
-
 .insurance-notice span {
     font-size: 12px
 }
-
 .error-state h3,
 .empty-state h3 {
     font-size: 14px
 }
-
 .error-state p,
 .empty-state p {
     font-size: 11px
 }
-
 .error-state button {
     height: 34px;
     font-size: 10px
 }
-
 .delete-modal h2 {
     font-size: 20px
 }
-
 .delete-modal p {
     font-size: 11px
 }
-
 @media(max-width:900px) {
     .product-summary {
         grid-template-columns: repeat(2, 1fr)
     }
-
     .page-header {
         align-items: flex-start;
         gap: 10px;
         flex-direction: column
     }
-
     .header-actions {
         width: 100%
     }
 }
-
 @media(max-width:650px) {
     .products-content {
         padding: 16px 12px
     }
-
     .search-box {
         width: 220px
     }
-
     .profile-name {
         display: none
     }
-
     .product-toolbar {
         flex-wrap: wrap
     }
-
     .product-search {
         width: 100%
     }
-
     .product-summary {
         grid-template-columns: 1fr
     }
-
     .form-row {
         grid-template-columns: 1fr
     }
-
     .header-actions {
         flex-direction: column
     }
-
     .header-actions button {
         width: 100%
     }
-
     .product-modal,
     .package-modal,
     .insurance-modal {
         width: 100%;
         padding: 18px
     }
-
     .page-header h1 {
         font-size: 24px
     }
-
     .page-header p {
         font-size: 12px
     }
 }
-
-
 /* =========================================================
    PRODUCTS PAGE - LARGE / CLEAR UI REDESIGN
    Add this at the VERY END of products.css
    ========================================================= */
-
 :root {
     --blue: #1976d2;
     --blue-dark: #125ea8;
@@ -1428,40 +1189,31 @@ body {
     --border: #d9e0e7;
     --background: #f5f7fa;
     --white: #ffffff;
-
     --green: #16803c;
     --green-bg: #eaf7ef;
-
     --orange: #c87500;
     --orange-bg: #fff4df;
-
     --red: #d74343;
     --red-bg: #fdecec;
-
     --purple: #6b46c1;
 }
-
 /* =========================================================
    GLOBAL
    ========================================================= */
-
 body {
     font-size: 14px;
     background: var(--background);
     color: var(--text);
 }
-
 /* =========================================================
    TOP BAR
    ========================================================= */
-
 .topbar {
     height: 58px;
     padding: 0 28px;
     background: #ffffff;
     border-bottom: 1px solid var(--border);
 }
-
 .search-box {
     width: 390px;
     height: 38px;
@@ -1470,81 +1222,65 @@ body {
     border-radius: 6px;
     background: #f8fafc;
 }
-
 .search-box > span {
     font-size: 17px;
     color: #64748b;
 }
-
 .search-box input {
     font-size: 13px;
 }
-
 .search-box input::placeholder {
     color: #94a3b8;
 }
-
 .search-box small {
     width: 20px;
     height: 20px;
     font-size: 9px;
     border-radius: 4px;
 }
-
 .profile {
     gap: 12px;
 }
-
 .profile-name strong {
     font-size: 13px;
 }
-
 .profile-name small {
     font-size: 10px;
     margin-top: 3px;
 }
-
 .avatar {
     width: 36px;
     height: 36px;
     font-size: 11px;
 }
-
 /* =========================================================
    MAIN CONTENT
    ========================================================= */
-
 .products-content {
     width: 100%;
     max-width: none;
     padding: 28px 32px 40px;
 }
-
 /* =========================================================
    PAGE HEADER
    ========================================================= */
-
 .page-header {
     margin-bottom: 18px;
     align-items: center;
 }
-
 .page-header h1 {
     font-size: 28px;
     line-height: 1.2;
     margin-bottom: 6px;
     font-weight: 700;
 }
-
 .page-header p {
     font-size: 13px;
     color: var(--muted);
 }
-
 .header-actions {
     gap: 9px;
 }
-
 .add-product-btn {
     height: 42px;
     padding: 0 18px;
@@ -1552,27 +1288,21 @@ body {
     font-size: 13px;
     font-weight: 600;
 }
-
 .add-product-btn span {
     font-size: 17px;
 }
-
 .secondary-action {
     background: #14263a;
 }
-
 .insurance-action {
     background: var(--purple);
 }
-
 /* =========================================================
    TABS
    ========================================================= */
-
 .view-tabs {
     margin-bottom: 18px;
 }
-
 .view-tab {
     height: 42px;
     padding: 0 24px;
@@ -1580,25 +1310,20 @@ body {
     font-weight: 600;
     border-radius: 0;
 }
-
 .view-tab:first-child {
     border-radius: 6px 0 0 0;
 }
-
 .view-tab:last-child {
     border-radius: 0 6px 0 0;
 }
-
 /* =========================================================
    SUMMARY CARDS
    ========================================================= */
-
 .product-summary {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 18px;
 }
-
 .summary-card {
     min-height: 105px;
     padding: 18px;
@@ -1606,22 +1331,18 @@ body {
     border-radius: 8px;
     transition: transform .15s ease, box-shadow .15s ease;
 }
-
 .summary-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 14px rgba(15, 23, 42, .06);
 }
-
 .summary-card > div:last-child span {
     font-size: 11px;
     letter-spacing: .3px;
 }
-
 .summary-card strong {
     font-size: 25px;
     margin-top: 7px;
 }
-
 .summary-icon {
     width: 44px;
     height: 44px;
@@ -1629,11 +1350,9 @@ body {
     border-radius: 8px;
     font-size: 18px;
 }
-
 /* =========================================================
    SEARCH / FILTER BAR
    ========================================================= */
-
 .product-toolbar {
     min-height: 64px;
     padding: 11px;
@@ -1642,7 +1361,6 @@ body {
     border-radius: 7px;
     align-items: center;
 }
-
 .product-search {
     height: 42px;
     width: 400px;
@@ -1650,19 +1368,15 @@ body {
     gap: 8px;
     border-radius: 6px;
 }
-
 .product-search span {
     font-size: 16px;
 }
-
 .product-search input {
     font-size: 13px;
 }
-
 .product-search input::placeholder {
     color: #94a3b8;
 }
-
 .product-toolbar select,
 .reset-filter {
     height: 42px;
@@ -1670,29 +1384,23 @@ body {
     font-size: 12px;
     border-radius: 6px;
 }
-
 .product-toolbar select {
     min-width: 160px;
 }
-
 .reset-filter {
     min-width: 75px;
 }
-
 /* =========================================================
    TABLE
    ========================================================= */
-
 .product-table-container {
     border-radius: 8px;
     min-height: 300px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, .03);
 }
-
 .product-table {
     min-width: 1100px;
 }
-
 .product-table th {
     padding: 15px 16px;
     font-size: 11px;
@@ -1702,31 +1410,25 @@ body {
     letter-spacing: .25px;
     border-bottom: 1px solid var(--border);
 }
-
 .product-table td {
     padding: 17px 16px;
     font-size: 13px;
     color: #334155;
     border-bottom: 1px solid #edf1f5;
 }
-
 .product-table tbody tr {
     transition: background .15s ease;
 }
-
 .product-table tbody tr:hover {
     background: #f8fbff;
 }
-
 /* =========================================================
    PRODUCT CELL
    ========================================================= */
-
 .product-cell {
     gap: 12px;
     min-width: 260px;
 }
-
 .product-image {
     width: 52px;
     height: 52px;
@@ -1734,40 +1436,33 @@ body {
     font-size: 17px;
     background: #f8fafc;
 }
-
 .product-name {
     font-size: 14px;
     font-weight: 700;
     color: #172331;
 }
-
 .product-description {
     font-size: 11px;
     color: #7b8794;
     margin-top: 4px;
     max-width: 230px;
 }
-
 /* =========================================================
    PRICE / STOCK
    ========================================================= */
-
 .product-table td:nth-child(4),
 .product-table td:nth-child(5) {
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
 }
-
 .product-table td:nth-child(6) {
     font-size: 14px;
     font-weight: 700;
 }
-
 /* =========================================================
    STATUS
    ========================================================= */
-
 .status {
     padding: 6px 11px;
     border-radius: 20px;
@@ -1775,30 +1470,24 @@ body {
     font-weight: 700;
     white-space: nowrap;
 }
-
 .status.in-stock {
     background: var(--green-bg);
     color: var(--green);
 }
-
 .status.low-stock {
     background: var(--orange-bg);
     color: var(--orange);
 }
-
 .status.out-of-stock {
     background: var(--red-bg);
     color: var(--red);
 }
-
 /* =========================================================
    ACTION BUTTONS
    ========================================================= */
-
 .action-buttons {
     gap: 7px;
 }
-
 .action-btn {
     height: 34px;
     padding: 0 12px;
@@ -1806,108 +1495,85 @@ body {
     font-size: 11px;
     font-weight: 600;
 }
-
 .edit-btn:hover {
     background: #edf6ff;
 }
-
 .delete-btn-small:hover {
     background: #fff1f1;
 }
-
 /* =========================================================
    PAGINATION
    ========================================================= */
-
 .pagination {
     padding: 15px 4px;
     font-size: 11px;
 }
-
 .pagination-buttons {
     gap: 7px;
 }
-
 .pagination-buttons button {
     width: 34px;
     height: 32px;
     border-radius: 6px;
     font-size: 15px;
 }
-
 .pagination-buttons span {
     min-width: 28px;
     font-size: 12px;
 }
-
 /* =========================================================
    EMPTY / ERROR STATES
    ========================================================= */
-
 .loading-state,
 .error-state,
 .empty-state {
     padding: 60px 20px;
 }
-
 .error-state h3,
 .empty-state h3 {
     font-size: 16px;
     margin-bottom: 7px;
 }
-
 .error-state p,
 .empty-state p {
     font-size: 12px;
 }
-
 /* =========================================================
    MODALS
    ========================================================= */
-
 .modal-overlay {
     padding: 25px;
 }
-
 .product-modal {
     width: 620px;
     padding: 28px;
     border-radius: 10px;
 }
-
 .package-modal {
     width: 720px;
 }
-
 .insurance-modal {
     width: 620px;
 }
-
 .modal-header {
     margin-bottom: 22px;
 }
-
 .modal-header h2 {
     font-size: 22px;
 }
-
 .modal-header p {
     font-size: 12px;
 }
-
 .close-modal {
     font-size: 28px;
 }
-
 .form-group {
     margin-bottom: 18px;
 }
-
 .form-group label {
     font-size: 12px;
     margin-bottom: 7px;
 }
-
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -1915,26 +1581,21 @@ body {
     font-size: 13px;
     border-radius: 6px;
 }
-
 .form-group input,
 .form-group select {
     height: 44px;
 }
-
 .price-input {
     height: 44px;
 }
-
 .price-input > span {
     width: 42px;
     font-size: 13px;
 }
-
 .form-actions {
     gap: 10px;
     padding-top: 10px;
 }
-
 .cancel-btn,
 .save-btn,
 .delete-btn {
@@ -1943,23 +1604,19 @@ body {
     font-size: 12px;
     border-radius: 6px;
 }
-
 /* =========================================================
    PACKAGE / INSURANCE
    ========================================================= */
-
 .package-item-header {
     font-size: 10px;
     grid-template-columns: 1fr 110px 42px;
     gap: 10px;
 }
-
 .package-item-row {
     grid-template-columns: 1fr 110px 42px;
     gap: 10px;
     margin-bottom: 10px;
 }
-
 .package-item-row select,
 .package-item-row input {
     height: 42px;
@@ -1967,31 +1624,26 @@ body {
     font-size: 12px;
     border-radius: 6px;
 }
-
 .remove-item-btn {
     height: 42px;
     border-radius: 6px;
     font-size: 18px;
 }
-
 .add-item-btn {
     height: 40px;
     padding: 0 14px;
     font-size: 12px;
     border-radius: 6px;
 }
-
 .package-availability-preview {
     padding: 15px;
     margin: 8px 0 18px;
     font-size: 12px;
     border-radius: 6px;
 }
-
 .package-availability-preview strong {
     font-size: 20px;
 }
-
 .insurance-notice {
     padding: 15px;
     margin-bottom: 18px;
@@ -1999,123 +1651,94 @@ body {
     line-height: 1.6;
     border-radius: 6px;
 }
-
 .insurance-notice strong {
     font-size: 13px;
 }
-
 /* =========================================================
    RESPONSIVE
    ========================================================= */
-
 @media (max-width: 1200px) {
-
     .products-content {
         padding: 24px;
     }
-
     .product-summary {
         grid-template-columns: repeat(2, 1fr);
     }
-
     .product-search {
         width: 320px;
     }
 }
-
 @media (max-width: 850px) {
-
     .topbar {
         padding: 0 16px;
     }
-
     .search-box {
         width: 300px;
     }
-
     .page-header {
         align-items: flex-start;
         flex-direction: column;
         gap: 14px;
     }
-
     .header-actions {
         width: 100%;
     }
-
     .product-toolbar {
         flex-wrap: wrap;
     }
-
     .product-search {
         width: 100%;
     }
 }
-
 @media (max-width: 650px) {
-
     .products-content {
         padding: 18px 12px 30px;
     }
-
     .topbar {
         height: 52px;
         padding: 0 10px;
     }
-
     .search-box {
         width: 220px;
         height: 36px;
     }
-
     .profile-name {
         display: none;
     }
-
     .page-header h1 {
         font-size: 24px;
     }
-
     .page-header p {
         font-size: 12px;
     }
-
     .header-actions {
         flex-direction: column;
     }
-
     .header-actions button {
         width: 100%;
     }
-
     .product-summary {
         grid-template-columns: 1fr;
     }
-
     .summary-card {
         min-height: 92px;
     }
-
     .view-tab {
         flex: 1;
         padding: 0 12px;
         font-size: 11px;
     }
-
     .product-toolbar {
         flex-direction: column;
         align-items: stretch;
     }
-
     .product-toolbar select,
     .reset-filter {
         width: 100%;
     }
-
     .product-table-container {
         overflow-x: auto;
     }
-
     .product-modal,
     .package-modal,
     .insurance-modal {

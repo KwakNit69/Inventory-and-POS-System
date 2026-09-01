@@ -175,6 +175,28 @@ const getPrice = item => {
         0
     );
 };
+const getCostPrice = item => {
+    return Number(
+        item.costPrice ??
+        item.cost ??
+        item.purchasePrice ??
+        item.buyingPrice ??
+        0
+    );
+};
+const getPackageCostPrice = item => {
+    if (getType(item) !== "package") {
+        return getCostPrice(item);
+    }
+    return getPackageItems(item).reduce(
+        (total, rawItem) => {
+            const component = normalizePackageItem(rawItem);
+            const product = getProductById(component.productId);
+            return total + (product ? getCostPrice(product) : 0) * component.quantity;
+        },
+        0
+    );
+};
 const getStock = item => {
     return Number(
         item.stock ??
@@ -1144,6 +1166,8 @@ function addToCart(
                     "Insurance",
                 price:
                     getPrice(item),
+                costPrice:
+                    getCostPrice(item),
                 quantity:
                     1,
                 stock:
@@ -1219,6 +1243,8 @@ function addToCart(
                     "Packages",
                 price:
                     getPrice(item),
+                costPrice:
+                    getPackageCostPrice(item),
                 quantity:
                     1,
                 stock:
@@ -1271,6 +1297,8 @@ function addToCart(
                 getCategory(item),
             price:
                 getPrice(item),
+            costPrice:
+                getCostPrice(item),
             quantity:
                 1,
             stock,
@@ -2098,51 +2126,81 @@ async function completeTransaction() {
             "Staff / Cashier";
         const saleItems =
             cart.map(
-                item => ({
-                    productId:
-                        item.productId,
-                    name:
-                        item.name,
-                    sku:
-                        item.sku,
-                    category:
-                        item.category,
-                    price:
-                        Number(item.price),
-                    quantity:
-                        Number(item.quantity),
-                    subtotal:
-                        Number(item.price) *
-                        Number(item.quantity),
-                    itemType:
-                        item.itemType,
-                    sourceCollection:
-                        item.itemType ===
-                        "package"
-                            ? "packages"
-                            : item.itemType ===
-                              "insurance"
-                            ? "insurances"
-                            : "products",
-                    image:
-                        item.image ||
-                        "",
-                    packageItems:
-                        item.itemType ===
-                        "package"
-                            ? item.packageItems
-                            : [],
-                    insuranceId:
-                        item.itemType ===
-                        "insurance"
-                            ? item.productId
-                            : null,
-                    stockDeducted:
-                        isReservation
-                            ? false
-                            : item.itemType !==
-                              "insurance"
-                })
+                item => {
+                    const sellingPrice = Number(item.price) || 0;
+                    const costPrice = Number(
+                        item.itemType === "package"
+                            ? getPackageCostPrice(
+                                products.find(product => product.id === item.productId) || item
+                            )
+                            : item.costPrice
+                    ) || 0;
+                    const quantity = Number(item.quantity) || 0;
+                    const subtotal = sellingPrice * quantity;
+                    const profit = item.itemType === "insurance"
+                        ? 0
+                        : (sellingPrice - costPrice) * quantity;
+                    return {
+                        productId:
+                            item.productId,
+                        name:
+                            item.name,
+                        sku:
+                            item.sku,
+                        category:
+                            item.category,
+                        price:
+                            sellingPrice,
+                        sellingPrice,
+                        costPrice,
+                        quantity,
+                        subtotal,
+                        profit,
+                        itemType:
+                            item.itemType,
+                        sourceCollection:
+                            item.itemType ===
+                            "package"
+                                ? "packages"
+                                : item.itemType ===
+                                  "insurance"
+                                ? "insurances"
+                                : "products",
+                        image:
+                            item.image ||
+                            "",
+                        packageItems:
+                            item.itemType ===
+                            "package"
+                                ? item.packageItems
+                                : [],
+                        insuranceId:
+                            item.itemType ===
+                            "insurance"
+                                ? item.productId
+                                : null,
+                        stockDeducted:
+                            isReservation
+                                ? false
+                                : item.itemType !==
+                                  "insurance"
+                    };
+                }
+            );
+        const totalCost =
+            saleItems.reduce(
+                (sum, item) =>
+                    sum +
+                    (Number(item.costPrice) || 0) *
+                    (Number(item.quantity) || 0),
+                0
+            );
+        const grossProfit =
+            saleItems.reduce(
+                (sum, item) =>
+                    sum +
+                    (Number(item.profit) || 0),
+                0
             );
         const stockDeductions =
             getStockDeductions();
@@ -2248,6 +2306,19 @@ async function completeTransaction() {
                         subtotal,
                         discount,
                         total,
+                        totalCost,
+                        grossProfit:
+                            isReservation
+                                ? 0
+                                : grossProfit,
+                        potentialProfit:
+                            isReservation
+                                ? grossProfit
+                                : 0,
+                        profit:
+                            isReservation
+                                ? 0
+                                : grossProfit,
                         orderType:
                             isReservation
                                 ? "Reservation"
@@ -2431,6 +2502,8 @@ async function completeTransaction() {
                             transactionNumber,
                             items:
                                 saleItems,
+                            totalCost,
+                            grossProfit,
                             stockDeductions:
                                 [
                                     ...stockDeductions.entries()
@@ -2473,7 +2546,6 @@ async function completeTransaction() {
                         }
                     );
                 }
-                
             }
         );
         if (successTotal) {

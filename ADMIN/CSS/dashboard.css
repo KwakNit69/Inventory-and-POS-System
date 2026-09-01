@@ -249,7 +249,7 @@ button {
 }
 .funds-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px
 }
 .fund-card {
@@ -295,9 +295,9 @@ button {
   display: block;
   font-size: 21px;
   line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
   color: #101820;
   margin-bottom: 8px
 }

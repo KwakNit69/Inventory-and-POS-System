@@ -9,8 +9,6 @@ import {
     doc,
     runTransaction
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
-  /* ELEMENTS
-========================================================= */
 const productsGrid =
     document.getElementById("productsGrid");
 const productSearch =
@@ -91,8 +89,6 @@ const staffAvatar =
     document.getElementById("staffAvatar");
 const staffStatus =
     document.getElementById("staffStatus");
-   /* STATE
-========================================================= */
 let currentUser = null;
 let currentProfile = {};
 let products = [];
@@ -101,8 +97,6 @@ let cart = [];
 let selectedPaymentMethod = "Cash";
 let selectedOrderType = "sale";
 let deliveryRequested = false;
-   /* BASIC HELPERS
-========================================================= */
 const money = value => {
     return new Intl.NumberFormat(
         "en-PH",
@@ -185,17 +179,14 @@ const getCostPrice = item => {
     );
 };
 const getPackageCostPrice = item => {
-    if (getType(item) !== "package") {
-        return getCostPrice(item);
-    }
-    return getPackageItems(item).reduce(
-        (total, rawItem) => {
-            const component = normalizePackageItem(rawItem);
-            const product = getProductById(component.productId);
-            return total + (product ? getCostPrice(product) : 0) * component.quantity;
-        },
-        0
-    );
+    if (getType(item) !== "package") return getCostPrice(item);
+    const storedCostPrice = Number(item.costPrice);
+    if (Number.isFinite(storedCostPrice) && storedCostPrice >= 0) return storedCostPrice;
+    return getPackageItems(item).reduce((total, rawItem) => {
+        const component = normalizePackageItem(rawItem);
+        const product = getProductById(component.productId);
+        return total + (product ? getCostPrice(product) : 0) * component.quantity;
+    }, 0);
 };
 const getStock = item => {
     return Number(
@@ -338,8 +329,6 @@ const generateTransactionNumber = () => {
         `TXN-${date}-${random}`
     );
 };
-   /* ERROR HANDLING
-========================================================= */
 function showError(error) {
     console.error(
         "Staff POS error:",
@@ -363,8 +352,6 @@ function hideError() {
         );
     }
 }
-   /* STAFF INFORMATION
-========================================================= */
 async function loadStaffInfo(user) {
     let profile = {};
     const storedName =
@@ -440,8 +427,6 @@ async function loadStaffInfo(user) {
         }
     }
 }
-   /* CART CALCULATIONS
-========================================================= */
 function cartSubtotal() {
     return cart.reduce(
         (
@@ -499,8 +484,6 @@ function cartQuantity() {
         0
     );
 }
-   /* LOAD CATEGORIES
-========================================================= */
 async function loadCategories() {
     const categoryMap =
         new Map();
@@ -613,8 +596,6 @@ async function loadCategories() {
         }
     );
 }
-   /* LOAD PRODUCTS / PACKAGES / INSURANCE
-========================================================= */
 async function loadProducts() {
     if (productsGrid) {
         productsGrid.innerHTML =
@@ -623,9 +604,6 @@ async function loadProducts() {
              </div>`;
     }
     const loadedItems = [];
-/*
-       PRODUCTS
-    ------------------------------------------------------- */
     const productSnapshot =
         await getDocs(
             collection(
@@ -648,9 +626,6 @@ async function loadProducts() {
             });
         }
     );
-/*
-       PACKAGES
-    ------------------------------------------------------- */
     try {
         const packageSnapshot =
             await getDocs(
@@ -694,6 +669,11 @@ async function loadProducts() {
                             data.price ??
                             0
                         ),
+                    costPrice:
+                        Number(
+                            data.costPrice ??
+                            0
+                        ),
                     imageUrl:
                         data.imageUrl ??
                         data.imageURL ??
@@ -713,9 +693,6 @@ async function loadProducts() {
             error
         );
     }
-/*
-       INSURANCE
-    ------------------------------------------------------- */
     try {
         const insuranceSnapshot =
             await getDocs(
@@ -780,8 +757,6 @@ async function loadProducts() {
     await loadCategories();
     renderProducts();
 }
-   /* FIND PRODUCT
-========================================================= */
 function getProductById(
     productId
 ) {
@@ -793,8 +768,6 @@ function getProductById(
                 productId
     );
 }
-    /* PACKAGE AVAILABILITY
-========================================================= */
 function checkPackageAvailability(
     packageItem
 ) {
@@ -812,9 +785,6 @@ function checkPackageAvailability(
         };
     }
        IMPORTANT:
-/* A package is available only when
-       EVERY component has enough stock.
-    */
     for (
         const rawItem
         of packageProducts
@@ -862,8 +832,6 @@ function checkPackageAvailability(
             "Available"
     };
 }
-   /* RENDER PRODUCTS
-========================================================= */
 function renderProducts() {
     if (!productsGrid) {
         return;
@@ -972,8 +940,6 @@ function renderProducts() {
             }
         );
 }
-   /* PRODUCT CARD
-========================================================= */
 function createProductCard(
     item
 ) {
@@ -1122,8 +1088,6 @@ function createProductCard(
         </article>
     `;
 }
-   /*ADD TO CART
-========================================================= */
 function addToCart(
     productId
 ) {
@@ -1144,9 +1108,6 @@ function addToCart(
                 cartItem.productId ===
                 productId
         );
-/*
-       INSURANCE
-    ------------------------------------------------------- */
     if (
         type ===
         "insurance"
@@ -1183,9 +1144,6 @@ function addToCart(
         renderCart();
         return;
     }
-/*
-       PACKAGE
-    ------------------------------------------------------- */
     if (
         type ===
         "package"
@@ -1202,10 +1160,6 @@ function addToCart(
             );
             return;
         }
-/* Do not allow package quantity
-           beyond the actual available
-           component stock.
-        */
         const newQuantity =
             existing
                 ? existing.quantity + 1
@@ -1260,9 +1214,6 @@ function addToCart(
         renderCart();
         return;
     }
-/*
-       NORMAL PRODUCT
-    ------------------------------------------------------- */
     const stock =
         getStock(item);
     if (
@@ -1312,8 +1263,6 @@ function addToCart(
     }
     renderCart();
 }
- /*  MAXIMUM PACKAGE QUANTITY
-========================================================= */
 function getMaximumPackageQuantity(
     packageItem
 ) {
@@ -1362,8 +1311,6 @@ function getMaximumPackageQuantity(
         ? maximum
         : 0;
 }
-   /*  CHANGE CART QUANTITY
-========================================================= */
 function changeQuantity(
     productId,
     amount
@@ -1397,9 +1344,6 @@ function changeQuantity(
         );
         return;
     }
-/*
-       PRODUCT STOCK
-    ------------------------------------------------------- */
     if (
         item.itemType ===
         "product"
@@ -1416,9 +1360,6 @@ function changeQuantity(
             return;
         }
     }
-/*
-       PACKAGE STOCK
-    ------------------------------------------------------- */
     if (
         item.itemType ===
         "package"
@@ -1445,8 +1386,6 @@ function changeQuantity(
         newQuantity;
     renderCart();
 }
-   /*  REMOVE FROM CART
-========================================================= */
 function removeFromCart(
     productId
 ) {
@@ -1458,8 +1397,6 @@ function removeFromCart(
         );
     renderCart();
 }
-   /*  RENDER CART
-========================================================= */
 function renderCart() {
     const subtotal =
         cartSubtotal();
@@ -1637,8 +1574,6 @@ function renderCart() {
             }
         );
 }
-  /* SPLIT PAYMENT
-========================================================= */
 function resetSplitPayment() {
     if (splitCash) {
         splitCash.value =
@@ -1675,8 +1610,6 @@ function resetSplitPayment() {
             money(0);
     }
 }
-/* BPI IS INCLUDED.
-*/
 function getSplitAmounts() {
     return {
         Cash:
@@ -1761,8 +1694,6 @@ function updateSplitPayment() {
             );
     }
 }
- /*  PAYMENT MODAL
-========================================================= */
 function openPaymentModal() {
     if (!cart.length) {
         return;
@@ -1831,8 +1762,6 @@ function closePaymentModal() {
     paymentError.textContent =
         "";
 }
-   /*  UPDATE PAYMENT
-========================================================= */
 function updatePaymentTotal() {
     const total =
         cartTotal();
@@ -1866,8 +1795,6 @@ function updatePaymentTotal() {
             money(0);
     }
 }
-   /*  PAYMENT BREAKDOWN
-========================================================= */
 function getPaymentBreakdown(total) {
     if (selectedPaymentMethod === "Cash") {
         const received = Number(cashReceived?.value) || 0;
@@ -1882,8 +1809,6 @@ function getPaymentBreakdown(total) {
     const splitTotal = getSplitTotal();
     return { Cash: amounts.Cash, GCash: amounts.GCash, BDO: amounts.BDO, BIBO: amounts.BIBO, BPI: amounts.BPI, totalPaid: splitTotal, tenderedTotal: splitTotal, change: 0, paymentTypes, splitPaymentType: paymentTypes.map(item => item.method).join(" + ") || "Split", tenderBreakdown: { ...amounts } };
 }
-/*   PAYMENT VALIDATION
-========================================================= */
 function validatePayment(total) {
     if (selectedPaymentMethod === "Cash") {
         const received = Number(cashReceived?.value) || 0;
@@ -1902,8 +1827,6 @@ function validatePayment(total) {
     }
     return true;
 }
- /*  STOCK DEDUCTIONS
-========================================================= */
 function getStockDeductions() {
     const deductions =
         new Map();
@@ -1975,8 +1898,6 @@ function getStockDeductions() {
     }
     return deductions;
 }
-   /*  COMPLETE TRANSACTION
-========================================================= */
 function updateOrderTypeUI() {
     const isReservation = selectedOrderType === "reservation";
     document.querySelectorAll(".order-type-option").forEach(option => {
@@ -2137,9 +2058,7 @@ async function completeTransaction() {
                     ) || 0;
                     const quantity = Number(item.quantity) || 0;
                     const subtotal = sellingPrice * quantity;
-                    const profit = item.itemType === "insurance"
-                        ? 0
-                        : (sellingPrice - costPrice) * quantity;
+                    const profit = (sellingPrice - costPrice) * quantity;
                     return {
                         productId:
                             item.productId,
@@ -2592,8 +2511,6 @@ async function completeTransaction() {
                 : "Complete Sale";
     }
 }
-  /* EVENT LISTENERS
-========================================================= */
 if (productSearch) {
     productSearch.addEventListener(
         "input",
@@ -2955,8 +2872,6 @@ if (retryButton) {
         }
     );
 }
- /*  AUTHENTICATION
-========================================================= */
 onAuthStateChanged(
     auth,
     async user => {

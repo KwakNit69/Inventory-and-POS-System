@@ -165,6 +165,7 @@ async function loadPackages() {
         id: item.id,
         name: data.name || "",
         sku: data.sku || "",
+        costPrice: data.costPrice === undefined || data.costPrice === null || data.costPrice === "" ? null : Number(data.costPrice),
         price: Number(data.price) || 0,
         description: data.description || "",
         image: data.imageUrl || data.image || "",
@@ -191,6 +192,7 @@ async function loadInsurance() {
         id: item.id,
         name: data.name || "",
         sku: data.sku || "",
+        costPrice: data.costPrice === undefined || data.costPrice === null || data.costPrice === "" ? null : Number(data.costPrice),
         price: Number(data.price) || 0,
         status: data.status || "active",
         description: data.description || "",
@@ -325,7 +327,7 @@ function renderPackages() {
   if (filteredPackages.length === 0) {
     packageTableBody.innerHTML = `
       <tr>
-        <td colspan="7" class="empty-cell">No packages found.</td>
+        <td colspan="8" class="empty-cell">No packages found.</td>
       </tr>
     `;
     return;
@@ -346,7 +348,8 @@ function renderPackages() {
         </div>
       </td>
       <td>${escapeHTML(pkg.sku)}</td>
-      <td>₱${pkg.price.toFixed(2)}</td>
+      <td>${pkg.costPrice === null || !Number.isFinite(pkg.costPrice) ? "—" : `₱${pkg.costPrice.toFixed(2)}`}</td>
+      <td>₱${Number(pkg.price ?? 0).toFixed(2)}</td>
       <td>${pkg.items.length}</td>
       <td>${availability}</td>
       <td><span class="status ${availability > 0 ? "in-stock" : "out-of-stock"}">${availability > 0 ? "Available" : "Unavailable"}</span></td>
@@ -373,7 +376,7 @@ function renderInsurance() {
   if (filteredInsurance.length === 0) {
     insuranceTableBody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty-cell">No insurance products found.</td>
+        <td colspan="7" class="empty-cell">No insurance products found.</td>
       </tr>
     `;
     return;
@@ -393,7 +396,8 @@ function renderInsurance() {
         </div>
       </td>
       <td>${escapeHTML(insurance.sku)}</td>
-      <td>₱${insurance.price.toFixed(2)}</td>
+      <td>${insurance.costPrice === null || !Number.isFinite(insurance.costPrice) ? "—" : `₱${insurance.costPrice.toFixed(2)}`}</td>
+      <td>₱${Number(insurance.price ?? 0).toFixed(2)}</td>
       <td>
         <span class="status ${insurance.status === "active" ? "in-stock" : "out-of-stock"}">
           ${insurance.status === "active" ? "Active" : "Inactive"}
@@ -630,12 +634,14 @@ function openEditPackage(id) {
   const packageName = document.getElementById("packageName");
   const packageSku = document.getElementById("packageSku");
   const packagePrice = document.getElementById("packagePrice");
+  const packageCostPrice = document.getElementById("packageCostPrice");
   const packageDescription = document.getElementById("packageDescription");
   const itemsContainer = document.getElementById("packageItems");
   if (packageId) packageId.value = pkg.id;
   if (packageName) packageName.value = pkg.name;
   if (packageSku) packageSku.value = pkg.sku;
-  if (packagePrice) packagePrice.value = pkg.price;
+  if (packageCostPrice) packageCostPrice.value = Number(pkg.costPrice ?? 0).toFixed(2);
+  if (packagePrice) packagePrice.value = Number(pkg.price ?? 0).toFixed(2);
   if (packageDescription) packageDescription.value = pkg.description;
   if (itemsContainer) {
     itemsContainer.innerHTML = "";
@@ -687,6 +693,7 @@ async function savePackage(event) {
     const sku = existingPackage?.sku || await generateNextSku("packages", "PKG-");
     const skuInput = document.getElementById("packageSku");
     if (skuInput) skuInput.value = sku;
+    const costPrice = Number(document.getElementById("packageCostPrice").value);
     const price = Number(document.getElementById("packagePrice").value);
     const description = document.getElementById("packageDescription").value.trim();
     const items = [...document.querySelectorAll(".package-item-row")]
@@ -697,6 +704,10 @@ async function savePackage(event) {
       .filter(item => item.productId);
     if (!name) {
       alert("Please enter a package name.");
+      return;
+    }
+    if (!Number.isFinite(costPrice) || costPrice < 0) {
+      alert("Please enter a valid package cost price.");
       return;
     }
     if (!Number.isFinite(price) || price < 0) {
@@ -718,6 +729,7 @@ async function savePackage(event) {
     const data = {
       name,
       sku,
+      costPrice,
       price,
       description,
       imageUrl,
@@ -785,12 +797,14 @@ function openEditInsurance(id) {
   const insuranceName = document.getElementById("insuranceName");
   const insuranceSku = document.getElementById("insuranceSku");
   const insurancePrice = document.getElementById("insurancePrice");
+  const insuranceCostPrice = document.getElementById("insuranceCostPrice");
   const insuranceStatus = document.getElementById("insuranceStatus");
   const insuranceDescription = document.getElementById("insuranceDescription");
   if (insuranceId) insuranceId.value = insurance.id;
   if (insuranceName) insuranceName.value = insurance.name;
   if (insuranceSku) insuranceSku.value = insurance.sku;
-  if (insurancePrice) insurancePrice.value = insurance.price;
+  if (insuranceCostPrice) insuranceCostPrice.value = Number(insurance.costPrice ?? 0).toFixed(2);
+  if (insurancePrice) insurancePrice.value = Number(insurance.price ?? 0).toFixed(2);
   if (insuranceStatus) insuranceStatus.value = insurance.status;
   if (insuranceDescription) insuranceDescription.value = insurance.description;
   const title = document.getElementById("insuranceModalTitle");
@@ -813,11 +827,16 @@ async function saveInsurance(event) {
     const sku = existingInsurance?.sku || await generateNextSku("insurances", "INS-");
     const skuInput = document.getElementById("insuranceSku");
     if (skuInput) skuInput.value = sku;
+    const costPrice = Number(document.getElementById("insuranceCostPrice").value);
     const price = Number(document.getElementById("insurancePrice").value);
     const status = document.getElementById("insuranceStatus").value;
     const description = document.getElementById("insuranceDescription").value.trim();
     if (!name) {
       alert("Please enter an insurance name.");
+      return;
+    }
+    if (!Number.isFinite(costPrice) || costPrice < 0) {
+      alert("Please enter a valid insurance cost price.");
       return;
     }
     if (!Number.isFinite(price) || price < 0) {
@@ -835,6 +854,7 @@ async function saveInsurance(event) {
     const data = {
       name,
       sku,
+      costPrice,
       price,
       status,
       description,

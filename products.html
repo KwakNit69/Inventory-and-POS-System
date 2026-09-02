@@ -155,6 +155,7 @@
                                 <tr>
                                     <th>PACKAGE</th>
                                     <th>SKU</th>
+                                    <th>COST PRICE</th>
                                     <th>SELLING PRICE</th>
                                     <th>CONTENTS</th>
                                     <th>AVAILABLE</th>
@@ -203,9 +204,10 @@
                                 <tr>
                                     <th>INSURANCE</th>
                                     <th>SKU</th>
+                                    <th>COST PRICE</th>
                                     <th>PRICE</th>
-                                    <th>DESCRIPTION</th>
                                     <th>STATUS</th>
+                                    <th>CREATED</th>
                                     <th>ACTION</th>
                                 </tr>
                             </thead>
@@ -314,6 +316,13 @@
                         <input type="text" id="packageSku" placeholder="Automatically generated" readonly>
                     </div>
                     <div class="form-group">
+                        <label>Cost Price <span>*</span></label>
+                        <div class="price-input">
+                            <span>₱</span>
+                            <input type="number" id="packageCostPrice" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>Selling Price <span>*</span></label>
                         <div class="price-input">
                             <span>₱</span>
@@ -373,6 +382,13 @@
                     <div class="form-group">
                         <label>Insurance SKU <span>*</span></label>
                         <input type="text" id="insuranceSku" placeholder="Automatically generated" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Cost Price <span>*</span></label>
+                        <div class="price-input">
+                            <span>₱</span>
+                            <input type="number" id="insuranceCostPrice" min="0" step="0.01" placeholder="0.00" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Insurance Price <span>*</span></label>

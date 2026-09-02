@@ -3,99 +3,352 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>StockMaster - Reports</title>
+
     <link rel="stylesheet" href="ADMIN/CSS/reports.css">
     <link rel="stylesheet" href="sidebar.css">
 </head>
 
 <body>
+
     <div class="app-shell">
+
+        <!-- SIDEBAR -->
         <div id="sidebar-container"></div>
+
+        <!-- MAIN -->
         <main>
+
+            <!-- TOP BAR -->
             <header class="topbar">
-                <div class="search">⌕ <input placeholder="Search products, orders, customers..."></div>
-                <div class="profile"><span id="profileName">Loading...</span><span class="avatar"
-                        id="profileAvatar">--</span></div>
+
+                <div class="search">
+                    ⌕
+                    <input
+                        type="text"
+                        placeholder="Search products, orders, customers..."
+                    >
+                </div>
+
+                <div class="profile">
+                    <span id="profileName">Loading...</span>
+
+                    <span
+                        class="avatar"
+                        id="profileAvatar"
+                    >
+                        --
+                    </span>
+                </div>
+
             </header>
+
+            <!-- CONTENT -->
             <section class="content">
+
+                <!-- PAGE HEADER -->
                 <div class="page-header">
+
                     <div>
                         <h1>Reports</h1>
-                        <p>Analyze sales, inventory, products, and business performance.</p>
+
+                        <p>
+                            Analyze sales, inventory, products,
+                            and business performance.
+                        </p>
                     </div>
-                    <button id="exportReport">↓ Export Report</button>
+
+                    <button id="exportReport">
+                        ↓ Export Report
+                    </button>
+
                 </div>
-                <div id="errorMessage" class="error-message"></div>
+
+
+                <!-- ERROR -->
+                <div
+                    id="errorMessage"
+                    class="error-message"
+                ></div>
+
+
+                <!-- FILTERS -->
                 <div class="filters">
+
                     <select id="period">
-                        <option value="week">This Week</option>
-                        <option value="today">Today</option>
-                        <option value="month">This Month</option>
-                        <option value="all">All Time</option>
+
+                        <option value="week">
+                            This Week
+                        </option>
+
+                        <option value="today">
+                            Today
+                        </option>
+
+                        <option value="month">
+                            This Month
+                        </option>
+
+                        <option value="all">
+                            All Time
+                        </option>
+
                     </select>
-                    <button id="reset">Reset</button>
+
+                    <button id="reset">
+                        Reset
+                    </button>
+
                 </div>
+
+
+                <!-- SUMMARY -->
                 <div class="summary">
+
                     <div class="card">
+
                         <span>TOTAL SALES</span>
-                        <strong id="sales">₱0.00</strong>
-                        <small>Selected period</small>
+
+                        <strong id="sales">
+                            ₱0.00
+                        </strong>
+
+                        <small>
+                            Selected period
+                        </small>
+
                     </div>
+
+
                     <div class="card">
+
                         <span>TRANSACTIONS</span>
-                        <strong id="transactions">0</strong>
-                        <small>Completed sales</small>
+
+                        <strong id="transactions">
+                            0
+                        </strong>
+
+                        <small>
+                            Completed sales
+                        </small>
+
                     </div>
+
+
                     <div class="card">
+
                         <span>ITEMS SOLD</span>
-                        <strong id="items">0</strong>
-                        <small>Units sold</small>
+
+                        <strong id="items">
+                            0
+                        </strong>
+
+                        <small>
+                            Units sold
+                        </small>
+
                     </div>
+
+
                     <div class="card">
+
                         <span>AVERAGE SALE</span>
-                        <strong id="average">₱0.00</strong>
-                        <small>Per transaction</small>
+
+                        <strong id="average">
+                            ₱0.00
+                        </strong>
+
+                        <small>
+                            Per transaction
+                        </small>
+
                     </div>
+
+
+                    <!-- OPTIONAL PROFIT CARDS -->
+
+                    <div class="card">
+
+                        <span>TOTAL COST</span>
+
+                        <strong id="totalCost">
+                            ₱0.00
+                        </strong>
+
+                        <small>
+                            Cost of goods/services
+                        </small>
+
+                    </div>
+
+
+                    <div class="card">
+
+                        <span>GROSS PROFIT</span>
+
+                        <strong id="grossProfit">
+                            ₱0.00
+                        </strong>
+
+                        <small>
+                            Sales minus cost
+                        </small>
+
+                    </div>
+
+
+                    <div class="card">
+
+                        <span>PROFIT MARGIN</span>
+
+                        <strong id="profitMargin">
+                            0.00%
+                        </strong>
+
+                        <small>
+                            Gross profit margin
+                        </small>
+
+                    </div>
+
                 </div>
+
+
+                <!-- CHARTS -->
                 <div class="grid">
+
+                    <!-- SALES PERFORMANCE -->
                     <div class="panel">
-                        <h2>Sales Performance</h2>
-                        <p>Sales trend for the selected period.</p>
+
+                        <h2>
+                            Sales Performance
+                        </h2>
+
+                        <p>
+                            Sales trend for the selected period.
+                        </p>
+
                         <div class="chart">
+
                             <canvas id="chart"></canvas>
+
                         </div>
+
                     </div>
+
+
+                    <!-- PAYMENT METHODS -->
                     <div class="panel">
-                        <h2>Payment Methods</h2>
-                        <p>Sales by payment method.</p>
+
+                        <h2>
+                            Payment Methods
+                        </h2>
+
+                        <p>
+                            Sales by payment method.
+                        </p>
+
                         <div id="payments">
-                            <div class="empty">No payment data available.</div>
+
+                            <div class="empty">
+                                No payment data available.
+                            </div>
+
                         </div>
+
                     </div>
+
                 </div>
+
+
+                <!-- TOP PRODUCTS -->
                 <div class="panel table">
-                    <h2>Top Products</h2>
-                    <p>Best-selling products.</p>
+
+                    <h2>
+                        Top Products
+                    </h2>
+
+                    <p>
+                        Best-selling products and services.
+                    </p>
+
                     <div class="table-wrapper">
+
                         <table>
+
                             <thead>
+
                                 <tr>
-                                    <th>PRODUCT</th>
-                                    <th>CATEGORY</th>
-                                    <th>UNITS SOLD</th>
-                                    <th>REVENUE</th>
+
+                                    <th>
+                                        PRODUCT / SERVICE
+                                    </th>
+
+                                    <th>
+                                        CATEGORY
+                                    </th>
+
+                                    <th>
+                                        UNITS SOLD
+                                    </th>
+
+                                    <th>
+                                        REVENUE
+                                    </th>
+
+                                    <th>
+                                        COST
+                                    </th>
+
+                                    <th>
+                                        PROFIT
+                                    </th>
+
                                 </tr>
+
                             </thead>
-                            <tbody id="products"></tbody>
+
+                            <tbody id="products">
+
+                                <tr>
+
+                                    <td colspan="6">
+
+                                        <div class="loading">
+                                            Loading product data...
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </section>
+
         </main>
+
     </div>
+
+
+    <!-- CHART.JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="ADMIN/JS/reports.js"></script>
+
+
+    <!-- REPORTS JS -->
+    <script
+        type="module"
+        src="ADMIN/JS/reports.js"
+    ></script>
+
 </body>
 
 </html>

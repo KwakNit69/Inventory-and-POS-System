@@ -254,17 +254,31 @@
     }
     function normalizeMovement(id, data) {
         const date = getMovementDate(data);
-        const rawType = String(data.type || "").toLowerCase();
-        if (rawType === "sale" || rawType === "reservation") return [];
+        const rawType = String(data.type || '').trim().toLowerCase();
+        const rawMovementType = String(data.movementType || data.movement || '').trim().toLowerCase();
+        const rawReason = String(data.reason || '').trim().toLowerCase();
+
+        // POS sales are already read from the sales collection below.
+        // Ignore the duplicate inventoryMovements OUT/SALE record created by POS.
+        if (
+            rawType === 'sale' ||
+            rawType === 'reservation' ||
+            rawMovementType === 'sale' ||
+            (rawType === 'out' && rawMovementType === 'sale') ||
+            (rawType === 'out' && rawReason === 'sale')
+        ) {
+            return [];
+        }
+
         return [{
             id: String(id),
-            product: String(data.productName || data.product || data.sku || "Unknown Product"),
-            type: String(data.type || "Stock Movement"),
+            product: String(data.productName || data.product || data.sku || 'Unknown Product'),
+            type: String(data.type || 'Stock Movement'),
             quantity: Number(data.quantity || 0),
-            reason: String(data.reason || ""),
-            user: String(data.userName || data.user || data.staffName || data.cashierName || "Administrator"),
-            notes: String(data.notes || ""),
-            transactionNumber: String(data.transactionNumber || data.transactionNo || data.trxNumber || ""),
+            reason: String(data.reason || ''),
+            user: String(data.userName || data.user || data.staffName || data.cashierName || 'Administrator'),
+            notes: String(data.notes || ''),
+            transactionNumber: String(data.transactionNumber || data.transactionNo || data.trxNumber || ''),
             createdAt: date
         }];
     }

@@ -620,6 +620,14 @@ function normalizeSale(snapshot) {
                 data.status ||
                 ""
             ),
+        paymentStatus:
+            String(
+                data.paymentStatus ||
+                data.payment_status ||
+                ""
+            ),
+        paymentCompleted:
+            data.paymentCompleted === true,
         paymentBreakdown,
         splitPayment:
             data.splitPayment === true,
@@ -637,7 +645,40 @@ function normalizeSale(snapshot) {
    COMPLETION / PROFIT HELPERS
 ========================================================= */
 function isCompletedSale(sale) {
-    return String(sale?.status || "").trim().toLowerCase() === "completed";
+    /*
+     * A reservation can still be Pending because the
+     * customer has not picked up / completed the order,
+     * but the payment may already be received.
+     *
+     * For SALES / FINANCIAL totals, a paid reservation
+     * should count immediately.
+     */
+    const paymentStatus =
+        String(
+            sale?.raw?.paymentStatus ??
+            sale?.paymentStatus ??
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+    if (
+        [
+            "paid",
+            "completed",
+            "complete",
+            "success",
+            "successful",
+            "settled"
+        ].includes(paymentStatus) ||
+        sale?.raw?.paymentCompleted === true
+    ) {
+        return true;
+    }
+
+    return String(sale?.status || "")
+        .trim()
+        .toLowerCase() === "completed";
 }
 function getSaleCost(sale) {
     return Number(sale?.totalCost) || sale.items.reduce(

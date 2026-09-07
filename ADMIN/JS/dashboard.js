@@ -1580,10 +1580,17 @@
                     (balances[method] || 0),
                 0
             );
+        // CASH ON HAND is the current physical cash balance.
+        // It is intentionally NOT affected by the selected date filter.
+        const currentCashOnHand =
+            calculateCurrentBalances().Cash;
         const expectedCash =
-            calculateExpectedCash();
+            currentCashOnHand;
+        // The Financial Overview CASH card is physical cash on hand,
+        // so it must NOT change when Today / This Week / This Month /
+        // Specific Date is selected.
         const currentCash =
-            balances.Cash;
+            currentCashOnHand;
         /* =====================================================
            ACCOUNT BALANCES
            ===================================================== */
@@ -1746,7 +1753,7 @@
         }
         if (el("cashOnHandNote")) {
             el("cashOnHandNote").textContent =
-                `${periodName} • Expected physical cash`;
+                "Current physical cash • Not affected by filter";
         }
         /* =====================================================
            SUMMARY

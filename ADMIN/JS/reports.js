@@ -323,6 +323,134 @@
 
 
             // ============================================================
+            // FINANCIAL SALE DATE
+            // ============================================================
+            // A sale is financially dated when payment was recorded.
+            // This is important for reservations: they may be created
+            // on one date but paid on another date.
+            function getSaleDate(data) {
+
+                const paymentDate =
+                    getReportDate(data.paymentRecordedAt) ||
+                    getReportDate(data.paymentReceivedAt) ||
+                    getReportDate(data.paymentCompletedAt) ||
+                    getReportDate(data.paidAt) ||
+                    getReportDate(data.paymentDate);
+
+                if (paymentDate) {
+                    return paymentDate;
+                }
+
+                const completionDate =
+                    getReportDate(data.completedAt) ||
+                    getReportDate(data.orderCompletedAt) ||
+                    getReportDate(data.doneAt);
+
+                if (completionDate) {
+                    return completionDate;
+                }
+
+                return (
+                    getReportDate(data.createdAt) ||
+                    getReportDate(data.created_at) ||
+                    getReportDate(data.date) ||
+                    getReportDate(data.saleDate) ||
+                    getReportDate(data.transactionDate) ||
+                    getReportDate(data.timestamp) ||
+                    getReportDate(data.orderDate) ||
+                    getReportDate(data.createdOn) ||
+                    getReportDate(data.updatedAt)
+                );
+            }
+
+            function getReportDate(value) {
+
+                if (!value) {
+                    return null;
+                }
+
+                if (typeof value.toDate === "function") {
+                    const date = value.toDate();
+                    return date instanceof Date &&
+                        !Number.isNaN(date.getTime())
+                        ? date
+                        : null;
+                }
+
+                if (typeof value.toMillis === "function") {
+                    const date = new Date(value.toMillis());
+                    return Number.isNaN(date.getTime())
+                        ? null
+                        : date;
+                }
+
+                if (value instanceof Date) {
+                    return Number.isNaN(value.getTime())
+                        ? null
+                        : value;
+                }
+
+                if (
+                    typeof value === "object" &&
+                    value.seconds !== undefined
+                ) {
+                    const millis =
+                        Number(value.seconds) * 1000 +
+                        (Number(value.nanoseconds) || 0) / 1000000;
+
+                    const date = new Date(millis);
+
+                    return Number.isNaN(date.getTime())
+                        ? null
+                        : date;
+                }
+
+                if (typeof value === "number") {
+                    const millis =
+                        value < 100000000000
+                            ? value * 1000
+                            : value;
+
+                    const date = new Date(millis);
+
+                    return Number.isNaN(date.getTime())
+                        ? null
+                        : date;
+                }
+
+                if (typeof value === "string") {
+                    const trimmed = value.trim();
+
+                    if (!trimmed) {
+                        return null;
+                    }
+
+                    const numeric = Number(trimmed);
+
+                    if (Number.isFinite(numeric)) {
+                        const millis =
+                            numeric < 100000000000
+                                ? numeric * 1000
+                                : numeric;
+
+                        const date = new Date(millis);
+
+                        return Number.isNaN(date.getTime())
+                            ? null
+                            : date;
+                    }
+
+                    const date = new Date(trimmed);
+
+                    return Number.isNaN(date.getTime())
+                        ? null
+                        : date;
+                }
+
+                return null;
+            }
+
+            // ============================================================
             // TOTAL
             // ============================================================
 
@@ -630,49 +758,46 @@
             function getTotalCost(data) {
 
                 const direct =
-                    Number(
-                        data.totalCost
-                    );
+                    Number(data.totalCost);
 
+                // Use a saved total cost only when it is a real value.
+                // Pending reservations can temporarily contain 0.
                 if (
-                    Number.isFinite(direct)
+                    Number.isFinite(direct) &&
+                    direct !== 0
                 ) {
-
                     return direct;
-
                 }
-
 
                 const items =
                     getItems(data);
 
                 if (!items.length) {
-
                     return number(
                         data.cost ||
                         data.costAmount ||
+                        data.totalCostAmount ||
+                        0
+                    );
+                }
+
+                const calculated =
+                    items.reduce(
+                        (sum, item) => {
+                            return sum +
+                                (
+                                    getItemCost(item) *
+                                    getQuantity(item)
+                                );
+                        },
                         0
                     );
 
+                if (Number.isFinite(calculated)) {
+                    return calculated;
                 }
 
-
-                return items.reduce(
-
-                    (sum, item) => {
-
-                        return sum +
-                            (
-                                getItemCost(item) *
-                                getQuantity(item)
-                            );
-
-                    },
-
-                    0
-
-                );
-
+                return 0;
             }
 
 
@@ -778,58 +903,91 @@
 
             function isCompleted(data) {
 
-                const paymentStatus = String(
-                    data.paymentStatus ??
-                    data.payment_status ??
-                    ""
-                ).trim().toLowerCase();
-
-                if (
-                    [
-                        "paid",
-                        "completed",
-                        "complete",
-                        "success",
-                        "successful",
-                        "settled"
-                    ].includes(paymentStatus) ||
-                    data.paymentCompleted === true
-                ) {
-                    return true;
-                }
-
-                const possibleStatuses = [
+                const statusValues = [
                     data.status,
+                    data.orderStatus,
                     data.saleStatus,
                     data.transactionStatus
                 ];
 
-                const existing = possibleStatuses.find(
-                    value =>
-                        value !== undefined &&
-                        value !== null &&
-                        String(value).trim() !== ""
-                );
+                const paymentStatusValues = [
+                    data.paymentStatus,
+                    data.payment_status,
+                    data.paymentState,
+                    data.payment_state
+                ];
 
-                if (existing === undefined) {
-                    return true;
-                }
-
-                const status = String(existing)
-                    .trim()
-                    .toLowerCase();
-
-                return [
+                const paidStatuses = [
+                    "paid",
                     "completed",
                     "complete",
                     "success",
                     "successful",
                     "settled",
-                    "sale",
-                    "sold",
-                    "approved",
-                    "closed"
-                ].includes(status);
+                    "confirmed",
+                    "done"
+                ];
+
+                // Payment is financially complete even when a
+                // reservation remains Pending for stock purposes.
+                if (
+                    data.paymentCompleted === true ||
+                    data.isPaid === true ||
+                    data.paid === true
+                ) {
+                    return true;
+                }
+
+                if (
+                    paymentStatusValues.some(
+                        value =>
+                            paidStatuses.includes(
+                                String(value || "")
+                                    .trim()
+                                    .toLowerCase()
+                            )
+                    )
+                ) {
+                    return true;
+                }
+
+                if (
+                    statusValues.some(
+                        value =>
+                            paidStatuses.includes(
+                                String(value || "")
+                                    .trim()
+                                    .toLowerCase()
+                            )
+                    )
+                ) {
+                    return true;
+                }
+
+                const breakdown =
+                    getPaymentBreakdown(data);
+
+                const recordedPayment =
+                    PAYMENT_METHODS.reduce(
+                        (sum, method) =>
+                            sum +
+                            number(
+                                breakdown[method]
+                            ),
+                        0
+                    );
+
+                const directPaidAmount =
+                    number(data.amountPaid) ||
+                    number(data.totalPaid) ||
+                    number(data.paidAmount) ||
+                    number(data.paymentAmount) ||
+                    number(data.amountReceived);
+
+                return (
+                    recordedPayment > 0 ||
+                    directPaidAmount > 0
+                );
             }
 
 
@@ -838,296 +996,61 @@
             // ============================================================
 
             function getPaymentBreakdown(data) {
-
-                const result = {
-
-                    Cash: 0,
-                    GCash: 0,
-                    BDO: 0,
-                    BIBO: 0,
-                    BPI: 0
-
+                const result = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 };
+                const addObject = source => {
+                    if (!source || typeof source !== "object" || Array.isArray(source)) return false;
+                    let found = false;
+                    Object.entries(source).forEach(([key, value]) => {
+                        const method = normalizePayment(key);
+                        const amount = number(value && typeof value === "object" ? value.amount ?? value.value ?? value.total : value);
+                        if (method && amount > 0) {
+                            result[method] += amount;
+                            found = true;
+                        }
+                    });
+                    return found;
                 };
-
-
-                // --------------------------------------------------------
-                // paymentBreakdown
-                // --------------------------------------------------------
-
-                if (
-                    data.paymentBreakdown &&
-                    typeof data.paymentBreakdown === "object"
-                ) {
-
-                    PAYMENT_METHODS.forEach(
-                        method => {
-
-                            result[method] +=
-                                number(
-                                    data.paymentBreakdown[
-                                        method
-                                    ]
-                                );
-
+                const addArray = source => {
+                    if (!Array.isArray(source)) return false;
+                    let found = false;
+                    source.forEach(payment => {
+                        const method = normalizePayment(payment?.method || payment?.paymentMethod || payment?.account || payment?.type || payment?.name);
+                        const amount = number(payment?.amount ?? payment?.value ?? payment?.paymentAmount ?? payment?.total);
+                        if (method && amount > 0) {
+                            result[method] += amount;
+                            found = true;
                         }
-                    );
-
+                    });
+                    return found;
+                };
+                if (addObject(data.paymentBreakdown)) return result;
+                if (addObject(data.paymentDetails)) return result;
+                if (addArray(data.splitPayments)) return result;
+                if (addArray(data.payments)) return result;
+                if (addObject(data.tenderBreakdown)) return result;
+                const method = normalizePayment(data.paymentMethod || data.payment || data.method || data.paymentType || data.tenderType);
+                if (method && PAYMENT_METHODS.includes(method)) {
+                    result[method] = getTotal(data);
+                    return result;
                 }
-
-
-                // --------------------------------------------------------
-                // paymentDetails
-                // --------------------------------------------------------
-
-                if (
-                    data.paymentDetails &&
-                    typeof data.paymentDetails === "object"
-                ) {
-
-                    PAYMENT_METHODS.forEach(
-                        method => {
-
-                            // Only use this if
-                            // paymentBreakdown did not
-                            // already contain the amount.
-
-                            if (
-                                result[method] <= 0
-                            ) {
-
-                                result[method] =
-                                    number(
-                                        data.paymentDetails[
-                                            method
-                                        ]
-                                    );
-
-                            }
-
+                const directFields = {
+                    Cash: ["cashAmount", "cashReceived", "cash"],
+                    GCash: ["gcashAmount", "gcash"],
+                    BDO: ["bdoAmount", "bdo"],
+                    BIBO: ["biboAmount", "bibo"],
+                    BPI: ["bpiAmount", "bpi"]
+                };
+                for (const methodName of PAYMENT_METHODS) {
+                    for (const field of directFields[methodName]) {
+                        const amount = number(data[field]);
+                        if (amount > 0) {
+                            result[methodName] = Math.min(amount, getTotal(data));
+                            break;
                         }
-                    );
-
+                    }
                 }
-
-
-                // --------------------------------------------------------
-                // splitPayment
-                // --------------------------------------------------------
-
-                const splitPayments =
-
-                    data.splitPayments ||
-                    data.splitPayment ||
-                    data.tenderBreakdown;
-
-
-                if (
-                    Array.isArray(
-                        splitPayments
-                    )
-                ) {
-
-                    splitPayments.forEach(
-                        payment => {
-
-                            const method =
-                                normalizePayment(
-
-                                    payment.method ||
-                                    payment.paymentMethod ||
-                                    payment.type ||
-                                    payment.name
-
-                                );
-
-
-                            const amount =
-                                number(
-
-                                    payment.amount ||
-                                    payment.value ||
-                                    payment.paymentAmount
-
-                                );
-
-
-                            if (
-                                method &&
-                                amount > 0
-                            ) {
-
-                                result[method] +=
-                                    amount;
-
-                            }
-
-                        }
-                    );
-
-                }
-
-
-                // --------------------------------------------------------
-                // payments array
-                // --------------------------------------------------------
-
-                if (
-                    Array.isArray(
-                        data.payments
-                    )
-                ) {
-
-                    data.payments.forEach(
-                        payment => {
-
-                            const method =
-                                normalizePayment(
-
-                                    payment.method ||
-                                    payment.paymentMethod ||
-                                    payment.type ||
-                                    payment.name
-
-                                );
-
-
-                            const amount =
-                                number(
-
-                                    payment.amount ||
-                                    payment.value ||
-                                    payment.paymentAmount
-
-                                );
-
-
-                            if (
-                                method &&
-                                amount > 0
-                            ) {
-
-                                result[method] +=
-                                    amount;
-
-                            }
-
-                        }
-                    );
-
-                }
-
-
-                // --------------------------------------------------------
-                // Regular payment method
-                // --------------------------------------------------------
-
-                const normalMethod =
-                    normalizePayment(
-
-                        data.paymentMethod ||
-                        data.payment ||
-                        data.method ||
-                        data.paymentType ||
-                        data.tenderType
-
-                    );
-
-
-                const currentTotal =
-                    Object.values(result)
-                        .reduce(
-                            (sum, value) =>
-                                sum + value,
-                            0
-                        );
-
-
-                if (
-                    normalMethod &&
-                    currentTotal <= 0
-                ) {
-
-                    result[normalMethod] =
-                        getTotal(data);
-
-                }
-
-
-                // --------------------------------------------------------
-                // Individual payment fields
-                // --------------------------------------------------------
-
-                if (
-                    result.Cash <= 0
-                ) {
-
-                    result.Cash =
-                        number(
-                            data.cashAmount ||
-                            data.cashReceived ||
-                            data.cash
-                        );
-
-                }
-
-
-                if (
-                    result.GCash <= 0
-                ) {
-
-                    result.GCash =
-                        number(
-                            data.gcashAmount ||
-                            data.gcash
-                        );
-
-                }
-
-
-                if (
-                    result.BDO <= 0
-                ) {
-
-                    result.BDO =
-                        number(
-                            data.bdoAmount ||
-                            data.bdo
-                        );
-
-                }
-
-
-                if (
-                    result.BIBO <= 0
-                ) {
-
-                    result.BIBO =
-                        number(
-                            data.biboAmount ||
-                            data.bibo
-                        );
-
-                }
-
-
-                if (
-                    result.BPI <= 0
-                ) {
-
-                    result.BPI =
-                        number(
-                            data.bpiAmount ||
-                            data.bpi
-                        );
-
-                }
-
-
                 return result;
-
             }
-
-
             // ============================================================
             // PAYMENT LABEL
             // ============================================================
@@ -1513,7 +1436,256 @@
             // CASH FLOW SUMMARY
             // ============================================================
 
+            // ============================================================
+            // CASH FLOW CLASSIFICATION
+            // ============================================================
+
+            function flowType(data) {
+                return String(
+                    data.type ||
+                    data.transactionType ||
+                    data.flowType ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[_-]/g, " ");
+            }
+
+            function getFlowAmount(data) {
+                const fields = [
+                    "amount",
+                    "total",
+                    "value",
+                    "cashAmount",
+                    "cashInAmount",
+                    "cashOutAmount"
+                ];
+
+                for (const field of fields) {
+                    const value = number(data[field]);
+
+                    if (Number.isFinite(value)) {
+                        return value;
+                    }
+                }
+
+                return 0;
+            }
+
+            function getFlowPaymentMethod(data) {
+                const values = [
+                    data.account,
+                    data.sourceAccount,
+                    data.fromAccount,
+                    data.toAccount,
+                    data.fundAccount,
+                    data.paymentMethod,
+                    data.payment,
+                    data.method,
+                    data.channel
+                ];
+
+                for (const value of values) {
+                    const method =
+                        normalizePayment(value);
+
+                    if (method) {
+                        return method;
+                    }
+                }
+
+                return "";
+            }
+
+            function isSaleFlow(data) {
+
+                const type =
+                    flowType(data);
+
+                const category =
+                    String(
+                        data.category ||
+                        data.cashFlowCategory ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase()
+                        .replace(/[_-]/g, " ");
+
+                const description =
+                    String(
+                        data.description ||
+                        data.details ||
+                        data.note ||
+                        data.notes ||
+                        data.reason ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                const source =
+                    String(
+                        data.source ||
+                        data.origin ||
+                        data.sourceType ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    [
+                        "sale",
+                        "sales",
+                        "pos sale",
+                        "pos sales"
+                    ].includes(type)
+                ) {
+                    return true;
+                }
+
+                if (
+                    [
+                        "sale",
+                        "sales",
+                        "pos sale",
+                        "pos sales"
+                    ].includes(category)
+                ) {
+                    return true;
+                }
+
+                if (
+                    description.includes("pos sale") ||
+                    description.includes("point of sale")
+                ) {
+                    return true;
+                }
+
+                if (
+                    source === "pos" ||
+                    source === "point of sale" ||
+                    source === "sales"
+                ) {
+                    return true;
+                }
+
+                const reference =
+                    String(
+                        data.transactionId ||
+                        data.transactionID ||
+                        data.saleId ||
+                        data.saleID ||
+                        data.reference ||
+                        data.referenceId ||
+                        data.refId ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                return (
+                    reference.startsWith("sale-") ||
+                    reference.startsWith("sale_") ||
+                    reference.startsWith("txn-") ||
+                    reference.startsWith("tx-")
+                );
+            }
+
+            function isCashOut(data) {
+
+                const type =
+                    flowType(data);
+
+                if (
+                    [
+                        "out",
+                        "cashout",
+                        "cash out",
+                        "outflow",
+                        "expense",
+                        "withdrawal",
+                        "purchase",
+                        "inventory purchase",
+                        "refund"
+                    ].includes(type)
+                ) {
+                    return true;
+                }
+
+                if (data.cashOut !== undefined) {
+                    return Boolean(data.cashOut);
+                }
+
+                if (data.isCashOut !== undefined) {
+                    return Boolean(data.isCashOut);
+                }
+
+                return false;
+            }
+
+            function isCashIn(data) {
+
+                const type =
+                    flowType(data);
+
+                if (
+                    [
+                        "in",
+                        "cashin",
+                        "cash in",
+                        "inflow",
+                        "income",
+                        "other income"
+                    ].includes(type)
+                ) {
+                    return true;
+                }
+
+                if (data.cashIn !== undefined) {
+                    return Boolean(data.cashIn);
+                }
+
+                if (data.isCashIn !== undefined) {
+                    return Boolean(data.isCashIn);
+                }
+
+                return false;
+            }
+
+            function isOpeningCash(data) {
+
+                const type =
+                    flowType(data);
+
+                const category =
+                    String(
+                        data.category ||
+                        data.cashFlowCategory ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase()
+                        .replace(/[_-]/g, " ");
+
+                const values = [
+                    "opening",
+                    "opening cash",
+                    "opening balance",
+                    "opening cash balance"
+                ];
+
+                return (
+                    values.includes(type) ||
+                    values.includes(category)
+                );
+            }
+
+
             function renderCashFlowSummary(salesRows, cashFlowRows) {
+
                 const paymentTotals = {
                     Cash: 0,
                     GCash: 0,
@@ -1522,59 +1694,243 @@
                     BPI: 0
                 };
 
-                // Payment totals come from the filtered paid sales.
+                // Financial payment totals come from paid sales.
                 salesRows.forEach(row => {
-                    const breakdown = getPaymentBreakdown(row);
+
+                    const breakdown =
+                        getPaymentBreakdown(row);
 
                     PAYMENT_METHODS.forEach(method => {
-                        paymentTotals[method] += number(breakdown[method]);
+
+                        paymentTotals[method] +=
+                            number(
+                                breakdown[method]
+                            );
+
                     });
+
                 });
 
-                const totalCashIn = cashFlowRows.reduce((sum, flow) => {
-                    return sum + number(
-                        flow.cashIn ??
-                        flow.amountIn ??
-                        (String(flow.type || "").toLowerCase() === "cashin"
-                            ? flow.amount
-                            : 0)
+                // Cash sales are part of Cash In.
+                const cashSales =
+                    salesRows.reduce(
+                        (sum, row) =>
+                            sum +
+                            number(
+                                getPaymentBreakdown(row).Cash
+                            ),
+                        0
                     );
-                }, 0);
 
-                const totalCashOut = cashFlowRows.reduce((sum, flow) => {
-                    return sum + number(
-                        flow.cashOut ??
-                        flow.amountOut ??
-                        (String(flow.type || "").toLowerCase() === "cashout"
-                            ? flow.amount
-                            : 0)
+                let manualCashIn = 0;
+                let totalCashOut = 0;
+
+                cashFlowRows.forEach(flow => {
+
+                    // POS sale records are already represented by Sales.
+                    if (isSaleFlow(flow)) {
+                        return;
+                    }
+
+                    // Opening cash is a balance, not period income.
+                    if (isOpeningCash(flow)) {
+                        return;
+                    }
+
+                    const amount =
+                        getFlowAmount(flow);
+
+                    const account =
+                        getFlowPaymentMethod(flow);
+
+                    // Expected physical cash only uses the Cash account.
+                    if (
+                        isCashOut(flow)
+                    ) {
+
+                        if (
+                            !account ||
+                            account === "Cash"
+                        ) {
+                            totalCashOut +=
+                                amount;
+                        }
+
+                        return;
+                    }
+
+                    if (
+                        isCashIn(flow)
+                    ) {
+
+                        if (
+                            !account ||
+                            account === "Cash"
+                        ) {
+                            manualCashIn +=
+                                amount;
+                        }
+
+                    }
+
+                });
+
+                const totalCashIn =
+                    cashSales +
+                    manualCashIn;
+
+                // --------------------------------------------------------
+                // BEGINNING PHYSICAL CASH
+                // --------------------------------------------------------
+
+                const selected =
+                    period?.value ||
+                    "today";
+
+                const start =
+                    getStartDate(selected);
+
+                let beginningCash = 0;
+
+                if (start) {
+
+                    // Cash sales before selected period.
+                    allSales.forEach(sale => {
+
+                        if (
+                            !sale._date ||
+                            sale._date >= start ||
+                            !isCompleted(sale)
+                        ) {
+                            return;
+                        }
+
+                        beginningCash +=
+                            number(
+                                getPaymentBreakdown(sale).Cash
+                            );
+
+                    });
+
+                    // Cash-flow activity before selected period.
+                    allCashFlows.forEach(flow => {
+
+                        if (
+                            !flow._date ||
+                            flow._date >= start ||
+                            isSaleFlow(flow)
+                        ) {
+                            return;
+                        }
+
+                        const account =
+                            getFlowPaymentMethod(flow);
+
+                        if (
+                            account &&
+                            account !== "Cash"
+                        ) {
+                            return;
+                        }
+
+                        const amount =
+                            getFlowAmount(flow);
+
+                        if (isOpeningCash(flow)) {
+                            beginningCash += amount;
+                        }
+                        else if (isCashOut(flow)) {
+                            beginningCash -= amount;
+                        }
+                        else if (isCashIn(flow)) {
+                            beginningCash += amount;
+                        }
+
+                    });
+
+                }
+                else {
+
+                    // All-time physical cash balance.
+                    allSales.forEach(sale => {
+
+                        if (!isCompleted(sale)) {
+                            return;
+                        }
+
+                        beginningCash +=
+                            number(
+                                getPaymentBreakdown(sale).Cash
+                            );
+
+                    });
+
+                    allCashFlows.forEach(flow => {
+
+                        if (isSaleFlow(flow)) {
+                            return;
+                        }
+
+                        const account =
+                            getFlowPaymentMethod(flow);
+
+                        if (
+                            account &&
+                            account !== "Cash"
+                        ) {
+                            return;
+                        }
+
+                        const amount =
+                            getFlowAmount(flow);
+
+                        if (isOpeningCash(flow)) {
+                            beginningCash += amount;
+                        }
+                        else if (isCashOut(flow)) {
+                            beginningCash -= amount;
+                        }
+                        else if (isCashIn(flow)) {
+                            beginningCash += amount;
+                        }
+
+                    });
+
+                }
+
+                const expectedCash =
+                    start
+                        ? beginningCash +
+                            totalCashIn -
+                            totalCashOut
+                        : beginningCash;
+
+                const totalSales =
+                    salesRows.reduce(
+                        (sum, row) =>
+                            sum +
+                            number(row._total),
+                        0
                     );
-                }, 0);
-
-                // Expected balance for the selected period.
-                // This follows the simple cash-flow equation:
-                // Cash In - Cash Out.
-                const expectedCash = totalCashIn - totalCashOut;
-
-                const totalSales = salesRows.reduce(
-                    (sum, row) => sum + row._total,
-                    0
-                );
 
                 if (totalCashInElement) {
-                    totalCashInElement.textContent = money(totalCashIn);
+                    totalCashInElement.textContent =
+                        money(totalCashIn);
                 }
 
                 if (totalCashOutElement) {
-                    totalCashOutElement.textContent = money(totalCashOut);
+                    totalCashOutElement.textContent =
+                        money(totalCashOut);
                 }
 
                 if (expectedCashElement) {
-                    expectedCashElement.textContent = money(expectedCash);
+                    expectedCashElement.textContent =
+                        money(expectedCash);
                 }
 
                 if (reportTotalSalesElement) {
-                    reportTotalSalesElement.textContent = money(totalSales);
+                    reportTotalSalesElement.textContent =
+                        money(totalSales);
                 }
 
                 if (cashFlowStatusElement) {
@@ -1583,31 +1939,56 @@
                 }
 
                 if (cashFlowSummaryElement) {
+
                     const methodMeta = {
-                        Cash: { icon: "₱", className: "cash" },
-                        GCash: { icon: "G", className: "gcash" },
-                        BDO: { icon: "B", className: "bdo" },
-                        BIBO: { icon: "B", className: "bibo" },
-                        BPI: { icon: "B", className: "bpi" }
+                        Cash: {
+                            icon: "₱",
+                            className: "cash"
+                        },
+                        GCash: {
+                            icon: "G",
+                            className: "gcash"
+                        },
+                        BDO: {
+                            icon: "B",
+                            className: "bdo"
+                        },
+                        BIBO: {
+                            icon: "B",
+                            className: "bibo"
+                        },
+                        BPI: {
+                            icon: "B",
+                            className: "bpi"
+                        }
                     };
 
-                    cashFlowSummaryElement.innerHTML = PAYMENT_METHODS.map(method => {
-                        const meta = methodMeta[method];
+                    cashFlowSummaryElement.innerHTML =
+                        PAYMENT_METHODS
+                            .map(method => {
 
-                        return `
-                            <div class="cash-method-card">
-                                <div class="cash-method-icon ${meta.className}">
-                                    ${meta.icon}
-                                </div>
-                                <div class="cash-method-info">
-                                    <span>${escapeHtml(method)}</span>
-                                    <strong>${money(paymentTotals[method])}</strong>
-                                </div>
-                            </div>
-                        `;
-                    }).join("");
+                                const meta =
+                                    methodMeta[method];
+
+                                return `
+                                    <div class="cash-method-card">
+                                        <div class="cash-method-icon ${meta.className}">
+                                            ${meta.icon}
+                                        </div>
+                                        <div class="cash-method-info">
+                                            <span>${escapeHtml(method)}</span>
+                                            <strong>${money(paymentTotals[method])}</strong>
+                                        </div>
+                                    </div>
+                                `;
+
+                            })
+                            .join("");
+
                 }
+
             }
+
 
             // ============================================================
             // SUMMARY
@@ -3266,7 +3647,7 @@
 
 
                                                 const date =
-                                                    getTimestamp(
+                                                    getSaleDate(
                                                         data
                                                     );
 

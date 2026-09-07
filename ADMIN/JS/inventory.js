@@ -1731,22 +1731,23 @@
                 return;
             }
 
+            if (selectedMovementProducts.length === 1) {
+
+                const product =
+                    products.find(
+                        p => p.id === selectedMovementProducts[0].productId
+                    );
+
+                currentStockDisplay.textContent =
+                    product
+                        ? `${product.stock} units`
+                        : "0 units";
+
+                return;
+            }
+
             currentStockDisplay.textContent =
-                selectedMovementProducts
-                    .map(item => {
-
-                        const product =
-                            products.find(
-                                p => p.id === item.productId
-                            );
-
-                        return product
-                            ? `${product.name}: ${product.stock}`
-                            : null;
-
-                    })
-                    .filter(Boolean)
-                    .join(" • ");
+                `${selectedMovementProducts.length} products selected`;
         }
 
 

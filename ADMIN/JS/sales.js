@@ -548,6 +548,27 @@ function normalizeSale(snapshot) {
         firestoreId:
             snapshot.id,
         date:
+            data.paymentRecordedAt ||
+            data.paymentReceivedAt ||
+            data.paymentCompletedAt ||
+            data.paidAt ||
+            data.paymentDate ||
+            data.completedAt ||
+            data.orderCompletedAt ||
+            data.doneAt ||
+            data.createdAt ||
+            data.date ||
+            data.timestamp ||
+            null,
+        financialDate:
+            data.paymentRecordedAt ||
+            data.paymentReceivedAt ||
+            data.paymentCompletedAt ||
+            data.paidAt ||
+            data.paymentDate ||
+            data.completedAt ||
+            data.orderCompletedAt ||
+            data.doneAt ||
             data.createdAt ||
             data.date ||
             data.timestamp ||
@@ -570,7 +591,18 @@ function normalizeSale(snapshot) {
         discount:
             Number(data.discount) || 0,
         total:
-            Number(data.total) || 0,
+            Number(data.total) ||
+            Number(data.grandTotal) ||
+            Number(data.totalAmount) ||
+            Number(data.saleTotal) ||
+            Number(data.netTotal) ||
+            Number(data.totalPaid) ||
+            Number(data.amountPaid) ||
+            Number(data.paidAmount) ||
+            Number(data.paymentAmount) ||
+            Number(data.amountReceived) ||
+            Number(data.amount) ||
+            0,
         totalCost:
             Number(
                 data.totalCost
@@ -717,78 +749,42 @@ function getCompletedSales(list = filteredSales) {
    PAYMENT AMOUNTS
 ========================================================= */
 function getPaymentAmounts(sale) {
-    const amounts = {
-        Cash: 0,
-        GCash: 0,
-        BDO: 0,
-        BIBO: 0,
-        BPI: 0
+    const amounts = { Cash: 0, GCash: 0, BDO: 0, BIBO: 0, BPI: 0 };
+    const addObject = source => {
+        if (!source || typeof source !== "object" || Array.isArray(source)) return false;
+        let found = false;
+        Object.entries(source).forEach(([key, value]) => {
+            const method = normalizePaymentMethod(key);
+            const amount = Number(value && typeof value === "object" ? value.amount ?? value.value ?? value.total : value) || 0;
+            if (Object.prototype.hasOwnProperty.call(amounts, method) && amount > 0) {
+                amounts[method] += amount;
+                found = true;
+            }
+        });
+        return found;
     };
-    const payment =
-        normalizePaymentMethod(
-            sale.payment
-        );
-    if (
-        payment === "Cash" ||
-        payment === "GCash" ||
-        payment === "BDO" ||
-        payment === "BIBO" ||
-        payment === "BPI"
-    ) {
-        amounts[payment] =
-            Number(sale.total) || 0;
+    const addArray = source => {
+        if (!Array.isArray(source)) return false;
+        let found = false;
+        source.forEach(item => {
+            const method = normalizePaymentMethod(item?.method || item?.paymentMethod || item?.account || item?.type || item?.name);
+            const amount = Number(item?.amount ?? item?.value ?? item?.paymentAmount ?? item?.total) || 0;
+            if (Object.prototype.hasOwnProperty.call(amounts, method) && amount > 0) {
+                amounts[method] += amount;
+                found = true;
+            }
+        });
+        return found;
+    };
+    if (addObject(sale.paymentBreakdown)) return amounts;
+    if (addObject(sale.paymentDetails)) return amounts;
+    if (addArray(sale.splitPayments)) return amounts;
+    if (addArray(sale.payments)) return amounts;
+    if (addObject(sale.tenderBreakdown)) return amounts;
+    const payment = normalizePaymentMethod(sale.payment);
+    if (Object.prototype.hasOwnProperty.call(amounts, payment)) {
+        amounts[payment] = Number(sale.total) || 0;
         return amounts;
-    }
-    const breakdown =
-        sale.paymentBreakdown || {};
-    let hasBreakdown =
-        false;
-    [
-        "Cash",
-        "GCash",
-        "BDO",
-        "BIBO",
-        "BPI"
-    ].forEach(method => {
-        const amount =
-            Number(
-                breakdown[method]
-            ) || 0;
-        if (amount > 0) {
-            amounts[method] +=
-                amount;
-            hasBreakdown = true;
-        }
-    });
-    if (hasBreakdown) {
-        return amounts;
-    }
-    if (
-        Array.isArray(
-            sale.splitPayments
-        )
-    ) {
-        sale.splitPayments
-            .forEach(item => {
-                const method =
-                    normalizePaymentMethod(
-                        item.method
-                    );
-                const amount =
-                    Number(
-                        item.amount
-                    ) || 0;
-                if (
-                    amount > 0 &&
-                    Object.prototype.hasOwnProperty.call(
-                        amounts,
-                        method
-                    )
-                ) {
-                    amounts[method] +=
-                        amount;
-                }
-            });
     }
     return amounts;
 }
@@ -1041,6 +1037,7 @@ function filterSales() {
                 &&
                 isDateMatch(
                     dateValue(
+                        sale.financialDate ||
                         sale.date
                     ),
                     selectedDateFilter,

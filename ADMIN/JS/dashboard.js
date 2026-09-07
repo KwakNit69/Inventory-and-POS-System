@@ -187,10 +187,28 @@
         const total =
             getSaleTotal(data);
 
-        const totalCost =
-            getNumber(data.totalCost) ||
-            getNumber(data.cost) ||
-            getNumber(data.totalCostAmount);
+        const costCandidates = [
+            data.totalCost,
+            data.cost,
+            data.totalCostAmount
+        ];
+
+        let totalCost = 0;
+
+        for (const value of costCandidates) {
+
+            const cost =
+                getNumber(value);
+
+            if (
+                Number.isFinite(cost) &&
+                cost > 0
+            ) {
+                totalCost = cost;
+                break;
+            }
+
+        }
 
         const calculatedProfit =
             total - totalCost;
@@ -315,7 +333,6 @@
             "netAmount",
             "payableAmount",
             "orderTotal",
-            "totalCost",
             "subtotal",
             "subTotal"
         ];
@@ -409,7 +426,8 @@
         }
         if (
             method === "gcash" ||
-            method === "g cash"
+            method === "g cash" ||
+            method.includes("gcash")
         ) {
             return "GCash";
         }
@@ -1058,52 +1076,83 @@
         );
     }
     function getPeriodSales() {
+
         return salesData.filter(item => {
+
             const saleDate =
-                getDate(item.paidAt) ||
-                getDate(item.paymentDate) ||
-                getDate(item.paymentCompletedAt) ||
-                getDate(item.completedAt) ||
-                item._date ||
-                getDate(item.createdAt) ||
-                getDate(item.created_at) ||
-                getDate(item.date) ||
-                getDate(item.saleDate) ||
-                getDate(item.transactionDate) ||
-                getDate(item.timestamp);
-            if (!saleDate || !inSelectedPeriod(saleDate)) {
+                getSaleDate(item);
+
+            if (
+                !saleDate ||
+                !inSelectedPeriod(saleDate)
+            ) {
                 return false;
             }
-            const total = getSaleTotal(item);
-            const breakdown = getPaymentBreakdown(item);
-            const recordedPayment = PAYMENT_METHODS.reduce(
-                (sum, method) => sum + getNumber(breakdown[method]),
-                0
-            );
+
+            const total =
+                getSaleTotal(item);
+
+            const breakdown =
+                getPaymentBreakdown(item);
+
+            const recordedPayment =
+                PAYMENT_METHODS.reduce(
+                    (sum, method) =>
+                        sum +
+                        getNumber(
+                            breakdown[method]
+                        ),
+                    0
+                );
+
             const directPaid =
                 getNumber(item.amountPaid) ||
                 getNumber(item.totalPaid) ||
                 getNumber(item.paidAmount) ||
                 getNumber(item.paymentAmount) ||
                 getNumber(item.amountReceived);
+
+            const paymentStatuses = [
+                item.paymentStatus,
+                item.payment_status,
+                item.paymentState,
+                item.payment_state
+            ];
+
+            const paidStatuses = [
+                "paid",
+                "completed",
+                "complete",
+                "success",
+                "successful",
+                "settled",
+                "confirmed",
+                "done"
+            ];
+
             const hasPayment =
                 recordedPayment > 0 ||
                 directPaid > 0 ||
                 item.paymentCompleted === true ||
                 item.isPaid === true ||
                 item.paid === true ||
-                ["paid","completed","complete","success","successful","settled","confirmed","done"].includes(
-                    String(
-                        item.paymentStatus ||
-                        item.payment_status ||
-                        item.paymentState ||
-                        item.payment_state ||
-                        ""
-                    ).trim().toLowerCase()
+                paymentStatuses.some(
+                    value =>
+                        paidStatuses.includes(
+                            String(value || "")
+                                .trim()
+                                .toLowerCase()
+                        )
                 );
-            return total > 0 && hasPayment;
+
+            return (
+                total > 0 &&
+                hasPayment
+            );
         });
     }
+
+
     /* =========================================================
        PERIOD FLOWS
        ========================================================= */

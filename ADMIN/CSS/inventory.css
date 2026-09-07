@@ -1273,3 +1273,66 @@
             gap: 6px;
         }
     }
+
+
+/* ============================================================
+   FIX: KEEP STOCK MOVEMENT DIALOG FIXED
+   ONLY THE SELECTED PRODUCTS LIST IS SCROLLABLE
+   ============================================================ */
+
+.inventory-modal {
+    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+.inventory-modal form {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.selected-products-box {
+    flex-shrink: 0;
+}
+
+.selected-products-list {
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.selected-products-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.selected-products-list::-webkit-scrollbar-track {
+    background: #f1f4f7;
+    border-radius: 10px;
+}
+
+.selected-products-list::-webkit-scrollbar-thumb {
+    background: #c5ced9;
+    border-radius: 10px;
+}
+
+.selected-products-list::-webkit-scrollbar-thumb:hover {
+    background: #aeb9c6;
+}
+
+@media (max-height: 750px) {
+    .selected-products-list {
+        max-height: 170px;
+    }
+}
+
+@media (max-width: 520px) {
+    .inventory-modal {
+        max-height: calc(100vh - 24px);
+    }
+
+    .selected-products-list {
+        max-height: 180px;
+    }
+}

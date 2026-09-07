@@ -1173,102 +1173,163 @@
             BIBO: 0,
             BPI: 0
         };
-        /* =====================================================
-           POS SALES
-           ===================================================== */
         salesData.forEach(sale => {
             if (!isCompleted(sale)) {
                 return;
             }
-            const breakdown =
-                getPaymentBreakdown(sale);
+            const breakdown = getPaymentBreakdown(sale);
             PAYMENT_METHODS.forEach(method => {
-                balances[method] +=
-                    getNumber(
-                        breakdown[method]
-                    );
+                balances[method] += getNumber(breakdown[method]);
             });
         });
-        /* =====================================================
-           MANUAL CASH FLOW
-           ===================================================== */
         cashflowData.forEach(flow => {
+            if (isSaleFlow(flow)) {
+                return;
+            }
+            const amount = getFlowAmount(flow);
+            if (!amount) {
+                return;
+            }
+            const method = getFlowPaymentMethod(flow) || "Cash";
+            if (!Object.prototype.hasOwnProperty.call(balances, method)) {
+                return;
+            }
+            if (isOpeningCash(flow) || isCashIn(flow)) {
+                balances[method] += amount;
+            } else if (isCashOut(flow)) {
+                balances[method] -= amount;
+            }
+        });
+        return balances;
+    }
+
+    /* =========================================================
+       HISTORICAL ACCOUNT BALANCES
+       ========================================================= */
+    function calculateHistoricalBalances(beforeDate) {
+        const balances = {
+            Cash: 0,
+            GCash: 0,
+            BDO: 0,
+            BIBO: 0,
+            BPI: 0
+        };
+
+        if (!beforeDate) {
+            return balances;
+        }
+
+        salesData.forEach(sale => {
+            const saleDate = getSaleDate(sale);
+            if (!saleDate || saleDate >= beforeDate || !isCompleted(sale)) {
+                return;
+            }
+            const breakdown = getPaymentBreakdown(sale);
+            PAYMENT_METHODS.forEach(method => {
+                balances[method] += getNumber(breakdown[method]);
+            });
+        });
+
+        cashflowData.forEach(flow => {
+            if (!flow._date || flow._date >= beforeDate || isSaleFlow(flow)) {
+                return;
+            }
+
+            const amount = getFlowAmount(flow);
+            if (!amount) {
+                return;
+            }
+
+            const method = getFlowPaymentMethod(flow) || "Cash";
+            if (!Object.prototype.hasOwnProperty.call(balances, method)) {
+                return;
+            }
+
+            if (isOpeningCash(flow) || isCashIn(flow)) {
+                balances[method] += amount;
+            } else if (isCashOut(flow)) {
+                balances[method] -= amount;
+            }
+        });
+
+        return balances;
+    }
+
+    /* =========================================================
+       FILTERED PERIOD ACCOUNT TOTALS
+       =========================================================
+       IMPORTANT:
+       Every account total shown on the dashboard is now based
+       ONLY on the selected period. No previous-period balance is
+       carried into Today / This week / This month / Custom.
+
+       Formula per account:
+       Period sales + Period cash-in - Period cash-out
+       ========================================================= */
+    function calculatePeriodBalances() {
+        const balances = {
+            Cash: 0,
+            GCash: 0,
+            BDO: 0,
+            BIBO: 0,
+            BPI: 0
+        };
+
+        const sales = getPeriodSales();
+        const flows = getPeriodFlows();
+
+        /* =====================================================
+           POS SALES DURING SELECTED PERIOD
+           ===================================================== */
+        sales.forEach(sale => {
+            const breakdown = getPaymentBreakdown(sale);
+
+            PAYMENT_METHODS.forEach(method => {
+                balances[method] +=
+                    getNumber(breakdown[method]);
+            });
+        });
+
+        /* =====================================================
+           CASH FLOW DURING SELECTED PERIOD
+           ===================================================== */
+        flows.forEach(flow => {
             /*
-             * POS sale cash-flow records are already
-             * represented in the sales collection.
-             *
-             * Therefore do not count them twice.
+             * POS sale cash-flow records are ignored because the
+             * sale itself has already been counted above.
              */
             if (isSaleFlow(flow)) {
                 return;
             }
-            /*
-             * Opening cash is a starting balance,
-             * not a cash-in transaction.
-             *
-             * If your database contains opening records,
-             * they are added here.
-             */
-            if (isOpeningCash(flow)) {
-                const amount =
-                    getFlowAmount(flow);
-                const method =
-                    getFlowPaymentMethod(flow);
-                if (
-                    method &&
-                    balances[method] !== undefined
-                ) {
-                    balances[method] +=
-                        amount;
-                } else {
-                    balances.Cash +=
-                        amount;
-                }
-                return;
-            }
-            const amount =
-                getFlowAmount(flow);
+
+            const amount = getFlowAmount(flow);
             if (!amount) {
                 return;
             }
+
             const method =
-                getFlowPaymentMethod(flow);
-            if (isCashOut(flow)) {
-                if (
-                    method &&
-                    balances[method] !== undefined
-                ) {
-                    balances[method] -=
-                        amount;
-                } else {
-                    balances.Cash -=
-                        amount;
-                }
+                getFlowPaymentMethod(flow) || "Cash";
+
+            if (
+                !Object.prototype.hasOwnProperty.call(
+                    balances,
+                    method
+                )
+            ) {
+                return;
             }
-            else if (isCashIn(flow)) {
-                if (
-                    method &&
-                    balances[method] !== undefined
-                ) {
-                    balances[method] +=
-                        amount;
-                } else {
-                    balances.Cash +=
-                        amount;
-                }
+
+            if (isOpeningCash(flow) || isCashIn(flow)) {
+                balances[method] += amount;
+            }
+            else if (isCashOut(flow)) {
+                balances[method] -= amount;
             }
         });
-        /*
-         * IMPORTANT:
-         *
-         * DO NOT force negative balances to zero.
-         *
-         * A negative balance is useful because it tells
-         * the administrator that the account is overdrawn
-         * or that a transaction needs checking.
-         */
+
         return balances;
     }
+
     /* =========================================================
        PERIOD ACTIVITY
        ========================================================= */
@@ -1392,60 +1453,49 @@
         return cash;
     }
     /* =========================================================
-       EXPECTED CASH FOR PERIOD
+       EXPECTED CASH FOR SELECTED PERIOD
+       =========================================================
+       Period-only calculation:
+       Cash sales + Cash In - Cash Out
+
+       No historical cash balance is carried into the selected
+       filter. This keeps the dashboard completely consistent
+       with Today / This week / This month / Custom.
        ========================================================= */
     function calculateExpectedCash() {
-        const start =
-            getStart(selectedPeriod);
-        /*
-         * If no period is selected,
-         * use the current balance.
-         */
-        if (!start) {
-            const balances =
-                calculateCurrentBalances();
-            return balances.Cash;
-        }
-        let cash =
-            calculateHistoricalCash(start);
         const sales =
             getPeriodSales();
+
         const flows =
             getPeriodFlows();
-        /*
-         * CASH SALES DURING PERIOD
-         */
+
+        let cash =
+            0;
+
+        /* =====================================================
+           CASH SALES DURING SELECTED PERIOD
+           ===================================================== */
         sales.forEach(sale => {
             cash +=
                 getCashSale(sale);
         });
-        /*
-         * CASH FLOW DURING PERIOD
-         */
+
+        /* =====================================================
+           CASH FLOW DURING SELECTED PERIOD
+           ===================================================== */
         flows.forEach(flow => {
-            if (isSaleFlow(flow)) {
+            if (
+                isSaleFlow(flow) ||
+                isOpeningCash(flow)
+            ) {
                 return;
             }
-            if (isOpeningCash(flow)) {
-                /*
-                 * Opening records that occur exactly
-                 * at the selected period start are treated
-                 * as an opening balance.
-                 */
-                if (
-                    flow._date &&
-                    flow._date.getTime() ===
-                    start.getTime()
-                ) {
-                    cash +=
-                        getFlowAmount(flow);
-                }
-                return;
-            }
+
             const account =
                 getFlowPaymentMethod(flow);
+
             /*
-             * Only physical cash affects physical cash.
+             * Only physical Cash affects Expected Cash.
              */
             if (
                 account &&
@@ -1453,19 +1503,25 @@
             ) {
                 return;
             }
+
             const amount =
                 getFlowAmount(flow);
+
+            if (!amount) {
+                return;
+            }
+
             if (isCashOut(flow)) {
-                cash -=
-                    amount;
+                cash -= amount;
             }
             else if (isCashIn(flow)) {
-                cash +=
-                    amount;
+                cash += amount;
             }
         });
+
         return cash;
     }
+
     /* =========================================================
        SALES CARD UPDATE
        =========================================================
@@ -1516,7 +1572,7 @@
         const activity =
             calculatePeriodActivity();
         const balances =
-            calculateCurrentBalances();
+            calculatePeriodBalances();
         const totalFunds =
             PAYMENT_METHODS.reduce(
                 (sum, method) =>
@@ -1696,12 +1752,13 @@
            SUMMARY
            ===================================================== */
         if (el("beginningBalance")) {
-            const beginning =
-                calculateHistoricalCash(
-                    getStart(selectedPeriod)
-                );
+            /*
+             * The dashboard is period-only. Do not carry any
+             * previous-day/week/month balance into the selected
+             * filter.
+             */
             el("beginningBalance").textContent =
-                money(beginning);
+                money(0);
         }
         if (el("summaryCashIn")) {
             el("summaryCashIn").textContent =
@@ -1719,7 +1776,7 @@
         }
         if (el("endingBalance")) {
             el("endingBalance").textContent =
-                money(expectedCash);
+                money(balances.Cash);
         }
         /* =====================================================
            CHART
@@ -2155,7 +2212,14 @@
         });
     }
     /* =========================================================
-       MONTHLY REPORT DATA
+       FILTERED MONTHLY REPORT DATA
+       =========================================================
+       The main date filter controls this section too.
+
+       Only transactions inside the selected period are included.
+       The existing 12-month layout is retained, but months outside
+       the selected period remain zero ("-") so no unfiltered totals
+       are displayed.
        ========================================================= */
     function getReportMonthlyData(year) {
         const months =
@@ -2168,20 +2232,32 @@
                     ending: 0
                 })
             );
-        const yearStart =
-            new Date(
-                year,
-                0,
-                1,
-                0,
-                0,
-                0,
-                0
-            );
-        let runningCash =
-            calculateHistoricalCash(
-                yearStart
-            );
+
+        const start =
+            getStart(selectedPeriod);
+
+        const end =
+            getEnd(selectedPeriod);
+
+        /*
+         * If the selected filter has no explicit start, there is
+         * no period to display.
+         */
+        if (!start) {
+            return months;
+        }
+
+        const periodSales =
+            getPeriodSales();
+
+        const periodFlows =
+            getPeriodFlows();
+
+        /*
+         * Build each month strictly from the selected-period
+         * transactions. There is intentionally NO historical
+         * running balance here.
+         */
         for (
             let monthIndex = 0;
             monthIndex < 12;
@@ -2197,6 +2273,7 @@
                     0,
                     0
                 );
+
             const monthEnd =
                 new Date(
                     year,
@@ -2207,85 +2284,145 @@
                     59,
                     999
                 );
-            months[monthIndex]
-                .beginning =
-                runningCash;
+
+            /*
+             * The selected period and this report month must
+             * overlap before anything is shown.
+             */
+            const overlapStart =
+                new Date(
+                    Math.max(
+                        start.getTime(),
+                        monthStart.getTime()
+                    )
+                );
+
+            const overlapEnd =
+                new Date(
+                    Math.min(
+                        end.getTime(),
+                        monthEnd.getTime()
+                    )
+                );
+
+            if (
+                overlapStart > overlapEnd
+            ) {
+                continue;
+            }
+
             let cashIn = 0;
             let cashOut = 0;
-            /* =================================================
-               CASH FROM POS SALES
-               ================================================= */
-            salesData.forEach(sale => {
+
+            periodSales.forEach(sale => {
                 if (
                     !sale._date ||
-                    sale._date < monthStart ||
-                    sale._date > monthEnd ||
-                    !isCompleted(sale)
+                    sale._date < overlapStart ||
+                    sale._date > overlapEnd
                 ) {
                     return;
                 }
+
                 cashIn +=
                     getCashSale(sale);
             });
-            /* =================================================
-               CASH FLOW RECORDS
-               ================================================= */
-            cashflowData.forEach(flow => {
+
+            periodFlows.forEach(flow => {
                 if (
                     !flow._date ||
-                    flow._date < monthStart ||
-                    flow._date > monthEnd ||
+                    flow._date < overlapStart ||
+                    flow._date > overlapEnd ||
                     isSaleFlow(flow) ||
                     isOpeningCash(flow)
                 ) {
                     return;
                 }
+
                 const amount =
                     getFlowAmount(flow);
+
+                if (!amount) {
+                    return;
+                }
+
+                /*
+                 * This monthly cash report is for physical Cash,
+                 * matching the existing chart/report meaning.
+                 */
                 const account =
                     getFlowPaymentMethod(flow);
-                /*
-                 * Only physical Cash.
-                 */
+
                 if (
                     account &&
                     account !== "Cash"
                 ) {
                     return;
                 }
+
                 if (isCashOut(flow)) {
-                    cashOut +=
-                        amount;
+                    cashOut += amount;
                 }
                 else if (isCashIn(flow)) {
-                    cashIn +=
-                        amount;
+                    cashIn += amount;
                 }
             });
-            months[monthIndex]
-                .cashIn =
-                cashIn;
-            months[monthIndex]
-                .cashOut =
-                cashOut;
-            runningCash =
-                runningCash +
-                cashIn -
-                cashOut;
-            months[monthIndex]
-                .ending =
-                runningCash;
+
+            months[monthIndex].beginning = 0;
+            months[monthIndex].cashIn = cashIn;
+            months[monthIndex].cashOut = cashOut;
+            months[monthIndex].ending =
+                cashIn - cashOut;
         }
+
         return months;
     }
+
     /* =========================================================
        RENDER MONTHLY REPORT
        ========================================================= */
     function renderMonthlyReport() {
         populateReportYears();
+
+        const filterStart =
+            getStart(selectedPeriod);
+
+        if (filterStart) {
+            reportYear =
+                filterStart.getFullYear();
+
+            const yearSelect =
+                el("reportYear");
+
+            if (yearSelect) {
+                yearSelect.value =
+                    String(reportYear);
+
+                /*
+                 * The dashboard's main date filter is now the
+                 * single source of truth for all displayed totals.
+                 * Prevent the separate report-year control from
+                 * suggesting that it can change the filtered totals.
+                 */
+                yearSelect.disabled = true;
+            }
+        }
+        else {
+            const yearSelect =
+                el("reportYear");
+
+            if (yearSelect) {
+                yearSelect.disabled = false;
+            }
+        }
+
+        const displayYear =
+            filterStart
+                ? filterStart.getFullYear()
+                : Number(reportYear);
+
         const months =
             getReportMonthlyData(
-                Number(reportYear)
+                displayYear
             );
         months.forEach(
             (month, index) => {

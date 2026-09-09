@@ -1336,3 +1336,133 @@
         max-height: 180px;
     }
 }
+
+
+/* ============================================================
+   STOCKMASTER INVENTORY MODAL - FINAL VIEWPORT FIX
+   ============================================================ */
+
+/* Keep the entire dialog inside the visible browser area. */
+.inventory-modal {
+    width: min(470px, calc(100vw - 24px));
+    max-height: calc(100vh - 36px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* The form can scroll if the browser is short.
+   This prevents the Save Movement button from being cut off. */
+.inventory-modal form {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px 20px 16px;
+    scrollbar-width: thin;
+}
+
+/* Keep the selected-products area compact. */
+.inventory-modal .selected-products-box {
+    margin: -1px 0 10px;
+}
+
+.inventory-modal .selected-products-list {
+    max-height: 120px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Reduce vertical spacing so all controls fit normally. */
+.inventory-modal .form-group {
+    margin-bottom: 10px;
+}
+
+.inventory-modal .current-stock-box {
+    margin-bottom: 10px;
+    padding: 9px 12px;
+}
+
+.inventory-modal .single-quantity-note p {
+    padding: 7px 10px;
+}
+
+.inventory-modal .form-group textarea {
+    min-height: 62px;
+    height: 62px;
+    resize: vertical;
+}
+
+.inventory-modal .form-actions {
+    margin-top: 12px;
+    padding-bottom: 2px;
+}
+
+/* Short laptop/browser viewport */
+@media (max-height: 750px) {
+    .inventory-modal {
+        max-height: calc(100vh - 24px);
+    }
+
+    .inventory-modal .modal-header {
+        padding: 14px 20px;
+    }
+
+    .inventory-modal form {
+        padding: 12px 20px 14px;
+    }
+
+    .inventory-modal .selected-products-list {
+        max-height: 105px;
+    }
+
+    .inventory-modal .form-group {
+        margin-bottom: 8px;
+    }
+
+    .inventory-modal .current-stock-box {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+    }
+
+    .inventory-modal .form-group textarea {
+        min-height: 58px;
+        height: 58px;
+    }
+
+    .inventory-modal .form-actions {
+        margin-top: 8px;
+    }
+}
+
+/* Very short viewport */
+@media (max-height: 650px) {
+    .inventory-modal {
+        max-height: calc(100vh - 12px);
+    }
+
+    .inventory-modal .selected-products-list {
+        max-height: 90px;
+    }
+
+    .inventory-modal .form-group textarea {
+        min-height: 52px;
+        height: 52px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+    .inventory-modal {
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 16px);
+    }
+
+    .inventory-modal form {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .inventory-modal .selected-products-list {
+        max-height: 105px;
+    }
+}

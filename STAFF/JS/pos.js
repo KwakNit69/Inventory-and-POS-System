@@ -2643,80 +2643,84 @@ if (deliveryCheckbox) {
     );
 }
 updateOrderTypeUI();
+// Payment method selector
+// Robustly supports data-method, data-payment-method, and button text.
+function normalizePaymentMethod(value) {
+    const text = String(value || "").trim();
+    const lower = text.toLowerCase();
+    if (lower === "cash") return "Cash";
+    if (lower === "gcash" || lower === "g cash") return "GCash";
+    if (lower === "bdo") return "BDO";
+    if (lower === "bibo") return "BIBO";
+    if (lower === "bpi") return "BPI";
+    if (lower === "split" || lower === "split payment" || lower === "split payments") return "Split";
+    return text;
+}
+
 document
-    .querySelectorAll(
-        ".payment-method"
-    )
-    .forEach(
-        button => {
-            button.addEventListener(
-                "click",
-                () => {
-                    selectedPaymentMethod =
-                        button.dataset.method;
-                    document
-                        .querySelectorAll(
-                            ".payment-method"
-                        )
-                        .forEach(
-                            item => {
-                                item.classList.toggle(
-                                    "active",
-                                    item.dataset.method ===
-                                    selectedPaymentMethod
-                                );
-                            }
-                        );
-                    paymentError.textContent =
-                        "";
-                    if (
-                        selectedPaymentMethod ===
-                        "Cash"
-                    ) {
-                        cashPaymentArea.style.display =
-                            "block";
-                        splitPaymentArea.style.display =
-                            "none";
-                        if (
-                            paymentDestination
-                        ) {
-                            paymentDestination.textContent =
-                                "Cash";
-                        }
-                    }
-                    else if (
-                        selectedPaymentMethod ===
-                        "Split"
-                    ) {
-                        cashPaymentArea.style.display =
-                            "none";
-                        splitPaymentArea.style.display =
-                            "block";
-                        if (
-                            paymentDestination
-                        ) {
-                            paymentDestination.textContent =
-                                "Multiple Funds";
-                        }
-                        resetSplitPayment();
-                    }
-                    else {
-                        cashPaymentArea.style.display =
-                            "none";
-                        splitPaymentArea.style.display =
-                            "none";
-                        if (
-                            paymentDestination
-                        ) {
-                            paymentDestination.textContent =
-                                selectedPaymentMethod;
-                        }
-                    }
-                    updatePaymentTotal();
-                }
-            );
+    .querySelectorAll(".payment-method")
+    .forEach(button => {
+        // Make sure payment buttons never submit a surrounding form.
+        if (button.tagName === "BUTTON") {
+            button.type = "button";
         }
-    );
+
+        button.addEventListener("click", event => {
+            event.preventDefault();
+
+            const rawMethod =
+                button.dataset.method ||
+                button.dataset.paymentMethod ||
+                button.getAttribute("data-method") ||
+                button.getAttribute("data-payment-method") ||
+                button.textContent;
+
+            selectedPaymentMethod = normalizePaymentMethod(rawMethod);
+
+            document
+                .querySelectorAll(".payment-method")
+                .forEach(item => {
+                    const itemMethod = normalizePaymentMethod(
+                        item.dataset.method ||
+                        item.dataset.paymentMethod ||
+                        item.getAttribute("data-method") ||
+                        item.getAttribute("data-payment-method") ||
+                        item.textContent
+                    );
+                    item.classList.toggle(
+                        "active",
+                        itemMethod === selectedPaymentMethod
+                    );
+                });
+
+            if (paymentError) {
+                paymentError.textContent = "";
+            }
+
+            if (selectedPaymentMethod === "Cash") {
+                if (cashPaymentArea) cashPaymentArea.style.display = "block";
+                if (splitPaymentArea) splitPaymentArea.style.display = "none";
+                if (paymentDestination) paymentDestination.textContent = "Cash";
+            }
+            else if (selectedPaymentMethod === "Split") {
+                if (cashPaymentArea) cashPaymentArea.style.display = "none";
+                if (splitPaymentArea) {
+                    splitPaymentArea.style.display = "block";
+                    splitPaymentArea.hidden = false;
+                }
+                if (paymentDestination) paymentDestination.textContent = "Multiple Funds";
+                resetSplitPayment();
+                updateSplitPayment();
+            }
+            else {
+                if (cashPaymentArea) cashPaymentArea.style.display = "none";
+                if (splitPaymentArea) splitPaymentArea.style.display = "none";
+                if (paymentDestination) paymentDestination.textContent = selectedPaymentMethod;
+            }
+
+            updatePaymentTotal();
+        });
+    });
 if (cashReceived) {
     cashReceived.addEventListener(
         "input",

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>StockMaster - Admin Dashboard</title>
+    <title>AGG Inventory &amp; POS - Admin Dashboard</title>
     <link rel="stylesheet" href="ADMIN/CSS/dashboard.css">
     <link rel="stylesheet" href="sidebar.css">
 </head>
@@ -12,14 +12,35 @@
         <div id="sidebar-container"></div>
         <main class="dashboard-main">
             <header class="topbar">
+                <div class="dashboard-brand">
+                    <div class="dashboard-brand-logo">
+                        <img src="assets/LOGO1111.jpg" alt="Alliance International Global">
+                    </div>
+                    <div class="dashboard-brand-text">
+                        <strong>AGG</strong>
+                        <span>INVENTORY &amp; POS</span>
+                    </div>
+                </div>
                 <div class="search-box">
-                    <span class="search-icon">⌕</span>
+                    <span class="search-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </span>
                     <input id="globalSearch" type="text" placeholder="Search products, orders, customers...">
                     <small>⌘</small>
                     <small>K</small>
                 </div>
                 <div class="profile">
-                    <span class="notification">♧</span>
+                    <button class="notification" type="button" aria-label="Notifications">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M18 9.5C18 6.2 15.8 4 12 4C8.2 4 6 6.2 6 9.5V14L4.5 16.5H19.5L18 14V9.5Z"
+                                  stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+                            <path d="M10 19C10.5 19.7 11.2 20 12 20C12.8 20 13.5 19.7 14 19"
+                                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
                     <div class="profile-name">
                         <strong id="profileName">Loading...</strong>
                         <small id="profileRole">Administrator</small>
@@ -53,10 +74,22 @@
                     </div>
                 </div>
                 <div class="actions">
-                    <button class="primary" id="addProduct">▣ Add Product</button>
-                    <button id="addStock">□ Add Stock</button>
-                    <button id="addExpense">▤ Cash Flow</button>
-                    <button id="viewSales">◉ View Sales</button>
+                    <button class="primary" id="addProduct">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7H20V20H4V7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path><path d="M8 7V5H16V7M12 11V16M9.5 13.5H14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path></svg>
+                            <span>Add Product</span>
+                        </button>
+                    <button id="addStock">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7H20V20H4V7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path><path d="M8 7V5H16V7M12 10V16M9 13H15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path></svg>
+                            <span>Add Stock</span>
+                        </button>
+                    <button id="addExpense">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M5 19V5M5 19H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path><path d="M8 15L11 12L14 14L19 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            <span>Cash Flow</span>
+                        </button>
+                    <button id="viewSales">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 5H20V19H4V5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path><path d="M8 9H16M8 13H13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path></svg>
+                            <span>View Sales</span>
+                        </button>
                 </div>
                 <section class="financial-section">
                     <div class="section-heading">
@@ -139,7 +172,7 @@
                         <div class="metric">
                             <div class="metric-label">
                                 <span>SALES</span>
-                                <span>▣</span>
+                                <span aria-hidden="true">▦</span>
                             </div>
                             <strong id="sales">₱0.00</strong>
                             <small id="salesNote">0 Transactions</small>
@@ -147,7 +180,7 @@
                         <div class="metric">
                             <div class="metric-label">
                                 <span>CASH IN</span>
-                                <span>↗</span>
+                                <span aria-hidden="true">↗</span>
                             </div>
                             <strong id="cashIn">₱0.00</strong>
                             <small id="cashInNote">Today</small>
@@ -155,7 +188,7 @@
                         <div class="metric">
                             <div class="metric-label">
                                 <span>CASH OUT</span>
-                                <span>↘</span>
+                                <span aria-hidden="true">↘</span>
                             </div>
                             <strong id="cashOut">₱0.00</strong>
                             <small id="cashOutNote">Today</small>

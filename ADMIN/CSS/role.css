@@ -1,439 +1,908 @@
+/* =====================================================
+   AGG INVENTORY & POS
+   ROLE SELECTION PAGE
+===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+
+html {
+    min-height: 100%;
 }
 
 
 body {
-
     min-height: 100vh;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #f5f7f9;
-
-    color: #172331;
-
+    font-family: "Inter", Arial, Helvetica, sans-serif;
+    background: #f5f7fa;
+    color: #172033;
+    -webkit-font-smoothing: antialiased;
 }
 
 
-button {
-
-    font-family: inherit;
-
+button,
+input {
+    font: inherit;
 }
 
 
-/* =========================================
-   PAGE
-   ========================================= */
+/* =====================================================
+   MAIN PAGE
+===================================================== */
 
 .role-page {
-
     min-height: 100vh;
-
-    display: flex;
-
+    display: grid;
+    grid-template-columns: 48% 52%;
 }
 
 
-/* =========================================
+/* =====================================================
    LEFT SIDE
-   ========================================= */
+===================================================== */
 
 .role-intro {
-
-    width: 45%;
-
+    position: relative;
     min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 
     background:
+        radial-gradient(
+            circle at 80% 15%,
+            rgba(34, 166, 107, 0.20),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 15% 90%,
+            rgba(16, 82, 150, 0.30),
+            transparent 35%
+        ),
         linear-gradient(
-            135deg,
-            #102a43,
-            #173f61
+            145deg,
+            #071d3a 0%,
+            #0b315e 50%,
+            #0a4167 100%
         );
 
     color: white;
-
-    display: flex;
-
-    align-items: center;
-
-    padding: 50px;
-
 }
 
+
+/* decorative circles */
+
+.role-intro::before {
+    content: "";
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    right: -250px;
+    top: -180px;
+}
+
+
+.role-intro::after {
+    content: "";
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    border: 1px solid rgba(73, 205, 146, 0.10);
+    border-radius: 50%;
+    left: -220px;
+    bottom: -180px;
+}
+
+
+.intro-overlay {
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(5, 22, 44, 0.15),
+            transparent
+        );
+
+    pointer-events: none;
+}
+
+
+/* =====================================================
+   LEFT CONTENT
+===================================================== */
 
 .intro-content {
+    position: relative;
+    z-index: 2;
 
-    max-width: 500px;
-
+    width: min(650px, 88%);
     margin: auto;
 
+    padding: 70px 30px 40px;
 }
 
 
-/* =========================================
+/* =====================================================
    BRAND
-   ========================================= */
+===================================================== */
 
 .brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 85px;
+}
+
+
+.brand-logo {
+    width: 110px;
+    height: 74px;
 
     display: flex;
-
     align-items: center;
+    justify-content: center;
 
-    gap: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 12px;
+    padding: 7px;
 
-    margin-bottom: 100px;
-
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
 
-.brand-icon {
-
-    width: 42px;
-
-    height: 42px;
-
-    display: grid;
-
-    place-items: center;
-
-    border-radius: 6px;
-
-    background: #ffffff;
-
-    color: #143653;
-
-    font-size: 20px;
-
-    font-weight: bold;
-
+.brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 
-.brand h2 {
-
-    font-size: 20px;
-
-    margin-bottom: 3px;
-
+.brand-name {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 
-.brand p {
-
-    font-size: 10px;
-
-    color: #b9ccdd;
-
+.brand-name span {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.70);
 }
 
 
-/* =========================================
+.brand-name strong {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    color: white;
+}
+
+
+/* =====================================================
    INTRO TEXT
-   ========================================= */
+===================================================== */
 
-.intro-text h1 {
-
-    font-size: 38px;
-
-    line-height: 1.12;
+.eyebrow {
+    display: inline-block;
 
     margin-bottom: 20px;
 
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.2px;
+
+    color: #58d99a;
+}
+
+
+.intro-text h1 {
+    max-width: 650px;
+
+    font-size: clamp(38px, 4vw, 62px);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -2px;
+
+    margin-bottom: 25px;
+}
+
+
+.intro-text h1 span {
+    color: #52d496;
 }
 
 
 .intro-text p {
+    max-width: 520px;
 
-    max-width: 420px;
+    font-size: 16px;
+    line-height: 1.8;
 
-    color: #c2d2df;
-
-    font-size: 13px;
-
-    line-height: 1.7;
-
+    color: rgba(255, 255, 255, 0.72);
 }
 
 
-/* =========================================
+/* =====================================================
+   FEATURES
+===================================================== */
+
+.intro-features {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+
+    margin-top: 50px;
+}
+
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+
+.feature-icon {
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 11px;
+
+    background: rgba(255, 255, 255, 0.06);
+
+    color: #61dda0;
+}
+
+
+.feature-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+
+.feature-item strong {
+    display: block;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    margin-bottom: 3px;
+}
+
+
+.feature-item span {
+    display: block;
+
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.52);
+}
+
+
+/* =====================================================
+   INTRO FOOTER
+===================================================== */
+
+.intro-footer {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 24px 40px;
+
+    font-size: 10px;
+    letter-spacing: 0.7px;
+
+    color: rgba(255, 255, 255, 0.40);
+}
+
+
+.footer-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #4fd395;
+}
+
+
+/* =====================================================
    RIGHT SIDE
-   ========================================= */
+===================================================== */
 
 .role-selection {
-
-    flex: 1;
-
     min-height: 100vh;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
-    background: #ffffff;
-
+    background:
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(41, 160, 108, 0.05),
+            transparent 25%
+        ),
+        #f8fafc;
 }
 
 
 .selection-container {
+    width: min(520px, 86%);
 
-    width: 500px;
-
-    max-width: 90%;
-
+    padding: 55px 0;
 }
 
 
-/* =========================================
+/* =====================================================
+   MOBILE LOGO
+===================================================== */
+
+.mobile-logo {
+    display: none;
+}
+
+
+/* =====================================================
    HEADER
-   ========================================= */
+===================================================== */
 
 .selection-header {
-
-    margin-bottom: 30px;
-
+    margin-bottom: 35px;
 }
 
 
-.selection-header h1 {
+.welcome-label {
+    display: inline-block;
 
-    font-size: 28px;
+    margin-bottom: 12px;
 
-    margin-bottom: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
 
-    color: #142536;
+    color: #168257;
+}
 
+
+.selection-header h2 {
+    font-size: 34px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -1px;
+
+    color: #132238;
+
+    margin-bottom: 11px;
 }
 
 
 .selection-header p {
+    font-size: 14px;
+    line-height: 1.6;
 
-    font-size: 13px;
-
-    color: #707b86;
-
+    color: #718096;
 }
 
 
-/* =========================================
+/* =====================================================
    ROLE CARD
-   ========================================= */
+===================================================== */
 
 .role-card {
-
     width: 100%;
 
     display: flex;
+    align-items: flex-start;
 
-    align-items: center;
+    gap: 19px;
 
-    gap: 18px;
-
-    text-align: left;
-
-    padding: 22px;
+    padding: 25px;
 
     margin-bottom: 15px;
 
-    border:
-        1px solid #d9e0e7;
-
-    border-radius: 8px;
+    border: 1px solid #e4e9ef;
+    border-radius: 17px;
 
     background: #ffffff;
 
+    text-align: left;
+
     cursor: pointer;
 
-    transition:
-        transform .15s ease,
-        border-color .15s ease,
-        box-shadow .15s ease,
-        background .15s ease;
+    box-shadow:
+        0 3px 12px rgba(20, 45, 70, 0.035);
 
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        background 0.25s ease;
 }
 
 
 .role-card:hover {
+    transform: translateY(-3px);
 
-    transform:
-        translateY(-2px);
-
-    border-color:
-        #1976d2;
-
-    background:
-        #f8fbff;
+    border-color: #c8d9e8;
 
     box-shadow:
-        0 8px 25px
-        rgba(20, 55, 85, .08);
-
+        0 14px 35px rgba(20, 55, 85, 0.10);
 }
 
 
-/* =========================================
+.role-card:active {
+    transform: translateY(-1px);
+}
+
+
+.role-card:focus-visible {
+    outline: 3px solid rgba(31, 153, 101, 0.20);
+    outline-offset: 3px;
+}
+
+
+/* =====================================================
    ROLE ICON
-   ========================================= */
+===================================================== */
 
-.role-icon {
-
+.role-card-icon {
     width: 52px;
-
     height: 52px;
 
-    min-width: 52px;
+    flex-shrink: 0;
 
-    display: grid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    place-items: center;
+    border-radius: 14px;
 
-    border-radius: 8px;
-
-    font-size: 24px;
-
+    transition: 0.25s ease;
 }
 
 
-.admin-icon {
-
-    background: #e7f1fc;
-
-    color: #1976d2;
-
+.role-card-icon svg {
+    width: 26px;
+    height: 26px;
 }
 
 
-.staff-icon {
-
-    background: #edf7f2;
-
-    color: #16803c;
-
+.admin-card .role-card-icon {
+    color: #1763a4;
+    background: #edf5fc;
 }
 
 
-/* =========================================
-   ROLE INFO
-   ========================================= */
+.staff-card .role-card-icon {
+    color: #168457;
+    background: #ebf9f2;
+}
 
-.role-info h2 {
 
-    color: #172a3a;
+.admin-card:hover .role-card-icon {
+    background: #e2f0fc;
+}
 
-    font-size: 17px;
 
-    margin-bottom: 6px;
+.staff-card:hover .role-card-icon {
+    background: #dcf5e9;
+}
 
+
+/* =====================================================
+   ROLE INFORMATION
+===================================================== */
+
+.role-info {
+    flex: 1;
+    min-width: 0;
+}
+
+
+.role-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 8px;
+}
+
+
+.role-info h3 {
+    font-size: 18px;
+    font-weight: 750;
+
+    color: #17263a;
+}
+
+
+.role-badge {
+    padding: 4px 8px;
+
+    border-radius: 5px;
+
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+
+.admin-badge {
+    color: #1763a4;
+    background: #edf5fc;
+}
+
+
+.staff-badge {
+    color: #168457;
+    background: #ebf9f2;
 }
 
 
 .role-info p {
+    font-size: 12px;
+    line-height: 1.65;
 
-    color: #687582;
+    color: #718096;
 
-    font-size: 11px;
-
-    line-height: 1.5;
-
-    margin-bottom: 8px;
-
+    margin-bottom: 15px;
 }
 
 
-.role-info span {
+.continue-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
 
-    color: #1976d2;
+    font-size: 11px;
+    font-weight: 700;
+
+    color: #1763a4;
+}
+
+
+.staff-card .continue-link {
+    color: #168457;
+}
+
+
+.continue-link svg {
+    width: 15px;
+    height: 15px;
+
+    transition: transform 0.2s ease;
+}
+
+
+.role-card:hover .continue-link svg {
+    transform: translateX(4px);
+}
+
+
+/* =====================================================
+   SECURITY NOTE
+===================================================== */
+
+.security-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    margin: 27px 0 32px;
 
     font-size: 10px;
 
-    font-weight: 700;
-
+    color: #98a4b3;
 }
 
 
-/* =========================================
-   FOOTER
-   ========================================= */
+.security-note svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+/* =====================================================
+   RIGHT FOOTER
+===================================================== */
 
 .selection-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 
-    margin-top: 35px;
+    padding-top: 20px;
 
-    text-align: center;
-
-}
-
-
-.selection-footer p {
-
-    color: #9aa3ac;
+    border-top: 1px solid #e7ebf0;
 
     font-size: 9px;
+    letter-spacing: 0.5px;
 
+    color: #a2acb8;
 }
 
 
-/* =========================================
+.footer-separator {
+    color: #c8ced6;
+}
+
+
+/* =====================================================
    RESPONSIVE
-   ========================================= */
+===================================================== */
+
+@media (max-width: 1000px) {
+
+    .role-page {
+        grid-template-columns: 43% 57%;
+    }
+
+    .intro-content {
+        width: 90%;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .brand {
+        margin-bottom: 60px;
+    }
+
+    .intro-text h1 {
+        font-size: 42px;
+    }
+
+    .intro-text p {
+        font-size: 14px;
+    }
+
+}
+
 
 @media (max-width: 800px) {
 
     .role-page {
-
-        flex-direction: column;
-
+        display: block;
     }
 
 
     .role-intro {
+        min-height: auto;
 
+        padding: 45px 25px;
+    }
+
+
+    .intro-content {
         width: 100%;
-
-        min-height: 250px;
-
-        padding: 30px;
-
+        padding: 0;
     }
 
 
     .brand {
-
-        margin-bottom: 30px;
-
+        margin-bottom: 45px;
     }
 
 
     .intro-text h1 {
-
-        font-size: 27px;
-
+        font-size: 40px;
     }
 
 
-    .intro-text p {
+    .intro-features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
 
-        display: none;
 
+    .feature-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+
+    .intro-footer {
+        padding: 30px 0 0;
     }
 
 
     .role-selection {
-
         min-height: auto;
+        padding: 55px 0;
+    }
 
-        padding: 50px 20px;
+}
 
+
+@media (max-width: 600px) {
+
+    .role-intro {
+        padding: 30px 22px 25px;
+    }
+
+
+    .brand {
+        gap: 12px;
+        margin-bottom: 35px;
+    }
+
+
+    .brand-logo {
+        width: 88px;
+        height: 60px;
+    }
+
+
+    .brand-name span {
+        font-size: 8px;
+        letter-spacing: 1.3px;
+    }
+
+
+    .brand-name strong {
+        font-size: 11px;
+        letter-spacing: 0.7px;
+    }
+
+
+    .intro-text h1 {
+        font-size: 34px;
+        letter-spacing: -1px;
+    }
+
+
+    .intro-text p {
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+
+    .intro-features {
+        display: flex;
+        margin-top: 30px;
+    }
+
+
+    .feature-item {
+        flex-direction: row;
+        align-items: center;
+    }
+
+
+    .feature-item span {
+        font-size: 10px;
+    }
+
+
+    .intro-footer {
+        font-size: 8px;
+    }
+
+
+    .role-selection {
+        padding: 40px 0;
+    }
+
+
+    .selection-container {
+        width: calc(100% - 36px);
+        padding: 0;
+    }
+
+
+    .mobile-logo {
+        display: flex;
+        justify-content: center;
+
+        margin-bottom: 35px;
+    }
+
+
+    .mobile-logo img {
+        width: 170px;
+        height: auto;
+        object-fit: contain;
+    }
+
+
+    .selection-header h2 {
+        font-size: 28px;
+    }
+
+
+    .selection-header p {
+        font-size: 13px;
+    }
+
+
+    .role-card {
+        padding: 20px;
+        gap: 14px;
+    }
+
+
+    .role-card-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+    }
+
+
+    .role-card-icon svg {
+        width: 23px;
+        height: 23px;
+    }
+
+
+    .role-info h3 {
+        font-size: 16px;
+    }
+
+
+    .role-info p {
+        font-size: 11px;
+    }
+
+
+    .selection-footer {
+        font-size: 8px;
+        text-align: center;
+    }
+
+}
+
+
+@media (max-width: 380px) {
+
+    .role-card {
+        padding: 17px;
+    }
+
+
+    .role-card-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+
+    .role-info p {
+        font-size: 10px;
+    }
+
+
+    .role-badge {
+        display: none;
     }
 
 }

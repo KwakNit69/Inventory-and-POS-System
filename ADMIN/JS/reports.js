@@ -55,6 +55,21 @@
             const productsElement =
                 document.getElementById("products");
 
+            // Optional category-sales tiles
+            const productSalesElement =
+                document.getElementById("productSales");
+
+            const packageSalesElement =
+                document.getElementById("packageSales");
+
+            const insuranceSalesElement =
+                document.getElementById("insuranceSales");
+
+            // Pagination
+            const REPORT_PAGE_SIZE = 10;
+            let transactionPage = 1;
+            let productPage = 1;
+
             const errorMessage =
                 document.getElementById("errorMessage");
 
@@ -2332,240 +2347,453 @@
 
 
             // ============================================================
+            // CATEGORY SALES
+            // ============================================================
+
+            function getItemType(item) {
+                const raw = String(
+                    item?.itemType ||
+                    item?.type ||
+                    item?.sourceCollection ||
+                    item?.category ||
+                    item?.categoryName ||
+                    ""
+                ).trim().toLowerCase();
+
+                if (
+                    raw === "package" ||
+                    raw === "packages" ||
+                    raw.includes("package")
+                ) {
+                    return "Package";
+                }
+
+                if (
+                    raw === "insurance" ||
+                    raw === "insurances" ||
+                    raw.includes("insurance")
+                ) {
+                    return "Insurance";
+                }
+
+                return "Product";
+            }
+
+            function getCategorySales(rows) {
+                const totals = {
+                    Product: 0,
+                    Package: 0,
+                    Insurance: 0
+                };
+
+                rows.forEach(row => {
+                    const items = getItems(row);
+
+                    if (items.length) {
+                        items.forEach(item => {
+                            const type = getItemType(item);
+                            const quantity = getQuantity(item);
+                            const price = getItemPrice(item);
+
+                            let revenue = Number(
+                                item?.total ??
+                                item?.subtotal ??
+                                item?.lineTotal
+                            );
+
+                            if (!Number.isFinite(revenue)) {
+                                revenue = price * quantity;
+                            }
+
+                            if (Number.isFinite(revenue)) {
+                                totals[type] += revenue;
+                            }
+                        });
+
+                        return;
+                    }
+
+                    // Fallback for older sales records without item arrays.
+                    let type = "Product";
+                    const raw = String(
+                        row.itemType ||
+                        row.type ||
+                        row.sourceCollection ||
+                        row.category ||
+                        row.categoryName ||
+                        ""
+                    ).toLowerCase();
+
+                    if (
+                        row.packageName ||
+                        raw.includes("package")
+                    ) {
+                        type = "Package";
+                    } else if (
+                        row.insuranceName ||
+                        raw.includes("insurance")
+                    ) {
+                        type = "Insurance";
+                    }
+
+                    totals[type] += number(row._total);
+                });
+
+                return totals;
+            }
+
+            function updateCategorySales(rows) {
+                const totals = getCategorySales(rows);
+
+                if (productSalesElement) {
+                    productSalesElement.textContent = money(totals.Product);
+                }
+
+                if (packageSalesElement) {
+                    packageSalesElement.textContent = money(totals.Package);
+                }
+
+                if (insuranceSalesElement) {
+                    insuranceSalesElement.textContent = money(totals.Insurance);
+                }
+            }
+
+
+            // ============================================================
+            // PAGINATION
+            // ============================================================
+
+            function getPaginationContainer(id, tableBody) {
+                let container = document.getElementById(id);
+
+                if (container) {
+                    return container;
+                }
+
+                if (!tableBody || !tableBody.parentElement) {
+                    return null;
+                }
+
+                const panel = tableBody.closest(".panel");
+
+                if (!panel) {
+                    return null;
+                }
+
+                container = document.createElement("div");
+                container.id = id;
+                container.className = "report-pagination";
+
+                panel.appendChild(container);
+
+                return container;
+            }
+
+            function renderPagination(containerId, currentPage, totalItems, onPageChange) {
+                const container = document.getElementById(containerId);
+
+                if (!container) {
+                    return;
+                }
+
+                const totalPages = Math.max(
+                    1,
+                    Math.ceil(totalItems / REPORT_PAGE_SIZE)
+                );
+
+                const safePage = Math.min(
+                    Math.max(currentPage, 1),
+                    totalPages
+                );
+
+                if (!totalItems) {
+                    container.innerHTML = "";
+                    return;
+                }
+
+                const start =
+                    (safePage - 1) * REPORT_PAGE_SIZE + 1;
+
+                const end =
+                    Math.min(
+                        safePage * REPORT_PAGE_SIZE,
+                        totalItems
+                    );
+
+                const buttons = [];
+
+                buttons.push(`
+                    <button
+                        type="button"
+                        class="report-page-btn"
+                        data-page="${safePage - 1}"
+                        ${safePage <= 1 ? "disabled" : ""}
+                    >
+                        Previous
+                    </button>
+                `);
+
+                const maxVisible = 7;
+                let pageNumbers = [];
+
+                if (totalPages <= maxVisible) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        pageNumbers.push(i);
+                    }
+                } else {
+                    pageNumbers.push(1);
+
+                    if (safePage > 4) {
+                        pageNumbers.push("...");
+                    }
+
+                    const from = Math.max(2, safePage - 2);
+                    const to = Math.min(totalPages - 1, safePage + 2);
+
+                    for (let i = from; i <= to; i++) {
+                        pageNumbers.push(i);
+                    }
+
+                    if (safePage < totalPages - 3) {
+                        pageNumbers.push("...");
+                    }
+
+                    pageNumbers.push(totalPages);
+                }
+
+                pageNumbers.forEach(page => {
+                    if (page === "...") {
+                        buttons.push(
+                            '<span class="report-page-ellipsis">...</span>'
+                        );
+                        return;
+                    }
+
+                    buttons.push(`
+                        <button
+                            type="button"
+                            class="report-page-btn ${page === safePage ? "active" : ""}"
+                            data-page="${page}"
+                        >
+                            ${page}
+                        </button>
+                    `);
+                });
+
+                buttons.push(`
+                    <button
+                        type="button"
+                        class="report-page-btn"
+                        data-page="${safePage + 1}"
+                        ${safePage >= totalPages ? "disabled" : ""}
+                    >
+                        Next
+                    </button>
+                `);
+
+                container.innerHTML = `
+                    <div class="report-pagination-left">
+                        Showing ${start}-${end} of ${totalItems}
+                    </div>
+                    <div class="report-pagination-buttons">
+                        ${buttons.join("")}
+                    </div>
+                `;
+
+                container
+                    .querySelectorAll(".report-page-btn[data-page]")
+                    .forEach(button => {
+                        button.addEventListener("click", () => {
+                            if (button.disabled) {
+                                return;
+                            }
+
+                            const page = Number(
+                                button.dataset.page
+                            );
+
+                            if (
+                                Number.isFinite(page) &&
+                                page >= 1 &&
+                                page <= totalPages &&
+                                page !== safePage
+                            ) {
+                                onPageChange(page);
+                            }
+                        });
+                    });
+            }
+
+
+            // ============================================================
             // TOP PRODUCTS
             // ============================================================
 
             function renderProducts(rows) {
 
-                const productMap =
-                    {};
+                const productMap = {};
 
+                rows.forEach(row => {
 
-                rows.forEach(
-                    row => {
+                    const items = getItems(row);
 
-                        const items =
-                            getItems(row);
+                    // ------------------------------------------------
+                    // Normal itemized sale
+                    // ------------------------------------------------
 
+                    if (items.length) {
 
-                        // ------------------------------------------------
-                        // Normal itemized sale
-                        // ------------------------------------------------
+                        items.forEach(item => {
 
-                        if (
-                            items.length
-                        ) {
+                            const name =
+                                getProductName(item);
 
-                            items.forEach(
-                                item => {
+                            const category =
+                                getCategory(item);
 
-                                    const name =
-                                        getProductName(item);
+                            const quantity =
+                                getQuantity(item);
 
+                            const price =
+                                getItemPrice(item);
 
-                                    const category =
-                                        getCategory(item);
-
-
-                                    const quantity =
-                                        getQuantity(item);
-
-
-                                    const price =
-                                        getItemPrice(item);
-
-
-                                    let revenue =
-                                        Number(
-
-                                            item.total ||
-                                            item.subtotal ||
-                                            item.lineTotal
-
-                                        );
-
-
-                                    if (
-                                        !Number.isFinite(
-                                            revenue
-                                        )
-                                    ) {
-
-                                        revenue =
-                                            price *
-                                            quantity;
-
-                                    }
-
-
-                                    const cost =
-                                        getItemCost(item) *
-                                        quantity;
-
-
-                                    const profit =
-                                        getItemProfit(item);
-
-
-                                    const key =
-                                        `${name}|||${category}`;
-
-
-                                    if (
-                                        !productMap[key]
-                                    ) {
-
-                                        productMap[key] = {
-
-                                            name,
-                                            category,
-                                            quantity: 0,
-                                            revenue: 0,
-                                            cost: 0,
-                                            profit: 0
-
-                                        };
-
-                                    }
-
-
-                                    productMap[key].quantity +=
-                                        quantity;
-
-
-                                    productMap[key].revenue +=
-                                        revenue;
-
-
-                                    productMap[key].cost +=
-                                        cost;
-
-
-                                    productMap[key].profit +=
-                                        profit;
-
-                                }
-                            );
-
-
-                            return;
-
-                        }
-
-
-                        // ------------------------------------------------
-                        // Sale without item array
-                        // ------------------------------------------------
-
-                        const name =
-                            row.packageName ||
-                            row.insuranceName ||
-                            row.productName ||
-                            row.product ||
-                            row.name ||
-                            "Sale";
-
-
-                        let category =
-                            row.category ||
-                            row.categoryName;
-
-
-                        if (
-                            !category
-                        ) {
+                            let revenue =
+                                Number(
+                                    item.total ??
+                                    item.subtotal ??
+                                    item.lineTotal
+                                );
 
                             if (
-                                row.packageName
+                                !Number.isFinite(revenue)
+                            ) {
+                                revenue =
+                                    price *
+                                    quantity;
+                            }
+
+                            const cost =
+                                getItemCost(item) *
+                                quantity;
+
+                            const profit =
+                                getItemProfit(item);
+
+                            const key =
+                                `${name}|||${category}`;
+
+                            if (
+                                !productMap[key]
                             ) {
 
-                                category =
-                                    "Package";
-
-                            } else if (
-                                row.insuranceName
-                            ) {
-
-                                category =
-                                    "Insurance";
-
-                            } else {
-
-                                category =
-                                    "Sale";
+                                productMap[key] = {
+                                    name,
+                                    category,
+                                    quantity: 0,
+                                    revenue: 0,
+                                    cost: 0,
+                                    profit: 0
+                                };
 
                             }
 
+                            productMap[key].quantity +=
+                                quantity;
+
+                            productMap[key].revenue +=
+                                revenue;
+
+                            productMap[key].cost +=
+                                cost;
+
+                            productMap[key].profit +=
+                                profit;
+
+                        });
+
+                        return;
+                    }
+
+
+                    // ------------------------------------------------
+                    // Sale without item array
+                    // ------------------------------------------------
+
+                    const name =
+                        row.packageName ||
+                        row.insuranceName ||
+                        row.productName ||
+                        row.product ||
+                        row.name ||
+                        "Sale";
+
+                    let category =
+                        row.category ||
+                        row.categoryName;
+
+                    if (!category) {
+
+                        if (row.packageName) {
+                            category = "Package";
+                        } else if (row.insuranceName) {
+                            category = "Insurance";
+                        } else {
+                            category = "Sale";
                         }
-
-
-                        const quantity =
-                            number(
-                                row.quantity ||
-                                row.itemCount ||
-                                1
-                            );
-
-
-                        const revenue =
-                            getTotal(row);
-
-
-                        const cost =
-                            getTotalCost(row);
-
-
-                        const profit =
-                            getGrossProfit(row);
-
-
-                        const key =
-                            `${name}|||${category}`;
-
-
-                        if (
-                            !productMap[key]
-                        ) {
-
-                            productMap[key] = {
-
-                                name,
-                                category,
-                                quantity: 0,
-                                revenue: 0,
-                                cost: 0,
-                                profit: 0
-
-                            };
-
-                        }
-
-
-                        productMap[key].quantity +=
-                            quantity;
-
-
-                        productMap[key].revenue +=
-                            revenue;
-
-
-                        productMap[key].cost +=
-                            cost;
-
-
-                        productMap[key].profit +=
-                            profit;
 
                     }
-                );
+
+                    const quantity =
+                        number(
+                            row.quantity ||
+                            row.itemCount ||
+                            1
+                        );
+
+                    const revenue =
+                        getTotal(row);
+
+                    const cost =
+                        getTotalCost(row);
+
+                    const profit =
+                        getGrossProfit(row);
+
+                    const key =
+                        `${name}|||${category}`;
+
+                    if (
+                        !productMap[key]
+                    ) {
+
+                        productMap[key] = {
+                            name,
+                            category,
+                            quantity: 0,
+                            revenue: 0,
+                            cost: 0,
+                            profit: 0
+                        };
+
+                    }
+
+                    productMap[key].quantity +=
+                        quantity;
+
+                    productMap[key].revenue +=
+                        revenue;
+
+                    productMap[key].cost +=
+                        cost;
+
+                    productMap[key].profit +=
+                        profit;
+
+                });
 
 
                 const products =
-
-                    Object.values(
-                        productMap
-                    )
-
+                    Object.values(productMap)
                         .sort(
                             (a, b) =>
                                 b.revenue -
@@ -2573,45 +2801,61 @@
                         );
 
 
-                if (
-                    !products.length
-                ) {
+                if (!products.length) {
 
                     productsElement.innerHTML = `
-
                         <tr>
-
                             <td colspan="6">
-
                                 <div class="empty">
                                     No product sales data available.
                                 </div>
-
                             </td>
-
                         </tr>
-
                     `;
+
+                    renderPagination(
+                        "productPagination",
+                        1,
+                        0,
+                        () => {}
+                    );
 
                     return;
 
                 }
 
 
-                productsElement.innerHTML =
-
-                    products
-
-                        .slice(
-                            0,
-                            20
+                const totalPages =
+                    Math.max(
+                        1,
+                        Math.ceil(
+                            products.length /
+                            REPORT_PAGE_SIZE
                         )
+                    );
 
+                productPage =
+                    Math.min(
+                        Math.max(productPage, 1),
+                        totalPages
+                    );
+
+                const start =
+                    (productPage - 1) *
+                    REPORT_PAGE_SIZE;
+
+                const pageRows =
+                    products.slice(
+                        start,
+                        start + REPORT_PAGE_SIZE
+                    );
+
+
+                productsElement.innerHTML =
+                    pageRows
                         .map(
                             product => `
-
                                 <tr>
-
                                     <td>
                                         <b>
                                             ${escapeHtml(
@@ -2647,13 +2891,21 @@
                                             product.profit
                                         )}
                                     </td>
-
                                 </tr>
-
                             `
                         )
-
                         .join("");
+
+
+                renderPagination(
+                    "productPagination",
+                    productPage,
+                    products.length,
+                    page => {
+                        productPage = page;
+                        renderProducts(rows);
+                    }
+                );
 
             }
 
@@ -3401,13 +3653,17 @@
 
             function renderTransactions(rows) {
 
-                const element = document.getElementById("reportTransactions");
+                const element =
+                    document.getElementById(
+                        "reportTransactions"
+                    );
 
                 if (!element) {
                     return;
                 }
 
                 if (!rows.length) {
+
                     element.innerHTML = `
                         <tr>
                             <td colspan="9">
@@ -3417,52 +3673,110 @@
                             </td>
                         </tr>
                     `;
+
+                    renderPagination(
+                        "transactionPagination",
+                        1,
+                        0,
+                        () => {}
+                    );
+
                     return;
                 }
 
-                const sorted = [...rows].sort(
-                    (a, b) => (b._date || 0) - (a._date || 0)
+                const sorted =
+                    [...rows].sort(
+                        (a, b) =>
+                            (b._date || 0) -
+                            (a._date || 0)
+                    );
+
+                const totalPages =
+                    Math.max(
+                        1,
+                        Math.ceil(
+                            sorted.length /
+                            REPORT_PAGE_SIZE
+                        )
+                    );
+
+                transactionPage =
+                    Math.min(
+                        Math.max(transactionPage, 1),
+                        totalPages
+                    );
+
+                const start =
+                    (transactionPage - 1) *
+                    REPORT_PAGE_SIZE;
+
+                const pageRows =
+                    sorted.slice(
+                        start,
+                        start + REPORT_PAGE_SIZE
+                    );
+
+                element.innerHTML =
+                    pageRows
+                        .map(row => {
+
+                            const date =
+                                row._date
+                                    ? row._date.toLocaleString("en-PH")
+                                    : "—";
+
+                            const transaction =
+                                row.transactionNumber ||
+                                row.transactionId ||
+                                row.id ||
+                                "—";
+
+                            const customer =
+                                row.customer ||
+                                row.customerName ||
+                                "Walk-in Customer";
+
+                            const type =
+                                row.orderType ||
+                                (
+                                    row.isReservation
+                                        ? "Reservation"
+                                        : "Regular Sale"
+                                );
+
+                            const status =
+                                row.status ||
+                                (
+                                    row.paymentCompleted
+                                        ? "Paid"
+                                        : "Completed"
+                                );
+
+                            return `
+                                <tr>
+                                    <td>${escapeHtml(date)}</td>
+                                    <td>${escapeHtml(transaction)}</td>
+                                    <td>${escapeHtml(customer)}</td>
+                                    <td>${escapeHtml(type)}</td>
+                                    <td>${escapeHtml(getPaymentLabel(row))}</td>
+                                    <td>${money(row._total)}</td>
+                                    <td>${money(getTotalCost(row))}</td>
+                                    <td>${money(getGrossProfit(row))}</td>
+                                    <td>${escapeHtml(status)}</td>
+                                </tr>
+                            `;
+                        })
+                        .join("");
+
+                renderPagination(
+                    "transactionPagination",
+                    transactionPage,
+                    sorted.length,
+                    page => {
+                        transactionPage = page;
+                        renderTransactions(rows);
+                    }
                 );
-
-                element.innerHTML = sorted.map(row => {
-
-                    const date = row._date
-                        ? row._date.toLocaleString("en-PH")
-                        : "—";
-
-                    const transaction =
-                        row.transactionNumber ||
-                        row.transactionId ||
-                        row.id ||
-                        "—";
-
-                    const customer =
-                        row.customer ||
-                        row.customerName ||
-                        "Walk-in Customer";
-
-                    const type =
-                        row.orderType ||
-                        (row.isReservation ? "Reservation" : "Regular Sale");
-
-                    const status =
-                        row.status ||
-                        (row.paymentCompleted ? "Paid" : "Completed");
-
-                    return `
-                        <tr>
-                            <td>${escapeHtml(date)}</td>
-                            <td>${escapeHtml(transaction)}</td>
-                            <td>${escapeHtml(customer)}</td>
-                            <td>${escapeHtml(type)}</td>
-                            <td>${escapeHtml(getPaymentLabel(row))}</td>
-                            <td>${money(row._total)}</td>
-                            <td>${money(getTotalCost(row))}</td>
-                            <td>${money(getGrossProfit(row))}</td>
-                            <td>${escapeHtml(status)}</td>
-                        </tr>
-                    `;
-                }).join("");
             }
 
 
@@ -3480,6 +3794,10 @@
 
 
                 updateSummary(
+                    rows
+                );
+
+                updateCategorySales(
                     rows
                 );
 
@@ -4539,6 +4857,9 @@
 
                 period.addEventListener("change", () => {
 
+                    transactionPage = 1;
+                    productPage = 1;
+
                     if (period.value !== "custom") {
                         if (fromDate) fromDate.value = "";
                         if (toDate) toDate.value = "";
@@ -4551,6 +4872,8 @@
 
             if (fromDate) {
                 fromDate.addEventListener("change", () => {
+                    transactionPage = 1;
+                    productPage = 1;
                     if (period) period.value = "custom";
                     render();
                 });
@@ -4558,6 +4881,8 @@
 
             if (toDate) {
                 toDate.addEventListener("change", () => {
+                    transactionPage = 1;
+                    productPage = 1;
                     if (period) period.value = "custom";
                     render();
                 });
@@ -4573,6 +4898,9 @@
                     () => {
 
                         period.value = "week";
+
+                        transactionPage = 1;
+                        productPage = 1;
 
                         if (fromDate) fromDate.value = "";
                         if (toDate) toDate.value = "";

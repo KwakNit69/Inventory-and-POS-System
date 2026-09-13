@@ -927,3 +927,598 @@ button {
         justify-content: space-between;
     }
 }
+
+
+/* =========================================================
+   AGG VISUAL UPGRADE
+   This section intentionally overrides the existing styles
+   so dashboard.js and all existing IDs/functionality remain
+   unchanged.
+   ========================================================= */
+
+:root {
+  --agg-blue: #075b9f;
+  --agg-blue-dark: #064b84;
+  --agg-blue-soft: #eaf4fc;
+  --agg-green: #15915d;
+  --agg-green-dark: #107a4d;
+  --agg-green-soft: #eaf8f1;
+  --agg-ink: #14243a;
+  --agg-muted: #718096;
+  --agg-border: #e2e8ef;
+  --agg-bg: #f5f8fb;
+  --agg-white: #ffffff;
+  --agg-shadow: 0 8px 24px rgba(24, 55, 85, .055);
+  --agg-shadow-hover: 0 14px 34px rgba(24, 55, 85, .10);
+}
+
+body {
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(21,145,93,.045), transparent 22%),
+    var(--agg-bg);
+  color: var(--agg-ink);
+}
+
+.app-shell {
+  background: transparent;
+}
+
+.dashboard-main {
+  width: calc(100% - 238px);
+}
+
+.topbar {
+  height: 72px;
+  padding: 0 30px;
+  border-bottom: 1px solid var(--agg-border);
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 1px 8px rgba(20,45,70,.025);
+  backdrop-filter: blur(12px);
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 195px;
+}
+
+.dashboard-brand-logo {
+  width: 70px;
+  height: 43px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e3e9ef;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(20,45,70,.06);
+}
+
+.dashboard-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.dashboard-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-brand-text strong {
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .7px;
+  color: var(--agg-ink);
+}
+
+.dashboard-brand-text span {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--agg-green);
+}
+
+.search-box {
+  width: min(360px, 32vw);
+  height: 42px;
+  border: 1px solid var(--agg-border);
+  border-radius: 9px;
+  background: #f8fafc;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.search-box:focus-within {
+  border-color: rgba(7,91,159,.45);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(7,91,159,.07);
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  color: #7d8a9a;
+}
+
+.search-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.profile {
+  gap: 12px;
+}
+
+.notification {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #667589;
+  padding: 0;
+}
+
+.notification:hover {
+  border-color: var(--agg-border);
+  background: #f4f8fb;
+  color: var(--agg-blue);
+}
+
+.notification svg {
+  width: 18px;
+  height: 18px;
+}
+
+.profile-name strong {
+  color: var(--agg-ink);
+  font-size: 12px;
+}
+
+.profile-name small {
+  color: var(--agg-green);
+  font-weight: 700;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #dcebe4;
+  background: linear-gradient(135deg, #eaf8f1, #eaf4fc);
+  color: var(--agg-blue);
+}
+
+.dashboard-content {
+  max-width: 1900px;
+  padding: 32px 30px 50px;
+}
+
+.heading-row {
+  margin-bottom: 20px;
+}
+
+.heading-row h1 {
+  color: var(--agg-ink);
+  font-size: 30px;
+  letter-spacing: -.7px;
+}
+
+.heading-row p {
+  color: var(--agg-muted);
+  font-size: 13px;
+}
+
+.date-filter {
+  border: 1px solid var(--agg-border);
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(20,45,70,.025);
+}
+
+.date-filter button {
+  height: 42px;
+  border-right-color: var(--agg-border);
+  color: #536276;
+  transition: background .2s ease, color .2s ease;
+}
+
+.date-filter button:hover {
+  background: #f3f8fb;
+  color: var(--agg-blue);
+}
+
+.date-filter button.active {
+  background: var(--agg-blue);
+}
+
+.actions {
+  gap: 9px;
+  margin-bottom: 28px;
+}
+
+.actions button {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--agg-border);
+  border-radius: 9px;
+  background: #fff;
+  color: #334155;
+  box-shadow: 0 2px 7px rgba(20,45,70,.025);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, color .2s ease, background .2s ease;
+}
+
+.actions button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.actions button:hover {
+  background: #f7fafc;
+  border-color: #cbd9e5;
+  color: var(--agg-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(20,45,70,.06);
+}
+
+.actions button.primary {
+  background: linear-gradient(135deg, var(--agg-blue), #0874b8);
+  border-color: var(--agg-blue);
+  box-shadow: 0 7px 16px rgba(7,91,159,.15);
+}
+
+.actions button.primary:hover {
+  background: linear-gradient(135deg, var(--agg-blue-dark), #0769a8);
+  color: #fff;
+}
+
+.financial-section,
+.activity-section,
+.cash-report-section {
+  margin-bottom: 30px;
+}
+
+.section-heading {
+  margin-bottom: 14px;
+}
+
+.section-heading h2 {
+  color: var(--agg-ink);
+  font-size: 18px;
+  letter-spacing: -.2px;
+}
+
+.section-heading p {
+  color: #7a8797;
+  font-size: 11px;
+}
+
+.financial-status {
+  color: var(--agg-green);
+}
+
+.financial-status span {
+  background: var(--agg-green);
+  box-shadow: 0 0 0 4px rgba(21,145,93,.09);
+}
+
+.funds-grid {
+  gap: 15px;
+}
+
+.fund-card {
+  min-height: 142px;
+  border: 1px solid var(--agg-border);
+  border-radius: 12px;
+  padding: 19px;
+  background: #fff;
+  box-shadow: var(--agg-shadow);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.fund-card:hover {
+  transform: translateY(-3px);
+  border-color: #d5e1ea;
+  box-shadow: var(--agg-shadow-hover);
+}
+
+.fund-icon {
+  border-radius: 11px;
+}
+
+.fund-info span {
+  color: #627084;
+  font-size: 10px;
+  letter-spacing: .6px;
+}
+
+.fund-info strong {
+  color: var(--agg-ink);
+  font-size: 22px;
+}
+
+.cash-card {
+  border-top: 3px solid var(--agg-green);
+}
+.cash-card .fund-icon {
+  background: var(--agg-green-soft);
+  color: var(--agg-green);
+}
+
+.gcash-card {
+  border-top: 3px solid #6d56c9;
+}
+.gcash-card .fund-icon {
+  background: #f0edff;
+  color: #6d56c9;
+}
+
+.bdo-card {
+  border-top: 3px solid var(--agg-blue);
+}
+.bdo-card .fund-icon {
+  background: var(--agg-blue-soft);
+  color: var(--agg-blue);
+}
+
+.bibo-card {
+  border-top: 3px solid #d88916;
+}
+.bibo-card .fund-icon {
+  background: #fff5e4;
+  color: #c5790e;
+}
+
+.bpi-card {
+  border-top: 3px solid #d65353;
+}
+.bpi-card .fund-icon {
+  background: #fff0f0;
+  color: #cf4c4c;
+}
+
+.total-card {
+  border-top: 3px solid var(--agg-ink);
+  background: linear-gradient(135deg, #fff 0%, #f3f7fa 100%);
+}
+
+.profit-card {
+  border-top: 3px solid var(--agg-green);
+  background: linear-gradient(135deg, #fff 0%, #f4fbf7 100%);
+}
+
+.profit-card .fund-info strong {
+  color: var(--agg-green);
+}
+
+.metrics {
+  gap: 15px;
+}
+
+.metric {
+  min-height: 126px;
+  border: 1px solid var(--agg-border);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--agg-shadow);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.metric:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--agg-shadow-hover);
+}
+
+.metric-label {
+  color: #526a82;
+}
+
+.metric-label span:last-child {
+  color: var(--agg-blue);
+}
+
+.metric strong {
+  color: var(--agg-ink);
+  font-size: 24px;
+}
+
+.overview {
+  gap: 18px;
+}
+
+.panel {
+  border: 1px solid var(--agg-border);
+  border-radius: 12px;
+  box-shadow: var(--agg-shadow);
+}
+
+.panel-title {
+  min-height: 66px;
+  padding: 0 20px;
+}
+
+.panel-title strong {
+  color: var(--agg-ink);
+  font-size: 15px;
+}
+
+.more-button {
+  border-radius: 8px;
+  color: #617086;
+  transition: .2s ease;
+}
+
+.more-button:hover {
+  border-color: var(--agg-blue);
+  background: var(--agg-blue-soft);
+  color: var(--agg-blue);
+}
+
+.chart {
+  background: #f9fbfd;
+  border-color: #edf1f5;
+  border-radius: 9px;
+}
+
+.ending {
+  background: linear-gradient(135deg, #f2f7fa, #f3f9f6);
+  border: 1px solid #e5edf1;
+}
+
+.custom-date-filter {
+  border-radius: 9px;
+  box-shadow: var(--agg-shadow);
+}
+
+.custom-date-filter button {
+  background: var(--agg-blue);
+  border-color: var(--agg-blue);
+  border-radius: 7px;
+}
+
+.custom-date-filter button:hover {
+  background: var(--agg-blue-dark);
+}
+
+.report-charts {
+  border: 1px solid var(--agg-border);
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  background: var(--agg-border);
+}
+
+.report-chart-card {
+  padding: 17px 16px 12px;
+}
+
+.report-chart-card h3 {
+  color: #29445d;
+  font-size: 11px;
+  letter-spacing: .5px;
+}
+
+.monthly-table-wrap {
+  border-color: var(--agg-border);
+  border-radius: 0 0 12px 12px;
+}
+
+.monthly-report-table th,
+.monthly-report-table td {
+  border-color: #e1e7ed;
+}
+
+.monthly-report-table thead th {
+  background: #eaf4ef;
+  color: #193629;
+}
+
+.monthly-report-table tbody th {
+  background: #f1f7f3;
+}
+
+/* Better responsive behavior for the new topbar brand. */
+@media (max-width: 1100px) {
+  .dashboard-brand {
+    min-width: auto;
+  }
+
+  .dashboard-brand-text {
+    display: none;
+  }
+
+  .search-box {
+    width: min(330px, 34vw);
+  }
+}
+
+@media (max-width: 750px) {
+  .topbar {
+    padding: 0 14px;
+  }
+
+  .dashboard-brand-logo {
+    width: 62px;
+    height: 39px;
+  }
+
+  .search-box {
+    width: min(260px, 43vw);
+  }
+
+  .dashboard-content {
+    padding: 22px 16px 38px;
+  }
+}
+
+@media (max-width: 550px) {
+  .topbar {
+    gap: 8px;
+  }
+
+  .dashboard-brand-logo {
+    width: 58px;
+    height: 36px;
+  }
+
+  .search-box {
+    width: 150px;
+  }
+
+  .search-box input {
+    font-size: 11px;
+  }
+
+  .profile {
+    gap: 5px;
+  }
+
+  .notification {
+    width: 31px;
+    height: 31px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dashboard-content {
+    padding: 16px 10px 30px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .actions button {
+    width: 100%;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .dashboard-brand {
+    display: none;
+  }
+
+  .search-box {
+    width: 155px;
+  }
+
+  .profile .notification {
+    display: none;
+  }
+}

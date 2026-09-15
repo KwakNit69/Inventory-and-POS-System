@@ -1,1298 +1,1170 @@
 * {
   box-sizing: border-box;
   margin: 0;
-  padding: 0;
+  padding: 0
 }
 
 :root {
-  --blue: #1976d2;
-  --blue-dark: #075eb5;
+  --primary: #6d3df5;
+  --primary-dark: #5630d4;
+  --primary-soft: #f1edff;
+  --text: #202334;
+  --muted: #7b8192;
+  --border: #e8e8f0;
+  --background: #f7f7fb;
+  --white: #fff;
+  --green: #18a66a;
+  --green-soft: #e9f8f1;
+  --red: #e5485d;
+  --red-soft: #fff0f2;
+  --orange: #e58b28;
+  --orange-soft: #fff6e8;
+  --cyan: #1596a8;
+  --cyan-soft: #e9f8fa
+}
 
-  --text: #172331;
-  --muted: #6b7480;
-
-  --border: #d8dee6;
-  --background: #f5f7f9;
-  --white: #ffffff;
-
-  --green: #16803c;
-  --green-bg: #eaf7ef;
-
-  --red: #d74343;
-  --red-bg: #fdecec;
-
-  --orange: #c87500;
-  --orange-bg: #fff5df;
-
-  --purple: #7357b7;
-  --purple-bg: #f0ebfb;
-
-  --cyan: #07889b;
-  --cyan-bg: #e8f8fa;
+html,
+body {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 13px
 }
 
 body {
-  min-height: 100vh;
-  background: var(--background);
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 13px;
+  overflow-x: hidden
 }
 
 button,
 input,
 select,
 textarea {
-  font-family: inherit;
+  font: inherit
 }
 
 button {
-  cursor: pointer;
+  cursor: pointer
 }
 
 .app-shell {
   min-height: 100vh;
-  display: flex;
+  display: flex
 }
 
 .cashflow-main {
   flex: 1;
   min-width: 0;
+  background: var(--background)
 }
 
-
-/* ========================= */
-/* TOP BAR */
-/* ========================= */
-
 .topbar {
-  height: 38px;
-
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 0 13px 0 25px;
-
-  background: white;
-
+  padding: 0 28px;
+  background: rgba(255, 255, 255, .96);
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20
 }
 
 .search-box {
-  width: 250px;
-  height: 27px;
-
+  width: 330px;
+  height: 38px;
   display: flex;
   align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fafaff;
+  transition: .2s
+}
 
-  gap: 6px;
-
-  padding: 0 7px;
-
-  border: 1px solid #d5dce4;
-  border-radius: 4px;
-
-  background: #fafbfc;
+.search-box:focus-within {
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 4px rgba(109, 61, 245, .08);
+  background: #fff
 }
 
 .search-box span {
-  color: #5c6671;
-  font-size: 14px;
+  color: #858b9d;
+  font-size: 18px;
+  line-height: 1
 }
 
 .search-box input {
   flex: 1;
   min-width: 0;
-
   border: 0;
   outline: 0;
-
   background: transparent;
+  color: var(--text);
+  font-size: 12px
+}
 
-  font-size: 9px;
+.search-box input::placeholder {
+  color: #a1a5b3
 }
 
 .search-box small {
-  width: 14px;
-  height: 14px;
-
+  width: 19px;
+  height: 19px;
   display: grid;
   place-items: center;
-
-  border: 1px solid #d4dae1;
-  border-radius: 2px;
-
-  color: #7d8690;
-
-  font-size: 7px;
+  border: 1px solid #dedee8;
+  border-radius: 5px;
+  color: #969baa;
+  font-size: 9px;
+  background: #fff
 }
 
 .profile {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px
 }
 
 .notification {
-  font-size: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: #74798b;
+  font-size: 17px
 }
 
 .profile-name {
-  text-align: right;
+  text-align: right
 }
 
 .profile-name strong {
   display: block;
-  font-size: 8px;
+  color: #252839;
+  font-size: 11px;
+  font-weight: 700
 }
 
 .profile-name small {
   display: block;
-
-  margin-top: 2px;
-
-  color: var(--blue);
-
-  font-size: 7px;
+  margin-top: 3px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 600
 }
 
 .avatar {
-  width: 22px;
-  height: 22px;
-
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-
-  border-radius: 50%;
-
-  background: #d9e8f8;
-
-  border: 1px solid #c7d9eb;
-
-  color: #1c5d9e;
-
-  font-size: 7px;
-  font-weight: 700;
+  border-radius: 11px;
+  background: var(--primary-soft);
+  border: 1px solid #ded5ff;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800
 }
 
-
-/* ========================= */
-/* CONTENT */
-/* ========================= */
-
 .cashflow-content {
-  padding: 18px 20px 35px;
+  padding: 28px 30px 40px;
+  max-width: 1700px;
+  margin: 0 auto
 }
 
 .page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-
-  margin-bottom: 17px;
+  gap: 20px;
+  margin-bottom: 22px
 }
 
 .page-header h1 {
-  font-size: 20px;
-  margin-bottom: 5px;
+  font-size: 27px;
+  line-height: 1.15;
+  letter-spacing: -.5px;
+  margin-bottom: 7px
 }
 
 .page-header p {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px
 }
-
-
-/* ========================= */
-/* BUTTONS */
-/* ========================= */
 
 .cashflow-actions {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px
 }
 
 .add-cash-in-btn,
 .add-expense-btn {
-  height: 30px;
-
-  padding: 0 12px;
-
-  border-radius: 4px;
-
-  font-size: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 11px;
   font-weight: 700;
+  transition: .2s
 }
 
 .add-cash-in-btn {
   border: 1px solid var(--green);
   background: var(--green);
-  color: white;
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(24, 166, 106, .16)
 }
 
 .add-cash-in-btn:hover {
-  background: #116b31;
+  background: #118d59;
+  transform: translateY(-1px)
 }
 
 .add-expense-btn {
-  border: 1px solid var(--blue);
-  background: var(--blue);
-  color: white;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(109, 61, 245, .16)
 }
 
 .add-expense-btn:hover {
-  background: var(--blue-dark);
+  background: var(--primary-dark);
+  transform: translateY(-1px)
 }
-
-
-/* ========================= */
-/* SUMMARY */
-/* ========================= */
 
 .cash-summary {
   display: grid;
-
-  grid-template-columns: repeat(4, 1fr);
-
-  gap: 9px;
-
-  margin-bottom: 15px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px
 }
 
 .summary-card {
-  min-height: 78px;
-
+  min-height: 112px;
   display: flex;
   align-items: center;
-
-  gap: 11px;
-
-  padding: 10px;
-
-  background: white;
-
+  gap: 14px;
+  padding: 18px;
+  background: var(--white);
   border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(37, 30, 76, .035);
+  transition: .2s
+}
 
-  border-radius: 5px;
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(37, 30, 76, .07)
 }
 
 .summary-icon {
-  width: 35px;
-  height: 35px;
-
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   display: grid;
   place-items: center;
-
-  border-radius: 5px;
-
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 800
 }
 
 .cash-in-icon {
-  background: var(--green-bg);
-  color: var(--green);
+  background: var(--green-soft);
+  color: var(--green)
 }
 
 .cash-out-icon {
-  background: var(--red-bg);
-  color: var(--red);
+  background: var(--red-soft);
+  color: var(--red)
 }
 
 .net-icon {
-  background: #e8f2fc;
-  color: var(--blue);
+  background: var(--primary-soft);
+  color: var(--primary)
 }
 
 .balance-icon {
-  background: var(--purple-bg);
-  color: var(--purple);
+  background: #fff3e6;
+  color: var(--orange)
 }
 
 .summary-card span {
   display: block;
-
-  color: #65717d;
-
-  font-size: 6px;
-  font-weight: 700;
-
-  margin-bottom: 5px;
+  color: #858a9b;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  margin-bottom: 7px
 }
 
 .summary-card strong {
   display: block;
-
-  color: #1d2d3a;
-
-  font-size: 16px;
-
-  margin-bottom: 4px;
+  color: #252839;
+  font-size: 21px;
+  line-height: 1.1;
+  margin-bottom: 6px
 }
 
 .summary-card small {
-  color: #8a949e;
-  font-size: 6px;
+  color: #a0a4b2;
+  font-size: 9px
 }
 
-
-/* ========================= */
-/* ACCOUNTS */
-/* ========================= */
+.accounts-section,
+.chart-card,
+.breakdown-card,
+.cashflow-toolbar,
+.table-container,
+.pagination {
+  background: var(--white);
+  border: 1px solid var(--border)
+}
 
 .accounts-section {
-  background: white;
-
-  border: 1px solid var(--border);
-
-  border-radius: 5px;
-
-  margin-bottom: 13px;
-
+  border-radius: 14px;
+  margin-bottom: 18px;
   overflow: hidden;
+  box-shadow: 0 3px 12px rgba(37, 30, 76, .035)
 }
 
 .accounts-header {
-  min-height: 55px;
+  min-height: 68px
+}
+
+.section-header {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--border)
+}
+
+.section-header h2 {
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -.1px;
+  margin-bottom: 4px
+}
+
+.section-header p {
+  color: #9095a5;
+  font-size: 10px
+}
+
+.section-header select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: 0;
+  background: #fff;
+  color: #606678;
+  font-size: 10px
+}
+
+.section-header select:focus {
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 3px rgba(109, 61, 245, .08)
 }
 
 .accounts-grid {
   display: grid;
-
-  grid-template-columns: repeat(5, 1fr);
-
-  gap: 9px;
-
-  padding: 11px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 15px
 }
 
 .account-card {
-  min-height: 125px;
-
-  padding: 13px;
-
+  min-height: 142px;
+  padding: 16px;
   border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  transition: .2s;
+  position: relative;
+  overflow: hidden
+}
 
-  border-radius: 6px;
-
-  background: #ffffff;
-
-  transition: 0.15s ease;
+.account-card:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: #dcd8ff
 }
 
 .account-card:hover {
   transform: translateY(-2px);
-
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 9px 22px rgba(37, 30, 76, .06)
 }
 
 .account-top {
   display: flex;
-
   align-items: center;
   justify-content: space-between;
-
-  margin-bottom: 12px;
+  margin-bottom: 15px
 }
 
 .account-icon {
-  width: 30px;
-  height: 30px;
-
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-
-  border-radius: 6px;
-
-  font-size: 12px;
-  font-weight: 700;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800
 }
 
 .account-status {
-  font-size: 6px !important;
-
-  padding: 4px 6px;
-
-  border-radius: 10px;
-
-  background: #f3f5f7;
-
-  color: #6c7680 !important;
+  font-size: 8px !important;
+  padding: 5px 8px;
+  border-radius: 20px;
+  background: #f4f4f8;
+  color: #7d8291 !important;
+  font-weight: 800
 }
 
 .account-name {
-  color: #6c7680;
-
-  font-size: 8px;
-
-  margin-bottom: 5px;
+  color: #858a9b;
+  font-size: 10px;
+  margin-bottom: 6px
 }
 
 .account-card strong {
   display: block;
-
-  color: #1b2935;
-
-  font-size: 17px;
-
-  margin-bottom: 5px;
+  color: #252839;
+  font-size: 19px;
+  margin-bottom: 7px
 }
 
 .account-card small {
-  color: #8a949e;
-
-  font-size: 6px;
+  color: #a0a4b2;
+  font-size: 9px
 }
 
+.cash-account:after {
+  background: var(--green)
+}
 
-/* ACCOUNT COLORS */
+.gcash-account:after {
+  background: var(--cyan)
+}
+
+.bdo-account:after {
+  background: var(--primary)
+}
+
+.bibo-account:after {
+  background: var(--orange)
+}
+
+.bpi-account:after {
+  background: #8c63d8
+}
 
 .cash-account .account-icon {
-  background: var(--green-bg);
-  color: var(--green);
+  background: var(--green-soft);
+  color: var(--green)
 }
 
 .gcash-account .account-icon {
-  background: var(--cyan-bg);
-  color: var(--cyan);
+  background: var(--cyan-soft);
+  color: var(--cyan)
 }
 
 .bdo-account .account-icon {
-  background: #e8f2fc;
-  color: var(--blue);
+  background: var(--primary-soft);
+  color: var(--primary)
 }
 
 .bibo-account .account-icon {
-  background: var(--orange-bg);
-  color: var(--orange);
+  background: var(--orange-soft);
+  color: var(--orange)
 }
 
 .bpi-account .account-icon {
-  background: var(--purple-bg);
-  color: var(--purple);
+  background: #f2ebff;
+  color: #8c63d8
 }
-
-
-/* ========================= */
-/* OVERVIEW */
-/* ========================= */
 
 .overview-grid {
   display: grid;
-
-  grid-template-columns:
-    minmax(0, 2fr) minmax(260px, 1fr);
-
-  gap: 10px;
-
-  margin-bottom: 13px;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: 18px;
+  margin-bottom: 18px
 }
 
 .chart-card,
 .breakdown-card {
   min-width: 0;
-
-  background: white;
-
-  border: 1px solid var(--border);
-
-  border-radius: 4px;
-}
-
-.section-header {
-  min-height: 55px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 0 11px;
-
-  border-bottom: 1px solid var(--border);
-}
-
-.section-header h2 {
-  font-size: 11px;
-
-  margin-bottom: 3px;
-}
-
-.section-header p {
-  color: #7a858f;
-
-  font-size: 7px;
-}
-
-.section-header select {
-  height: 26px;
-
-  padding: 0 7px;
-
-  border: 1px solid #d5dce4;
-
-  border-radius: 3px;
-
-  background: white;
-
-  color: #53606c;
-
-  font-size: 7px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(37, 30, 76, .035)
 }
 
 .chart-wrapper {
-  height: 240px;
-
-  padding: 12px;
+  height: 290px;
+  padding: 20px
 }
 
 #cashFlowChart {
   width: 100% !important;
-  height: 100% !important;
+  height: 100% !important
 }
 
-
-/* ========================= */
-/* BREAKDOWN */
-/* ========================= */
-
 .breakdown-list {
-  padding: 8px 11px;
+  padding: 8px 18px 12px
 }
 
 .breakdown-row {
-  min-height: 39px;
-
+  min-height: 54px;
   display: flex;
-
   align-items: center;
   justify-content: space-between;
-
-  border-bottom: 1px solid #edf0f3;
+  border-bottom: 1px solid #f0f0f5
 }
 
 .breakdown-row:last-child {
-  border-bottom: 0;
+  border-bottom: 0
 }
 
 .breakdown-label {
   display: flex;
-
   align-items: center;
-
-  gap: 7px;
-
-  color: #52606c;
-
-  font-size: 8px;
+  gap: 9px;
+  color: #5e6475;
+  font-size: 11px
 }
 
 .breakdown-row strong {
-  color: #273743;
-
-  font-size: 8px;
+  color: #292d3d;
+  font-size: 11px
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
-
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%
 }
 
 .sales-dot {
-  background: var(--green);
+  background: var(--green)
 }
 
 .other-in-dot {
-  background: var(--blue);
+  background: var(--primary)
 }
 
 .expense-dot {
-  background: var(--red);
+  background: var(--red)
 }
 
 .purchase-dot {
-  background: var(--orange);
+  background: var(--orange)
 }
 
 .refund-dot {
-  background: var(--purple);
+  background: #8c63d8
 }
 
-
-/* ========================= */
-/* TOOLBAR */
-/* ========================= */
-
 .cashflow-toolbar {
-  min-height: 47px;
-
+  min-height: 64px;
   display: flex;
-
   align-items: center;
-
-  gap: 7px;
-
-  padding: 8px;
-
-  background: white;
-
-  border: 1px solid var(--border);
-
-  border-bottom: 0;
-
-  border-radius: 4px 4px 0 0;
+  gap: 9px;
+  padding: 12px;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+  z-index: 2
 }
 
 .cashflow-search {
-  width: 270px;
-  height: 28px;
-
+  width: 320px;
+  height: 38px;
   display: flex;
-
   align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fafaff
+}
 
-  gap: 6px;
-
-  padding: 0 8px;
-
-  border: 1px solid #d5dce4;
-
-  border-radius: 3px;
+.cashflow-search:focus-within {
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 3px rgba(109, 61, 245, .08);
+  background: #fff
 }
 
 .cashflow-search span {
-  color: #7b858f;
+  color: #8c91a1;
+  font-size: 17px
 }
 
 .cashflow-search input {
   width: 100%;
-
   border: 0;
   outline: 0;
+  background: transparent;
+  font-size: 10px;
+  color: var(--text)
+}
 
-  font-size: 8px;
+.cashflow-search input::placeholder {
+  color: #a2a6b3
 }
 
 .cashflow-toolbar select {
-  height: 28px;
+  height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: #606678;
+  font-size: 10px;
+  outline: 0
+}
 
-  padding: 0 8px;
-
-  border: 1px solid #d5dce4;
-
-  border-radius: 3px;
-
-  background: white;
-
-  color: #46525e;
-
-  font-size: 8px;
+.cashflow-toolbar select:focus {
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 3px rgba(109, 61, 245, .08)
 }
 
 .reset-btn {
-  height: 28px;
-
-  padding: 0 10px;
-
-  border: 1px solid #d5dce4;
-
-  border-radius: 3px;
-
-  background: white;
-
-  color: #52606d;
-
-  font-size: 8px;
+  height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: #656b7b;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: auto;
+  transition: .2s
 }
 
 .reset-btn:hover {
-  background: #f5f7f9;
+  background: #f7f5ff;
+  border-color: #cfc5ff;
+  color: var(--primary)
 }
 
-
-/* ========================= */
-/* TABLE */
-/* ========================= */
-
 .table-container {
-  background: white;
-
-  border: 1px solid var(--border);
-
-  border-radius: 0 0 4px 4px;
-
+  border-radius: 0 0 12px 12px;
   overflow-x: auto;
+  box-shadow: 0 3px 12px rgba(37, 30, 76, .035)
 }
 
 .cashflow-table {
   width: 100%;
-
-  min-width: 1200px;
-
-  border-collapse: collapse;
+  min-width: 1180px;
+  border-collapse: collapse
 }
 
 .cashflow-table th {
-  height: 36px;
-
-  padding: 0 10px;
-
-  background: #f7f9fb;
-
+  height: 45px;
+  padding: 0 14px;
+  background: #fafaff;
   border-bottom: 1px solid var(--border);
-
-  color: #5c6874;
-
+  color: #858a9a;
   text-align: left;
-
-  font-size: 7px;
-
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .45px;
+  white-space: nowrap
 }
 
 .cashflow-table td {
-  height: 55px;
+  height: 64px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #f0f0f5;
+  color: #5e6472;
+  font-size: 10px
+}
 
-  padding: 7px 10px;
-
-  border-bottom: 1px solid #edf0f3;
-
-  color: #43515d;
-
-  font-size: 8px;
+.cashflow-table tbody tr {
+  transition: .15s
 }
 
 .cashflow-table tbody tr:hover {
-  background: #fafcff;
+  background: #fbfaff
+}
+
+.cashflow-table tbody tr:last-child td {
+  border-bottom: 0
 }
 
 .flow-id {
-  color: var(--blue);
-
-  font-family: monospace;
-
-  font-size: 7px;
-
-  font-weight: 700;
+  color: var(--primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  font-weight: 800
 }
 
 .flow-date {
-  color: #65727e;
-
-  font-size: 7px;
+  color: #72788a;
+  font-size: 9px
 }
 
 .flow-description {
-  color: #344450;
-
-  font-size: 8px;
-
-  font-weight: 700;
+  color: #353a4b;
+  font-size: 10px;
+  font-weight: 700
 }
 
 .flow-reference {
-  color: #8a949e;
-
-  font-size: 6px;
-
-  margin-top: 3px;
+  color: #a0a4b1;
+  font-size: 8px;
+  margin-top: 3px
 }
 
 .flow-type {
   display: inline-flex;
-
-  padding: 4px 7px;
-
-  border-radius: 12px;
-
-  font-size: 6px;
-
-  font-weight: 700;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 8px;
+  font-weight: 800
 }
 
 .type-in {
-  background: var(--green-bg);
-  color: var(--green);
+  background: var(--green-soft);
+  color: var(--green)
 }
 
 .type-out {
-  background: var(--red-bg);
-  color: var(--red);
+  background: var(--red-soft);
+  color: var(--red)
 }
 
 .category-badge {
-  color: #5f6d79;
-
-  font-size: 7px;
+  color: #687080;
+  font-size: 9px
 }
 
 .account-badge {
   display: inline-flex;
-
   align-items: center;
-
-  padding: 5px 7px;
-
-  border-radius: 10px;
-
-  background: #eef4fb;
-
-  color: #1c5d9e;
-
-  font-size: 6px;
-
-  font-weight: 700;
+  padding: 6px 9px;
+  border-radius: 20px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 8px;
+  font-weight: 800
 }
 
 .cash-in {
   color: var(--green);
-
-  font-weight: 700;
+  font-weight: 800
 }
 
 .cash-out {
   color: var(--red);
-
-  font-weight: 700;
+  font-weight: 800
 }
 
 .balance-value {
-  color: #273743;
-
-  font-size: 8px;
-
-  font-weight: 700;
+  color: #303545;
+  font-size: 10px;
+  font-weight: 800
 }
-
-
-/* ========================= */
-/* EMPTY */
-/* ========================= */
 
 .empty-state {
   display: none;
-
-  padding: 55px 20px;
-
-  text-align: center;
+  padding: 75px 20px;
+  text-align: center
 }
 
 .empty-state.show {
-  display: block;
+  display: block
 }
 
 .empty-icon {
-  color: #aeb7c0;
-
-  font-size: 30px;
-
-  margin-bottom: 10px;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 14px;
+  border-radius: 15px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 22px;
+  font-weight: 800
 }
 
 .empty-state h3 {
-  color: #364451;
-
-  font-size: 12px;
-
-  margin-bottom: 5px;
+  color: #363b4b;
+  font-size: 14px;
+  margin-bottom: 6px
 }
 
 .empty-state p {
-  color: #89939d;
-
-  font-size: 8px;
+  color: #9297a6;
+  font-size: 10px
 }
 
-
-/* ========================= */
-/* PAGINATION */
-/* ========================= */
-
 .pagination {
-  min-height: 45px;
-
+  min-height: 58px;
   display: flex;
-
   align-items: center;
   justify-content: space-between;
-
-  padding: 0 9px;
-
-  background: white;
-
-  border: 1px solid var(--border);
-
+  padding: 0 14px;
   border-top: 0;
-
-  color: #7b858f;
-
-  font-size: 7px;
+  border-radius: 0 0 12px 12px;
+  color: #8a8f9f;
+  font-size: 9px
 }
 
 .pagination-buttons {
   display: flex;
-
   align-items: center;
-
-  gap: 5px;
+  gap: 6px
 }
 
 .pagination-buttons button {
-  width: 25px;
-  height: 23px;
+  width: 32px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: #5f6575;
+  font-size: 17px
+}
 
-  border: 1px solid #d8dee6;
-
-  border-radius: 3px;
-
-  background: white;
-
-  color: #46525e;
+.pagination-buttons button:hover:not(:disabled) {
+  border-color: #cfc5ff;
+  background: var(--primary-soft);
+  color: var(--primary)
 }
 
 .pagination-buttons button:disabled {
-  opacity: 0.4;
-
-  cursor: not-allowed;
+  opacity: .4;
+  cursor: not-allowed
 }
 
 #currentPage {
-  min-width: 25px;
-  height: 23px;
-
+  min-width: 32px;
+  height: 30px;
   display: grid;
   place-items: center;
-
-  border-radius: 3px;
-
-  background: #e8f2fc;
-
-  color: var(--blue);
-
-  font-size: 8px;
-
-  font-weight: 700;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800
 }
-
-
-/* ========================= */
-/* MODAL */
-/* ========================= */
 
 .modal-overlay {
   position: fixed;
-
   inset: 0;
-
   z-index: 1000;
-
   display: none;
-
   align-items: center;
   justify-content: center;
-
   padding: 20px;
-
-  background: rgba(15, 29, 43, 0.48);
+  background: rgba(31, 28, 48, .55);
+  backdrop-filter: blur(4px)
 }
 
 .modal-overlay.show {
-  display: flex;
+  display: flex
 }
 
 .expense-modal {
-  width: 430px;
-
+  width: 480px;
   max-width: 100%;
-
   max-height: 92vh;
-
   overflow-y: auto;
-
-  background: white;
-
-  border-radius: 6px;
-
-  box-shadow:
-    0 15px 50px rgba(0, 0, 0, 0.18);
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 16px;
+  box-shadow: 0 25px 70px rgba(24, 20, 48, .22)
 }
 
 .modal-header {
   display: flex;
-
   align-items: flex-start;
   justify-content: space-between;
-
-  padding: 17px;
-
-  border-bottom: 1px solid var(--border);
+  padding: 21px 22px;
+  border-bottom: 1px solid var(--border)
 }
 
 .modal-header h2 {
-  font-size: 15px;
-
-  margin-bottom: 4px;
+  font-size: 17px;
+  margin-bottom: 5px
 }
 
 .modal-header p {
-  color: var(--muted);
-
-  font-size: 8px;
+  color: #8e93a2;
+  font-size: 10px
 }
 
 .close-modal {
-  width: 25px;
-  height: 25px;
-
+  width: 32px;
+  height: 32px;
   border: 0;
-
-  background: transparent;
-
-  color: #6d7781;
-
-  font-size: 19px;
+  border-radius: 8px;
+  background: #f5f5f9;
+  color: #74798a;
+  font-size: 21px;
+  line-height: 1
 }
 
 .close-modal:hover {
-  color: var(--red);
+  background: var(--red-soft);
+  color: var(--red)
 }
 
-
-/* ========================= */
-/* FORM */
-/* ========================= */
-
 .expense-form {
-  padding: 17px;
+  padding: 22px
 }
 
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 15px
 }
 
 .form-group label {
   display: block;
-
-  color: #4e5b67;
-
-  font-size: 8px;
-
-  font-weight: 700;
-
-  margin-bottom: 5px;
+  color: #565c6d;
+  font-size: 10px;
+  font-weight: 800;
+  margin-bottom: 7px
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-
-  border: 1px solid #d5dce4;
-
-  border-radius: 3px;
-
-  outline: none;
-
-  background: white;
-
-  color: #33424e;
-
-  font-size: 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline: 0;
+  background: #fff;
+  color: #363b4b;
+  font-size: 11px;
+  transition: .2s
 }
 
 .form-group input,
 .form-group select {
-  height: 32px;
-
-  padding: 0 9px;
+  height: 40px;
+  padding: 0 11px
 }
 
 .form-group textarea {
-  padding: 8px 9px;
-
+  padding: 10px 11px;
   resize: vertical;
+  min-height: 78px
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: var(--blue);
-
-  box-shadow:
-    0 0 0 2px rgba(25, 118, 210, 0.08);
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 4px rgba(109, 61, 245, .08)
 }
 
-
-/* ========================= */
-/* AMOUNT */
-/* ========================= */
-
 .amount-input {
-  height: 34px;
-
+  height: 42px;
   display: flex;
-
   align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden
+}
 
-  border: 1px solid #d5dce4;
-
-  border-radius: 3px;
+.amount-input:focus-within {
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 4px rgba(109, 61, 245, .08)
 }
 
 .amount-input span {
-  padding-left: 9px;
-
-  color: #6d7984;
-
-  font-size: 9px;
+  padding-left: 12px;
+  color: #73798a;
+  font-size: 12px;
+  font-weight: 700
 }
 
 .amount-input input {
   flex: 1;
-
-  height: 31px;
-
+  height: 40px;
   border: 0;
-
   outline: 0;
-
-  padding: 0 9px;
-
-  font-size: 10px;
+  padding: 0 11px;
+  font-size: 12px
 }
-
-
-/* ========================= */
-/* FORM ACTIONS */
-/* ========================= */
 
 .form-actions {
   display: flex;
-
   justify-content: flex-end;
-
-  gap: 7px;
-
-  margin-top: 17px;
+  gap: 9px;
+  margin-top: 20px
 }
 
 .cancel-btn,
 .save-expense-btn {
-  height: 32px;
-
-  padding: 0 13px;
-
-  border-radius: 3px;
-
-  font-size: 8px;
-
-  font-weight: 700;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 800
 }
 
 .cancel-btn {
-  border: 1px solid #d5dce4;
-
-  background: white;
-
-  color: #52606d;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #626879
 }
 
 .cancel-btn:hover {
-  background: #f4f6f8;
+  background: #f6f6fa
 }
 
 .save-expense-btn {
-  border: 1px solid var(--blue);
-
-  background: var(--blue);
-
-  color: white;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(109, 61, 245, .16)
 }
 
 .save-expense-btn:hover {
-  background: var(--blue-dark);
+  background: var(--primary-dark)
 }
 
-
-/* ========================= */
-/* RESPONSIVE */
-/* ========================= */
-
-@media (max-width: 1200px) {
-
+@media(max-width:1250px) {
   .accounts-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-}
-
-@media (max-width: 1050px) {
-
-  .cash-summary {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr))
   }
 
   .overview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .accounts-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-}
-
-@media (max-width: 700px) {
-
-  .cashflow-content {
-    padding: 14px 10px 30px;
-  }
-
-  .page-header {
-    align-items: flex-start;
-
-    flex-direction: column;
-
-    gap: 10px;
+    grid-template-columns: 1fr
   }
 
   .cash-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+}
+
+@media(max-width:850px) {
+  .cashflow-content {
+    padding: 22px 16px 32px
+  }
+
+  .topbar {
+    padding: 0 16px
+  }
+
+  .search-box {
+    width: 260px
   }
 
   .accounts-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr))
   }
 
   .cashflow-toolbar {
-    flex-wrap: wrap;
+    flex-wrap: wrap
   }
 
   .cashflow-search {
-    width: 100%;
+    width: 100%
   }
 
   .cashflow-toolbar select {
     flex: 1;
+    min-width: 130px
+  }
+
+  .reset-btn {
+    margin-left: 0
+  }
+}
+
+@media(max-width:600px) {
+  .topbar {
+    height: 58px
+  }
+
+  .search-box {
+    width: 42px;
+    padding: 0 10px
+  }
+
+  .search-box input,
+  .search-box small {
+    display: none
+  }
+
+  .search-box span {
+    margin: auto
   }
 
   .profile-name {
-    display: none;
+    display: none
+  }
+
+  .cashflow-content {
+    padding: 18px 10px 28px
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 18px
   }
 
   .cashflow-actions {
-    width: 100%;
-
-    flex-wrap: wrap;
+    width: 100%
   }
 
   .add-cash-in-btn,
   .add-expense-btn {
-    flex: 1;
+    flex: 1
   }
 
+  .cash-summary {
+    grid-template-columns: 1fr
+  }
+
+  .accounts-grid {
+    grid-template-columns: 1fr
+  }
+
+  .chart-wrapper {
+    height: 230px;
+    padding: 12px
+  }
+
+  .section-header {
+    padding: 0 14px
+  }
+
+  .breakdown-list {
+    padding-left: 14px;
+    padding-right: 14px
+  }
+
+  .cashflow-toolbar {
+    padding: 9px
+  }
+
+  .cashflow-toolbar select {
+    width: calc(50% - 5px);
+    flex: auto
+  }
+
+  .reset-btn {
+    width: 100%
+  }
+
+  .pagination {
+    padding: 0 9px
+  }
 }

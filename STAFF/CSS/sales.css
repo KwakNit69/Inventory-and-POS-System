@@ -5,31 +5,34 @@
 }
 
 :root {
-    --blue: #1976d2;
-    --blue-dark: #1268c2;
-    --text: #172331;
-    --muted: #6b7480;
-    --border: #d8dee6;
-    --background: #f5f7f9;
-    --green: #16803c;
-    --orange: #d98200;
-    --purple: #7357b7;
-    --red: #d74343
+    --primary: #6d45d8;
+    --primary-dark: #5632bd;
+    --primary-soft: #f1edff;
+    --text: #1d2430;
+    --muted: #70798a;
+    --border: #e4e7ee;
+    --bg: #f6f7fb;
+    --white: #fff;
+    --green: #16834b;
+    --green-soft: #eaf8f0;
+    --orange: #c87800;
+    --orange-soft: #fff5df;
+    --red: #d74343;
+    --red-soft: #fff0f0
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
+    width: 100%;
     min-height: 100%;
-    font-family: Arial, Helvetica, sans-serif
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text)
 }
 
 body {
-    min-height: 100vh;
-    background: var(--background);
-    color: var(--text);
-    font-size: 14px
+    font-size: 14px;
+    overflow-x: hidden
 }
 
 button,
@@ -42,6 +45,12 @@ button {
     cursor: pointer
 }
 
+button:focus,
+input:focus,
+select:focus {
+    outline: none
+}
+
 .staff-app {
     display: flex;
     width: 100%;
@@ -49,47 +58,57 @@ button {
 }
 
 #sidebar-container {
-    width: 238px;
-    min-width: 238px;
-    flex: 0 0 238px;
+    width: 236px;
+    min-width: 236px;
+    flex: 0 0 236px;
     position: relative;
-    z-index: 1000
+    z-index: 100
 }
 
 .staff-main {
     flex: 1;
     min-width: 0;
-    width: calc(100% - 238px)
+    width: calc(100% - 236px);
+    display: flex;
+    flex-direction: column
 }
 
 .topbar {
-    height: 64px;
-    background: #fff;
+    height: 68px;
+    min-height: 68px;
+    background: rgba(255, 255, 255, .96);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 28px;
+    padding: 0 30px;
     position: sticky;
     top: 0;
     z-index: 50
 }
 
 .search-box {
-    width: 330px;
-    height: 38px;
+    width: 360px;
+    height: 40px;
     display: flex;
     align-items: center;
-    gap: 9px;
-    border: 1px solid #d5dce4;
-    border-radius: 6px;
-    padding: 0 11px;
-    background: #fafbfc
+    gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0 13px;
+    background: #fafbfe;
+    transition: .2s
+}
+
+.search-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(109, 69, 216, .1);
+    background: #fff
 }
 
 .search-box span {
-    font-size: 17px;
-    color: #5c6671
+    font-size: 19px;
+    color: #7b8493
 }
 
 .search-box input {
@@ -99,17 +118,17 @@ button {
     outline: 0;
     background: transparent;
     font-size: 13px;
-    color: #273442
+    color: var(--text)
 }
 
 .search-box input::placeholder {
-    color: #8b96a2
+    color: #9aa2af
 }
 
 .profile {
     display: flex;
     align-items: center;
-    gap: 11px
+    gap: 12px
 }
 
 .profile-text {
@@ -119,61 +138,68 @@ button {
 .profile-text strong {
     display: block;
     font-size: 13px;
-    color: #172331
+    color: var(--text);
+    font-weight: 700
 }
 
 .profile-text small {
     display: block;
     margin-top: 3px;
-    color: var(--blue);
-    font-size: 11px
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600
 }
 
 .avatar {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: #d9e8f8;
-    border: 1px solid #c7d9eb;
-    color: #1c5d9e;
+    background: linear-gradient(135deg, #eee8ff, #ddd3ff);
+    border: 1px solid #d8ccff;
+    color: var(--primary-dark);
     font-size: 12px;
-    font-weight: 700
+    font-weight: 800
 }
 
 .sales-content {
-    padding: 28px;
+    width: 100%;
     max-width: 1700px;
-    margin: 0 auto
+    margin: 0 auto;
+    padding: 30px
 }
 
 .page-heading {
-    margin-bottom: 22px
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px
 }
 
 .page-heading h1 {
-    font-size: 28px;
-    line-height: 34px;
+    font-size: 30px;
+    line-height: 1.2;
     margin-bottom: 6px;
-    color: #172331
+    letter-spacing: -.5px
 }
 
 .page-heading p {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--muted)
 }
 
 .sales-error {
     display: none;
-    background: #fff0f0;
-    border: 1px solid #efb1b1;
-    border-radius: 7px;
-    padding: 14px 16px;
-    margin-bottom: 18px;
-    color: #a82d2d;
     align-items: center;
-    justify-content: space-between
+    justify-content: space-between;
+    gap: 18px;
+    background: var(--red-soft);
+    border: 1px solid #efb1b1;
+    border-radius: 10px;
+    padding: 15px 17px;
+    margin-bottom: 20px;
+    color: #a82d2d
 }
 
 .sales-error.show {
@@ -190,83 +216,91 @@ button {
 }
 
 .sales-error button {
-    height: 34px;
+    height: 36px;
+    padding: 0 15px;
     border: 1px solid #dfa3a3;
+    border-radius: 7px;
     background: #fff;
     color: #a82d2d;
-    border-radius: 5px;
-    padding: 0 14px;
-    font-size: 12px
+    font-size: 12px;
+    font-weight: 700
 }
 
 .summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 22px
+    margin-bottom: 24px
 }
 
 .summary-card {
-    min-height: 112px;
-    background: #fff;
+    min-height: 116px;
+    background: var(--white);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 18px;
+    border-radius: 12px;
+    padding: 19px;
     display: flex;
     align-items: center;
-    gap: 14px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .02)
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(30, 35, 50, .025);
+    transition: .2s
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 35, 50, .06);
+    border-color: #d9dce5
 }
 
 .summary-icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
     display: grid;
     place-items: center;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 20px;
-    font-weight: 700
+    font-weight: 800
 }
 
 .summary-icon.blue {
-    background: #e8f2fc;
-    color: var(--blue)
+    background: var(--primary-soft);
+    color: var(--primary)
 }
 
 .summary-icon.purple {
-    background: #f0eaff;
-    color: var(--purple)
+    background: #eee9ff;
+    color: #6940d2
 }
 
 .summary-icon.green {
-    background: #e9f7ef;
+    background: var(--green-soft);
     color: var(--green)
 }
 
 .summary-icon.orange {
-    background: #fff4df;
+    background: var(--orange-soft);
     color: var(--orange)
 }
 
 .summary-card span {
     display: block;
-    color: #607080;
+    color: #70798a;
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .4px
+    font-weight: 800;
+    letter-spacing: .5px
 }
 
 .summary-card strong {
     display: block;
-    font-size: 21px;
+    font-size: 22px;
     margin: 7px 0 4px;
-    color: #172331
+    color: var(--text)
 }
 
 .summary-card small {
     display: block;
-    color: #8a949e;
+    color: #9aa2af;
     font-size: 11px
 }
 
@@ -277,25 +311,31 @@ button {
     background: #fff;
     border: 1px solid var(--border);
     border-bottom: 0;
-    border-radius: 8px 8px 0 0;
-    padding: 14px
+    border-radius: 12px 12px 0 0;
+    padding: 15px
 }
 
 .search-input {
-    height: 40px;
-    width: 340px;
+    height: 42px;
+    width: 350px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border: 1px solid #d5dce4;
-    border-radius: 6px;
-    padding: 0 11px;
-    background: #fff
+    gap: 9px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 0 12px;
+    background: #fff;
+    transition: .2s
+}
+
+.search-input:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(109, 69, 216, .08)
 }
 
 .search-input span {
-    font-size: 16px;
-    color: #6c7782
+    font-size: 17px;
+    color: #7b8493
 }
 
 .search-input input {
@@ -303,43 +343,57 @@ button {
     border: 0;
     outline: 0;
     font-size: 13px;
-    color: #273442
+    color: var(--text)
 }
 
 .search-input input::placeholder {
-    color: #8b96a2
+    color: #9aa2af
 }
 
 .filters select,
 .filters>button {
-    height: 40px;
-    border: 1px solid #d5dce4;
+    height: 42px;
+    border: 1px solid var(--border);
     background: #fff;
-    border-radius: 6px;
-    padding: 0 12px;
+    border-radius: 9px;
+    padding: 0 13px;
     font-size: 12px;
-    color: #46515c
+    color: #4f5968;
+    transition: .2s
 }
 
 .filters select {
-    min-width: 150px
+    min-width: 155px
 }
 
 .filters>button {
-    min-width: 72px
+    font-weight: 700
 }
 
 .filters>button:hover {
-    background: #f1f6fb;
-    color: var(--blue)
+    border-color: #cfc4ff;
+    background: var(--primary-soft);
+    color: var(--primary)
+}
+
+#refreshSales {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff
+}
+
+#refreshSales:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #fff
 }
 
 .sales-panel {
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 12px 12px;
     overflow: hidden;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .02)
+    box-shadow: 0 2px 8px rgba(30, 35, 50, .025)
 }
 
 .table-wrapper {
@@ -354,27 +408,31 @@ table {
 }
 
 th {
-    background: #f7f9fb;
+    background: #fafafe;
     text-align: left;
-    color: #65717d;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .3px;
-    padding: 15px 16px;
+    color: #697384;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .45px;
+    padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     white-space: nowrap
 }
 
 td {
-    font-size: 13px;
-    padding: 17px 16px;
-    border-bottom: 1px solid #edf0f3;
-    color: #3d4954;
+    font-size: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #eef0f4;
+    color: #46515f;
     vertical-align: middle
 }
 
+tbody tr {
+    transition: .15s
+}
+
 tbody tr:hover {
-    background: #fafbfd
+    background: #fbfaff
 }
 
 tbody tr:last-child td {
@@ -382,114 +440,98 @@ tbody tr:last-child td {
 }
 
 td strong {
-    font-size: 13px;
-    color: #172331
+    font-size: 12px;
+    color: var(--text)
 }
 
 td small {
-    font-size: 11px;
-    color: #89939d
+    font-size: 10px;
+    color: #9099a6
 }
 
 .empty-cell {
     text-align: center !important;
-    color: #8a949e !important;
-    padding: 65px 10px !important;
+    color: #929ba8 !important;
+    padding: 70px 10px !important;
     font-size: 13px !important
 }
 
-.payment-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap
-}
-
-.payment-cash {
-    background: #eaf7ef;
-    color: #16803c
-}
-
-.payment-card {
-    background: #e8f2fc;
-    color: #1976d2
-}
-
-.payment-gcash {
-    background: #f0eaff;
-    color: #7357b7
-}
-
-.payment-other {
-    background: #f1f3f5;
-    color: #68737f
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    border-radius: 20px;
-    background: #eaf7ef;
-    color: #16803c;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: capitalize;
-    white-space: nowrap
-}
-
-.discount-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 10px;
-    border-radius: 20px;
-    background: #fff4df;
-    color: #b86d00;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap
-}
-
+.payment-badge,
+.status-badge,
+.discount-badge,
 .discount-none {
     display: inline-flex;
     align-items: center;
     padding: 6px 10px;
     border-radius: 20px;
-    background: #f1f3f5;
-    color: #7a858f;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 800;
     white-space: nowrap
+}
+
+.payment-cash {
+    background: var(--green-soft);
+    color: var(--green)
+}
+
+.payment-card {
+    background: #edf4ff;
+    color: #3974bd
+}
+
+.payment-gcash {
+    background: var(--primary-soft);
+    color: var(--primary)
+}
+
+.payment-other {
+    background: #f1f3f6;
+    color: #68737f
+}
+
+.status-badge {
+    background: var(--green-soft);
+    color: var(--green);
+    text-transform: capitalize
+}
+
+.discount-badge {
+    background: var(--orange-soft);
+    color: #b86d00
+}
+
+.discount-none {
+    background: #f1f3f6;
+    color: #7a858f
 }
 
 .view-button {
     height: 34px;
     padding: 0 14px;
-    border: 1px solid #cbd5df;
+    border: 1px solid #d8d0ff;
     background: #fff;
-    color: #1976d2;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: 600
+    color: var(--primary);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    transition: .2s
 }
 
 .view-button:hover {
-    background: #e8f2fc;
-    border-color: #1976d2
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff
 }
 
 .table-footer {
-    height: 60px;
+    min-height: 62px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
     border-top: 1px solid var(--border);
-    color: #7b8690;
-    font-size: 12px
+    color: #7b8693;
+    font-size: 11px
 }
 
 .pagination {
@@ -499,42 +541,44 @@ td small {
 }
 
 .pagination button {
-    width: 34px;
-    height: 34px;
-    border: 1px solid #d5dce4;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border);
     background: #fff;
-    border-radius: 5px;
+    border-radius: 8px;
     color: #53606c;
-    font-size: 18px
+    font-size: 19px
 }
 
 .pagination button:hover:not(:disabled) {
-    background: #f1f6fb;
-    color: #1976d2
+    background: var(--primary-soft);
+    border-color: #d2c7ff;
+    color: var(--primary)
 }
 
 .pagination button:disabled {
-    opacity: .45;
+    opacity: .4;
     cursor: not-allowed
 }
 
 .pagination span {
-    min-width: 34px;
-    height: 34px;
+    min-width: 36px;
+    height: 36px;
     display: grid;
     place-items: center;
-    background: #e8f2fc;
-    color: #1976d2;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: 700
+    background: var(--primary);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800
 }
 
 .modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(16, 24, 32, .55);
+    background: rgba(24, 20, 40, .58);
+    backdrop-filter: blur(3px);
     z-index: 2000;
     align-items: center;
     justify-content: center;
@@ -546,14 +590,14 @@ td small {
 }
 
 .sale-modal-box {
-    width: 680px;
+    width: 720px;
     max-width: 100%;
     max-height: 90vh;
     overflow: auto;
     background: #fff;
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 24px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, .2)
+    box-shadow: 0 24px 70px rgba(20, 15, 40, .25)
 }
 
 .modal-header {
@@ -561,17 +605,17 @@ td small {
     justify-content: space-between;
     align-items: flex-start;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 16px
+    padding-bottom: 17px
 }
 
 .modal-header h2 {
     font-size: 20px;
     margin-bottom: 5px;
-    color: #172331
+    color: var(--text)
 }
 
 .modal-header p {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted)
 }
 
@@ -580,51 +624,53 @@ td small {
     background: transparent;
     font-size: 28px;
     color: #68737f;
-    width: 36px;
-    height: 36px;
-    border-radius: 5px
+    width: 38px;
+    height: 38px;
+    border-radius: 8px
 }
 
 .modal-header button:hover {
-    background: #f1f4f7
+    background: #f2f0f8;
+    color: var(--primary)
 }
 
 .sale-information {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    padding: 16px 0
+    padding: 17px 0
 }
 
 .sale-information div {
-    background: #f7f9fb;
-    border: 1px solid #edf0f3;
-    border-radius: 6px;
-    padding: 12px
+    background: #fafafe;
+    border: 1px solid #eceef4;
+    border-radius: 9px;
+    padding: 13px
 }
 
 .sale-information span {
     display: block;
-    color: #7d8791;
-    font-size: 10px;
+    color: #818a98;
+    font-size: 9px;
     margin-bottom: 6px;
-    font-weight: 700
+    font-weight: 800;
+    letter-spacing: .3px
 }
 
 .sale-information strong {
-    font-size: 13px;
-    color: #172331
+    font-size: 12px;
+    color: var(--text)
 }
 
 .items-title {
     font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 8px
+    font-weight: 800;
+    margin-bottom: 9px
 }
 
 .modal-items {
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 9px;
     overflow: auto
 }
 
@@ -634,40 +680,40 @@ td small {
 
 .modal-items th {
     padding: 11px;
-    font-size: 10px
+    font-size: 9px
 }
 
 .modal-items td {
     padding: 12px;
-    font-size: 12px
+    font-size: 11px
 }
 
 .modal-summary {
-    margin-top: 16px;
+    margin-top: 17px;
     border-top: 1px solid var(--border);
-    padding-top: 16px;
+    padding-top: 17px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px
+    gap: 10px
 }
 
 .modal-summary div {
-    background: #f7f9fb;
-    border: 1px solid #edf0f3;
-    border-radius: 6px;
+    background: #fafafe;
+    border: 1px solid #eceef4;
+    border-radius: 9px;
     padding: 12px
 }
 
 .modal-summary span {
     display: block;
-    color: #7d8791;
-    font-size: 10px;
+    color: #818a98;
+    font-size: 9px;
     margin-bottom: 5px
 }
 
 .modal-summary strong {
-    font-size: 15px;
-    color: #172331
+    font-size: 14px;
+    color: var(--text)
 }
 
 @media(max-width:1200px) {
@@ -676,7 +722,11 @@ td small {
     }
 
     .sales-content {
-        padding: 22px
+        padding: 24px
+    }
+
+    .filters {
+        flex-wrap: wrap
     }
 }
 
@@ -696,7 +746,7 @@ td small {
     }
 
     .search-box {
-        width: 270px
+        width: 280px
     }
 
     .sales-content {
@@ -721,8 +771,8 @@ td small {
     }
 
     .search-box {
-        width: 200px;
-        height: 34px
+        width: 210px;
+        height: 36px
     }
 
     .profile-text {
@@ -734,7 +784,7 @@ td small {
     }
 
     .page-heading h1 {
-        font-size: 24px
+        font-size: 25px
     }
 
     .summary {
@@ -742,7 +792,7 @@ td small {
     }
 
     .filters {
-        flex-wrap: wrap
+        padding: 12px
     }
 
     .search-input {

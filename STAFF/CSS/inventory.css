@@ -5,12 +5,13 @@
 }
 
 :root {
-    --blue: #1976d2;
-    --blue-dark: #1268c2;
-    --text: #172331;
-    --muted: #6b7480;
-    --border: #d8dee6;
-    --background: #f5f7f9;
+    --primary: #6d28d9;
+    --primary-dark: #5b21b6;
+    --primary-soft: #f3eefe;
+    --text: #171327;
+    --muted: #746f82;
+    --border: #e8e3f0;
+    --background: #f7f6fb;
     --green: #16803c;
     --orange: #d98200;
     --red: #d74343
@@ -21,7 +22,7 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100%;
-    font-family: Arial, Helvetica, sans-serif
+    font-family: Inter, Segoe UI, Arial, sans-serif
 }
 
 body {
@@ -62,53 +63,63 @@ button {
 }
 
 .topbar {
-    height: 64px;
-    background: #fff;
+    height: 72px;
+    background: rgba(255, 255, 255, .94);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 28px;
+    padding: 0 30px;
     position: sticky;
     top: 0;
-    z-index: 50
+    z-index: 50;
+    box-shadow: 0 2px 12px rgba(40, 20, 80, .04)
 }
 
 .search-box {
-    width: 330px;
-    height: 38px;
+    width: 360px;
+    height: 42px;
     display: flex;
     align-items: center;
-    gap: 9px;
-    border: 1px solid #d5dce4;
-    border-radius: 6px;
-    padding: 0 11px;
-    background: #fafbfc
+    gap: 10px;
+    border: 1px solid #ddd6e8;
+    border-radius: 12px;
+    padding: 0 13px;
+    background: #fbfaff;
+    transition: .2s
 }
 
-.search-box span {
-    font-size: 17px;
-    color: #5c6671
+.search-box:focus-within {
+    border-color: #9b6bea;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, .08)
 }
 
-.search-box input {
+.search-box span,
+.search-input span {
+    font-size: 18px;
+    color: #80778f
+}
+
+.search-box input,
+.search-input input {
     flex: 1;
     min-width: 0;
     border: 0;
     outline: 0;
     background: transparent;
-    font-size: 13px;
-    color: #273442
+    color: #2d2740;
+    font-size: 13px
 }
 
-.search-box input::placeholder {
-    color: #8b96a2
+.search-box input::placeholder,
+.search-input input::placeholder {
+    color: #9b95a5
 }
 
 .profile {
     display: flex;
     align-items: center;
-    gap: 11px
+    gap: 12px
 }
 
 .profile-text {
@@ -118,31 +129,32 @@ button {
 .profile-text strong {
     display: block;
     font-size: 13px;
-    color: #172331
+    color: var(--text)
 }
 
 .profile-text small {
     display: block;
-    margin-top: 3px;
-    color: var(--blue);
-    font-size: 11px
+    margin-top: 4px;
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600
 }
 
 .avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
-    background: #d9e8f8;
-    border: 1px solid #c7d9eb;
-    color: #1c5d9e;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff;
     font-size: 12px;
-    font-weight: 700
+    font-weight: 800;
+    box-shadow: 0 5px 14px rgba(109, 40, 217, .22)
 }
 
 .inventory-content {
-    padding: 28px;
+    padding: 30px;
     max-width: 1700px;
     margin: 0 auto
 }
@@ -151,14 +163,14 @@ button {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 22px
+    margin-bottom: 24px
 }
 
 .page-heading h1 {
-    font-size: 28px;
-    line-height: 34px;
+    font-size: 29px;
+    line-height: 36px;
     margin-bottom: 6px;
-    color: var(--text)
+    letter-spacing: -.5px
 }
 
 .page-heading p {
@@ -171,25 +183,27 @@ button {
     align-items: center;
     gap: 8px;
     color: var(--green);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     background: #eaf7ef;
-    padding: 8px 12px;
-    border-radius: 20px
+    padding: 9px 13px;
+    border-radius: 999px;
+    border: 1px solid #d4efdf
 }
 
 .inventory-status span {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--green)
+    background: #22a65a;
+    box-shadow: 0 0 0 4px rgba(34, 166, 90, .1)
 }
 
 .inventory-error {
     display: none;
-    background: #fff0f0;
-    border: 1px solid #efb1b1;
-    border-radius: 8px;
+    background: #fff1f1;
+    border: 1px solid #f0bcbc;
+    border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 18px;
     color: #a82d2d;
@@ -215,7 +229,7 @@ button {
     border: 1px solid #dfa3a3;
     background: #fff;
     color: #a82d2d;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 0 15px;
     font-size: 12px
 }
@@ -224,35 +238,41 @@ button {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 22px
+    margin-bottom: 24px
 }
 
 .summary-card {
-    min-height: 112px;
+    min-height: 118px;
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 18px;
+    border-radius: 16px;
+    padding: 20px;
     display: flex;
     align-items: center;
-    gap: 14px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .02)
+    gap: 15px;
+    box-shadow: 0 6px 20px rgba(44, 25, 80, .05);
+    transition: transform .2s, box-shadow .2s
+}
+
+.summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(44, 25, 80, .08)
 }
 
 .summary-icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
     display: grid;
     place-items: center;
-    border-radius: 8px;
+    border-radius: 14px;
     font-size: 20px;
-    font-weight: 700
+    font-weight: 800
 }
 
 .summary-icon.blue {
-    background: #e8f2fc;
-    color: var(--blue)
+    background: #f0eafd;
+    color: var(--primary)
 }
 
 .summary-icon.green {
@@ -272,22 +292,22 @@ button {
 
 .summary-card span {
     display: block;
-    color: #607080;
+    color: #81798d;
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .4px
+    font-weight: 800;
+    letter-spacing: .6px
 }
 
 .summary-card strong {
     display: block;
-    font-size: 22px;
-    margin: 7px 0 4px;
+    font-size: 25px;
+    margin: 6px 0 3px;
     color: var(--text)
 }
 
 .summary-card small {
     display: block;
-    color: #8a949e;
+    color: #9a94a3;
     font-size: 11px
 }
 
@@ -298,69 +318,60 @@ button {
     background: #fff;
     border: 1px solid var(--border);
     border-bottom: 0;
-    border-radius: 8px 8px 0 0;
-    padding: 14px
+    border-radius: 16px 16px 0 0;
+    padding: 16px
 }
 
 .search-input {
-    height: 42px;
-    width: 360px;
+    height: 44px;
+    width: 380px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    border: 1px solid #d5dce4;
-    border-radius: 6px;
-    padding: 0 11px;
-    background: #fff
+    gap: 9px;
+    border: 1px solid #ddd6e8;
+    border-radius: 11px;
+    padding: 0 12px;
+    background: #fbfaff
 }
 
-.search-input span {
-    font-size: 17px;
-    color: #6c7782
-}
-
-.search-input input {
-    width: 100%;
-    border: 0;
-    outline: 0;
-    font-size: 13px;
-    color: #273442
-}
-
-.search-input input::placeholder {
-    color: #8b96a2
+.search-input:focus-within {
+    border-color: #9b6bea;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, .07)
 }
 
 .filters select,
 .filters>button {
-    height: 42px;
-    border: 1px solid #d5dce4;
+    height: 44px;
+    border: 1px solid #ddd6e8;
     background: #fff;
-    border-radius: 6px;
+    border-radius: 11px;
     padding: 0 13px;
     font-size: 12px;
-    color: #46515c
+    color: #514a60;
+    outline: none
 }
 
 .filters select {
-    min-width: 160px
+    min-width: 165px
 }
 
 .filters>button {
-    min-width: 80px
+    min-width: 82px;
+    font-weight: 600
 }
 
 .filters>button:hover {
-    background: #f1f6fb;
-    color: var(--blue)
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: #cbb4ed
 }
 
 .inventory-panel {
     background: #fff;
     border: 1px solid var(--border);
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 16px 16px;
     overflow: hidden;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .02)
+    box-shadow: 0 8px 24px rgba(44, 25, 80, .05)
 }
 
 .table-wrapper {
@@ -375,27 +386,31 @@ table {
 }
 
 th {
-    background: #f7f9fb;
+    background: #faf9fc;
     text-align: left;
-    color: #65717d;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .3px;
-    padding: 15px 16px;
+    color: #777084;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .7px;
+    padding: 15px 17px;
     border-bottom: 1px solid var(--border);
     white-space: nowrap
 }
 
 td {
     font-size: 13px;
-    padding: 17px 16px;
-    border-bottom: 1px solid #edf0f3;
-    color: #3d4954;
+    padding: 17px;
+    border-bottom: 1px solid #f0edf4;
+    color: #4a4355;
     vertical-align: middle
 }
 
+tbody tr {
+    transition: background .15s
+}
+
 tbody tr:hover {
-    background: #fafbfd
+    background: #fcfaff
 }
 
 tbody tr:last-child td {
@@ -409,19 +424,19 @@ td strong {
 
 td small {
     font-size: 11px;
-    color: #89939d
+    color: #91899b
 }
 
 .empty-cell {
     text-align: center !important;
-    color: #8a949e !important;
+    color: #928b9c !important;
     padding: 65px 10px !important;
     font-size: 13px !important
 }
 
 .stock-number {
     font-size: 14px;
-    font-weight: 700
+    font-weight: 800
 }
 
 .stock-low {
@@ -440,9 +455,9 @@ td small {
     display: inline-flex;
     align-items: center;
     padding: 6px 11px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
     white-space: nowrap
 }
 
@@ -464,27 +479,29 @@ td small {
 .view-button {
     height: 34px;
     padding: 0 14px;
-    border: 1px solid #cbd5df;
+    border: 1px solid #d8ccec;
     background: #fff;
-    color: var(--blue);
-    border-radius: 5px;
+    color: var(--primary);
+    border-radius: 9px;
     font-size: 12px;
-    font-weight: 600
+    font-weight: 700;
+    transition: .2s
 }
 
 .view-button:hover {
-    background: #e8f2fc;
-    border-color: var(--blue)
+    background: var(--primary-soft);
+    border-color: #b99add;
+    transform: translateY(-1px)
 }
 
 .table-footer {
-    height: 60px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0 17px;
     border-top: 1px solid var(--border);
-    color: #7b8690;
+    color: #827a8e;
     font-size: 12px
 }
 
@@ -495,42 +512,45 @@ td small {
 }
 
 .pagination button {
-    width: 34px;
-    height: 34px;
-    border: 1px solid #d5dce4;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd6e8;
     background: #fff;
-    border-radius: 5px;
-    color: #53606c;
-    font-size: 18px
+    border-radius: 9px;
+    color: #625a70;
+    font-size: 19px
 }
 
 .pagination button:hover:not(:disabled) {
-    background: #f1f6fb;
-    color: var(--blue)
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: #cbb4ed
 }
 
 .pagination button:disabled {
-    opacity: .45;
+    opacity: .4;
     cursor: not-allowed
 }
 
 .pagination span {
-    min-width: 34px;
-    height: 34px;
+    min-width: 36px;
+    height: 36px;
     display: grid;
     place-items: center;
-    background: #e8f2fc;
-    color: var(--blue);
-    border-radius: 5px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 9px;
     font-size: 12px;
-    font-weight: 700
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(109, 40, 217, .2)
 }
 
 .modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(16, 24, 32, .55);
+    background: rgba(22, 13, 38, .58);
+    backdrop-filter: blur(4px);
     z-index: 2000;
     align-items: center;
     justify-content: center;
@@ -547,9 +567,9 @@ td small {
     max-height: 90vh;
     overflow: auto;
     background: #fff;
-    border-radius: 10px;
-    padding: 24px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, .2)
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 25px 70px rgba(22, 13, 38, .24)
 }
 
 .modal-header {
@@ -557,14 +577,13 @@ td small {
     justify-content: space-between;
     align-items: flex-start;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 16px;
-    margin-bottom: 16px
+    padding-bottom: 17px;
+    margin-bottom: 17px
 }
 
 .modal-header h2 {
-    font-size: 20px;
-    margin-bottom: 5px;
-    color: var(--text)
+    font-size: 21px;
+    margin-bottom: 5px
 }
 
 .modal-header p {
@@ -574,16 +593,17 @@ td small {
 
 .modal-header button {
     border: 0;
-    background: transparent;
-    font-size: 28px;
-    color: #68737f;
+    background: #f6f3fa;
+    font-size: 25px;
+    color: #685f73;
     width: 36px;
     height: 36px;
-    border-radius: 5px
+    border-radius: 10px
 }
 
 .modal-header button:hover {
-    background: #f1f4f7
+    background: var(--primary-soft);
+    color: var(--primary)
 }
 
 .product-details {
@@ -593,18 +613,19 @@ td small {
 }
 
 .detail-box {
-    background: #f7f9fb;
-    border: 1px solid #edf0f3;
-    border-radius: 6px;
-    padding: 14px
+    background: #faf9fc;
+    border: 1px solid #eeeaf3;
+    border-radius: 11px;
+    padding: 15px
 }
 
 .detail-box span {
     display: block;
-    color: #7d8791;
-    font-size: 10px;
+    color: #898193;
+    font-size: 9px;
     margin-bottom: 6px;
-    font-weight: 700
+    font-weight: 800;
+    letter-spacing: .5px
 }
 
 .detail-box strong {
@@ -617,10 +638,10 @@ td small {
     justify-content: space-between;
     align-items: center;
     margin-top: 14px;
-    padding: 14px;
-    border-radius: 6px;
-    background: #eaf7ef;
-    color: var(--green);
+    padding: 15px;
+    border-radius: 11px;
+    background: #f0eafd;
+    color: var(--primary);
     font-size: 12px
 }
 
@@ -634,7 +655,7 @@ td small {
     }
 
     .inventory-content {
-        padding: 22px
+        padding: 24px
     }
 }
 
@@ -654,7 +675,7 @@ td small {
     }
 
     .search-box {
-        width: 270px
+        width: 280px
     }
 
     .inventory-content {
@@ -674,13 +695,13 @@ td small {
     }
 
     .topbar {
-        height: 58px;
+        height: 62px;
         padding: 0 12px
     }
 
     .search-box {
-        width: 200px;
-        height: 34px
+        width: 210px;
+        height: 38px
     }
 
     .profile-text {
@@ -698,7 +719,7 @@ td small {
     }
 
     .page-heading h1 {
-        font-size: 24px
+        font-size: 25px
     }
 
     .summary {
@@ -745,4 +766,46 @@ td small {
     .inventory-content {
         padding: 10px
     }
+
+    .page-heading h1 {
+        font-size: 22px
+    }
+
+    .summary-card {
+        padding: 16px
+    }
+
+    .filters {
+        padding: 12px
+    }
+
+    .filters select,
+    .filters>button {
+        min-width: 100px
+    }
+
+    .table-footer {
+        padding: 0 12px
+    }
+}
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    background: #f0eafd;
+    color: #6d28d9
+}
+
+.type-package {
+    background: #fff4df;
+    color: #b96b00
+}
+
+.type-insurance {
+    background: #eaf7ef;
+    color: #16803c
 }

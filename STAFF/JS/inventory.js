@@ -5,6 +5,7 @@ const inventoryBody = document.getElementById("inventoryBody");
 const productSearch = document.getElementById("productSearch");
 const categoryFilter = document.getElementById("categoryFilter");
 const stockFilter = document.getElementById("stockFilter");
+let typeFilter = document.getElementById("typeFilter");
 const resetFilters = document.getElementById("resetFilters");
 const refreshInventory = document.getElementById("refreshInventory");
 const totalProducts = document.getElementById("totalProducts");
@@ -44,13 +45,32 @@ const initials = name => {
     return String(name || "ST").substring(0, 2).toUpperCase();
 };
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
-const getName = product => String(product.name ?? product.productName ?? product.title ?? "Unnamed Product");
-const getSku = product => String(product.sku ?? product.SKU ?? product.productCode ?? "—");
-const getPrice = product => Number(product.sellingPrice ?? product.price ?? product.salePrice ?? product.unitPrice ?? 0);
-const getStock = product => Number(product.stock ?? product.currentStock ?? product.quantity ?? 0);
-const getCategory = product => String(product.categoryName ?? product.category ?? product.categoryId ?? "Uncategorized");
+const getName = product => String(product.name ?? product.productName ?? product.packageName ?? product.insuranceName ?? product.title ?? "Unnamed Product");
+const getSku = product => String(product.sku ?? product.SKU ?? product.productCode ?? product.packageCode ?? product.insuranceCode ?? "—");
+const getPrice = product => Number(product.sellingPrice ?? product.price ?? product.salePrice ?? product.unitPrice ?? product.premium ?? 0);
+const getStock = product => {
+    if (product.itemType === "Package") return getPackageAvailability(product);
+    return Number(product.stock ?? product.currentStock ?? product.quantity ?? product.availableStock ?? product.availableQuantity ?? 0);
+};
+const getCategory = product => {
+    if (product.itemType === "Package") return "Package";
+    if (product.itemType === "Insurance") return "Insurance";
+    return String(product.categoryName ?? product.category ?? product.categoryId ?? "Uncategorized");
+};
 const getCategoryId = product => String(product.categoryId ?? "");
-const getThreshold = product => Number(product.lowStockAlert ?? product.lowStockThreshold ?? product.reorderLevel ?? 10);
+const getThreshold = product => Number(product.lowStockAlert ?? product.lowStockThreshold ?? product.reorderLevel ?? (product.itemType === "Package" ? 1 : 10));
+const getPackageAvailability = pkg => {
+    const items = Array.isArray(pkg.items) ? pkg.items : Array.isArray(pkg.products) ? pkg.products : [];
+    if (!items.length) return Number(pkg.stock ?? pkg.currentStock ?? pkg.quantity ?? 0);
+    const capacities = items.map(item => {
+        const productId = String(item.productId ?? item.productID ?? item.product?.id ?? item.id ?? "");
+        const required = Math.max(1, Number(item.quantity ?? item.qty ?? item.requiredQuantity ?? 1) || 1);
+        const product = products.find(p => String(p.id) === productId);
+        if (!product) return 0;
+        return Math.floor(Math.max(0, Number(product.stock ?? product.currentStock ?? product.quantity ?? 0) || 0) / required);
+    });
+    return capacities.length ? Math.max(0, Math.min(...capacities)) : 0;
+};
 const getStatus = product => {
     const stock = getStock(product);
     const threshold = getThreshold(product);
@@ -68,6 +88,21 @@ const loadStaffInfo = user => {
     const name = sessionStorage.getItem("userName") || user.displayName || user.email?.split("@")[0] || "Staff";
     staffName.textContent = name;
     staffAvatar.textContent = initials(name);
+};
+const ensureTypeFilter = () => {
+    if (!typeFilter) {
+        typeFilter = document.createElement("select");
+        typeFilter.id = "typeFilter";
+        typeFilter.innerHTML = '<option value="all">All Item Types</option><option value="product">Products</option><option value="package">Packages</option><option value="insurance">Insurance</option>';
+        categoryFilter.parentElement.insertBefore(typeFilter, categoryFilter);
+    } else {
+        typeFilter.innerHTML = '<option value="all">All Item Types</option><option value="product">Products</option><option value="package">Packages</option><option value="insurance">Insurance</option>';
+    }
+    typeFilter.value = "all";
+    if (!typeFilter.dataset.bound) {
+        typeFilter.addEventListener("change", applyFilters);
+        typeFilter.dataset.bound = "true";
+    }
 };
 const loadCategories = async () => {
     const snapshot = await getDocs(collection(db, "categories"));
@@ -90,11 +125,33 @@ const loadCategories = async () => {
 };
 const loadProducts = async () => {
     inventoryBody.innerHTML = '<tr><td colspan="7" class="empty-cell">Loading inventory...</td></tr>';
-    const snapshot = await getDocs(collection(db, "products"));
     products = [];
-    snapshot.forEach(document => {
-        products.push({ id: document.id, ...document.data() });
+    const productResult = await getDocs(collection(db, "products"));
+    productResult.forEach(document => {
+        products.push({ id: document.id, ...document.data(), itemType: "Product", filterType: "product" });
     });
+    let packageResult = null;
+    let insuranceResult = null;
+    try {
+        packageResult = await getDocs(collection(db, "packages"));
+    } catch (error) {
+        console.warn("Packages could not be loaded:", error);
+    }
+    try {
+        insuranceResult = await getDocs(collection(db, "insurances"));
+    } catch (error) {
+        console.warn("Insurance could not be loaded:", error);
+    }
+    if (packageResult) {
+        packageResult.forEach(document => {
+            products.push({ id: document.id, ...document.data(), itemType: "Package", filterType: "package" });
+        });
+    }
+    if (insuranceResult) {
+        insuranceResult.forEach(document => {
+            products.push({ id: document.id, ...document.data(), itemType: "Insurance", filterType: "insurance" });
+        });
+    }
     products.sort((a, b) => getName(a).localeCompare(getName(b)));
     updateSummary();
     applyFilters();
@@ -123,8 +180,9 @@ const applyFilters = () => {
         const sku = getSku(product).toLowerCase();
         const matchesSearch = !search || name.includes(search) || sku.includes(search);
         const matchesCategory = category === "all" || getCategoryId(product) === category || String(product.category ?? "") === category;
+        const matchesType = !typeFilter || typeFilter.value === "all" || product.filterType === typeFilter.value;
         const matchesStock = stock === "all" || getStatus(product) === stock;
-        return matchesSearch && matchesCategory && matchesStock;
+        return matchesSearch && matchesCategory && matchesType && matchesStock;
     });
     currentPage = 1;
     renderTable();
@@ -151,19 +209,22 @@ const renderTable = () => {
         return `<tr>
 <td><strong>${escapeHtml(getName(product))}</strong></td>
 <td>${escapeHtml(getSku(product))}</td>
-<td>${escapeHtml(getCategory(product))}</td>
+<td><span class="type-badge type-${product.filterType}">${escapeHtml(getCategory(product))}</span></td>
 <td>${money(getPrice(product))}</td>
 <td><span class="stock-number ${stockClass}">${stock}</span></td>
 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-<td><button class="view-button" data-id="${escapeHtml(product.id)}">View</button></td>
+<td><button class="view-button" data-id="${escapeHtml(product.filterType + ":" + product.id)}">View</button></td>
 </tr>`;
     }).join("");
     document.querySelectorAll(".view-button").forEach(button => {
         button.addEventListener("click", () => openProduct(button.dataset.id));
     });
 };
-const openProduct = id => {
-    const product = products.find(item => item.id === id);
+const openProduct = key => {
+    const separator = key.indexOf(":");
+    const itemType = separator >= 0 ? key.substring(0, separator) : "product";
+    const id = separator >= 0 ? key.substring(separator + 1) : key;
+    const product = products.find(item => item.id === id && item.filterType === itemType);
     if (!product) return;
     const status = getStatus(product);
     const statusText = status === "in" ? "In Stock" : status === "low" ? "Low Stock" : "Out of Stock";
@@ -181,10 +242,17 @@ const openProduct = id => {
 };
 const refresh = async () => {
     if (!currentUser) return;
+    ensureTypeFilter();
+    hideError();
     try {
-        hideError();
         await loadCategories();
+    } catch (error) {
+        console.warn("Categories could not be loaded:", error);
+        categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+    }
+    try {
         await loadProducts();
+        if (!products.length) showError(new Error("No inventory items were loaded. Check your Firestore collection names and security rules."));
     } catch (error) {
         showError(error);
     }
@@ -196,6 +264,7 @@ resetFilters.addEventListener("click", () => {
     productSearch.value = "";
     categoryFilter.value = "all";
     stockFilter.value = "all";
+    if (typeFilter) typeFilter.value = "all";
     applyFilters();
 });
 refreshInventory.addEventListener("click", refresh);

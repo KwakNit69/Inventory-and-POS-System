@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+<link rel="icon" type="image/png" href="../assets/LOGO1111.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>StockMaster - Staff Sales</title>
@@ -14,14 +15,10 @@
         <div id="sidebar-container"></div>
         <main class="staff-main">
             <header class="topbar">
-                <div class="search-box">
-                    <span>⌕</span>
-                    <input type="text" id="globalSearch" placeholder="Search products, orders, customers...">
-                </div>
+                <div class="search-box"><span>⌕</span><input type="text" id="globalSearch"
+                        placeholder="Search products, orders, customers..."></div>
                 <div class="profile">
-                    <div class="profile-text">
-                        <strong id="staffName">Loading...</strong>
-                        <small>Staff / Cashier</small>
+                    <div class="profile-text"><strong id="staffName">Loading...</strong><small>Staff / Cashier</small>
                     </div>
                     <div class="avatar" id="staffAvatar">--</div>
                 </div>
@@ -34,51 +31,34 @@
                     </div>
                 </div>
                 <div id="salesError" class="sales-error">
-                    <div>
-                        <strong>Unable to load sales</strong>
+                    <div><strong>Unable to load sales</strong>
                         <p id="salesErrorMessage">Please check your Firebase connection and permissions.</p>
-                    </div>
-                    <button id="retryButton">Try Again</button>
+                    </div><button id="retryButton" type="button">Try Again</button>
                 </div>
                 <div class="summary">
                     <div class="summary-card">
                         <div class="summary-icon blue">₱</div>
-                        <div>
-                            <span>TODAY'S SALES</span>
-                            <strong id="todaySales">₱0.00</strong>
-                            <small>Completed sales</small>
-                        </div>
+                        <div><span>TODAY'S SALES</span><strong id="todaySales">₱0.00</strong><small>Completed
+                                sales</small></div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-icon purple">#</div>
-                        <div>
-                            <span>TRANSACTIONS</span>
-                            <strong id="transactionCount">0</strong>
-                            <small>My transactions</small>
-                        </div>
+                        <div><span>TRANSACTIONS</span><strong id="transactionCount">0</strong><small>My
+                                transactions</small></div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-icon green">↗</div>
-                        <div>
-                            <span>ITEMS SOLD</span>
-                            <strong id="itemsSold">0</strong>
-                            <small>Units sold</small>
-                        </div>
+                        <div><span>ITEMS SOLD</span><strong id="itemsSold">0</strong><small>Units sold</small></div>
                     </div>
                     <div class="summary-card">
                         <div class="summary-icon orange">₱</div>
-                        <div>
-                            <span>AVERAGE SALE</span>
-                            <strong id="averageSale">₱0.00</strong>
-                            <small>Per transaction</small>
-                        </div>
+                        <div><span>AVERAGE SALE</span><strong id="averageSale">₱0.00</strong><small>Per
+                                transaction</small></div>
                     </div>
                 </div>
                 <div class="filters">
-                    <div class="search-input">
-                        <span>⌕</span>
-                        <input type="text" id="salesSearch" placeholder="Search transaction...">
-                    </div>
+                    <div class="search-input"><span>⌕</span><input type="text" id="salesSearch"
+                            placeholder="Search transaction..."></div>
                     <select id="dateFilter">
                         <option value="all">All Dates</option>
                         <option value="today">Today</option>
@@ -91,8 +71,8 @@
                         <option value="Card">Card</option>
                         <option value="GCash">GCash</option>
                     </select>
-                    <button id="resetFilters">Reset</button>
-                    <button id="refreshSales">↻ Refresh</button>
+                    <button id="resetFilters" type="button">Reset</button>
+                    <button id="refreshSales" type="button">↻ Refresh</button>
                 </div>
                 <div class="sales-panel">
                     <div class="table-wrapper">
@@ -117,13 +97,9 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="table-footer">
-                        <span id="resultCount">Showing 0 transactions</span>
-                        <div class="pagination">
-                            <button id="previousPage">‹</button>
-                            <span id="pageNumber">1</span>
-                            <button id="nextPage">›</button>
-                        </div>
+                    <div class="table-footer"><span id="resultCount">Showing 0 transactions</span>
+                        <div class="pagination"><button id="previousPage" type="button">‹</button><span
+                                id="pageNumber">1</span><button id="nextPage" type="button">›</button></div>
                     </div>
                 </div>
             </section>
@@ -135,22 +111,12 @@
                 <div>
                     <h2>Sale Details</h2>
                     <p id="modalTransaction">Transaction</p>
-                </div>
-                <button id="closeModal">×</button>
+                </div><button id="closeModal" type="button" aria-label="Close">×</button>
             </div>
             <div class="sale-information">
-                <div>
-                    <span>DATE & TIME</span>
-                    <strong id="modalDate">—</strong>
-                </div>
-                <div>
-                    <span>PAYMENT</span>
-                    <strong id="modalPayment">—</strong>
-                </div>
-                <div>
-                    <span>STATUS</span>
-                    <strong id="modalStatus">Completed</strong>
-                </div>
+                <div><span>DATE & TIME</span><strong id="modalDate">—</strong></div>
+                <div><span>PAYMENT</span><strong id="modalPayment">—</strong></div>
+                <div><span>STATUS</span><strong id="modalStatus">Completed</strong></div>
             </div>
             <div class="items-title">Purchased Items</div>
             <div class="modal-items">
@@ -167,43 +133,16 @@
                 </table>
             </div>
             <div class="modal-summary">
-                <div>
-                    <span>Subtotal</span>
-                    <strong id="modalSubtotal">₱0.00</strong>
-                </div>
-                <div>
-                    <span>Discount</span>
-                    <strong id="modalDiscount">₱0.00</strong>
-                </div>
-                <div>
-                    <span>Total</span>
-                    <strong id="modalTotal">₱0.00</strong>
-                </div>
-                <div>
-                    <span>Amount Paid</span>
-                    <strong id="modalPaid">₱0.00</strong>
-                </div>
-                <div>
-                    <span>Change</span>
-                    <strong id="modalChange">₱0.00</strong>
-                </div>
+                <div><span>Subtotal</span><strong id="modalSubtotal">₱0.00</strong></div>
+                <div><span>Discount</span><strong id="modalDiscount">₱0.00</strong></div>
+                <div><span>Total</span><strong id="modalTotal">₱0.00</strong></div>
+                <div><span>Amount Paid</span><strong id="modalPaid">₱0.00</strong></div>
+                <div><span>Change</span><strong id="modalChange">₱0.00</strong></div>
             </div>
         </div>
     </div>
     <script type="module">
-        fetch("staff-sidebar.html")
-            .then(response => {
-                if (!response.ok) throw new Error("Unable to load staff sidebar.");
-                return response.text();
-            })
-            .then(html => {
-                document.getElementById("sidebar-container").innerHTML = html;
-                const script = document.createElement("script");
-                script.type = "module";
-                script.src = "staff-sidebar.js";
-                document.body.appendChild(script);
-            })
-            .catch(error => console.error("Staff sidebar error:", error));
+        fetch("staff-sidebar.html").then(response => { if (!response.ok) throw new Error("Unable to load staff sidebar."); return response.text() }).then(html => { document.getElementById("sidebar-container").innerHTML = html; const script = document.createElement("script"); script.type = "module"; script.src = "staff-sidebar.js"; document.body.appendChild(script) }).catch(error => console.error("Staff sidebar error:", error));
     </script>
     <script type="module" src="JS/sales.js"></script>
 </body>

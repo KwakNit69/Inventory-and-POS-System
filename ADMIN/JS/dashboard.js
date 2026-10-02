@@ -1348,20 +1348,44 @@
         let manualCashIn = 0;
         let cashOut = 0;
         let cashRefunds = 0;
+        let salaryTotal = 0;
+        let expenseTotal = 0;
+
         flows.forEach(flow => {
             if (isSaleFlow(flow) || isOpeningCash(flow)) {
                 return;
             }
+
             const amount = getFlowAmount(flow);
+            const category = String(
+                flow.category ||
+                flow.cashFlowCategory ||
+                ""
+            )
+                .trim()
+                .toLowerCase()
+                .replace(/[_-]/g, " ");
+
             if (isCashOut(flow)) {
                 if (flowType(flow) === "refund") {
                     cashRefunds += amount;
                 }
+
                 cashOut += amount;
+
+                // Only Salary and Expenses reduce profit.
+                // Other Cash Out transactions affect cash balance only.
+                if (category === "salary") {
+                    salaryTotal += amount;
+                } else if (category === "expenses" || category === "expense") {
+                    expenseTotal += amount;
+                }
             } else if (isCashIn(flow)) {
                 manualCashIn += amount;
             }
         });
+
+        const netProfit = salesProfit - salaryTotal - expenseTotal;
         const cashReceived = cashSales + manualCashIn;
         const netCash = cashReceived - cashOut;
         console.log("Dashboard sales calculation:", {
@@ -1381,6 +1405,9 @@
             sales,
             salesTotal,
             salesProfit,
+            salaryTotal,
+            expenseTotal,
+            netProfit,
             cashSales,
             manualCashIn,
             cashReceived,
@@ -1643,11 +1670,11 @@
            ===================================================== */
         if (el("totalProfit")) {
             el("totalProfit").textContent =
-                money(activity.salesProfit);
+                money(activity.netProfit);
         }
         if (el("totalProfitNote")) {
             el("totalProfitNote").textContent =
-                `${getPeriodName()} • Gross profit from paid sales`;
+                `${getPeriodName()} • Net profit after salary and expenses`;
         }
         /* =====================================================
            SALES

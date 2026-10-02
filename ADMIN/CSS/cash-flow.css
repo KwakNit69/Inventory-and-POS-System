@@ -1168,3 +1168,458 @@ button {
     padding: 0 9px
   }
 }
+
+.cashflow-toolbar {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cashflow-search {
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+
+.cashflow-toolbar select,
+.cashflow-toolbar input[type="date"] {
+  flex: 0 1 auto;
+  min-width: 112px;
+  max-width: 170px;
+}
+
+.cashflow-toolbar input[type="date"] {
+  height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: #606678;
+  font-size: 10px;
+}
+
+.cashflow-toolbar .reset-btn {
+  flex: 0 0 auto;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.cashflow-table {
+  width: 100%;
+  min-width: 1280px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.cashflow-table thead,
+.cashflow-table tbody {
+  width: 100%;
+}
+
+.cashflow-table th,
+.cashflow-table td {
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+.cashflow-table th {
+  white-space: nowrap;
+}
+
+.cashflow-table td {
+  overflow-wrap: anywhere;
+}
+
+.cashflow-table td:nth-child(1),
+.cashflow-table td:nth-child(2),
+.cashflow-table td:nth-child(3),
+.cashflow-table td:nth-child(4),
+.cashflow-table td:nth-child(5),
+.cashflow-table td:nth-child(7),
+.cashflow-table td:nth-child(8),
+.cashflow-table td:nth-child(9) {
+  white-space: nowrap;
+}
+
+.cashflow-table td:nth-child(6) {
+  white-space: normal;
+}
+
+.cashflow-table td:nth-child(1) .flow-id {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cashflow-table td:nth-child(6) .flow-description,
+.cashflow-table td:nth-child(6) .flow-reference {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cashflow-table td:nth-child(7),
+.cashflow-table td:nth-child(8),
+.cashflow-table td:nth-child(9) {
+  font-variant-numeric: tabular-nums;
+}
+
+@media(max-width:900px) {
+  .cashflow-toolbar {
+    align-items: stretch;
+  }
+
+  .cashflow-search {
+    flex-basis: 100%;
+    width: 100%;
+  }
+}
+
+.cashflow-table {
+  width: 100%;
+  min-width: 1450px;
+  table-layout: fixed;
+  border-collapse: collapse
+}
+
+.cashflow-table colgroup {
+  display: none
+}
+
+.cashflow-table th,
+.cashflow-table td {
+  box-sizing: border-box;
+  vertical-align: middle;
+  overflow: hidden
+}
+
+.cashflow-table th:nth-child(1),
+.cashflow-table td:nth-child(1) {
+  width: 14%
+}
+
+.cashflow-table th:nth-child(2),
+.cashflow-table td:nth-child(2) {
+  width: 13%
+}
+
+.cashflow-table th:nth-child(3),
+.cashflow-table td:nth-child(3) {
+  width: 8%
+}
+
+.cashflow-table th:nth-child(4),
+.cashflow-table td:nth-child(4) {
+  width: 9%
+}
+
+.cashflow-table th:nth-child(5),
+.cashflow-table td:nth-child(5) {
+  width: 12%
+}
+
+.cashflow-table th:nth-child(6),
+.cashflow-table td:nth-child(6) {
+  width: 17%
+}
+
+.cashflow-table th:nth-child(7),
+.cashflow-table td:nth-child(7) {
+  width: 8%;
+  text-align: right;
+  white-space: nowrap
+}
+
+.cashflow-table th:nth-child(8),
+.cashflow-table td:nth-child(8) {
+  width: 8%;
+  text-align: right;
+  white-space: nowrap
+}
+
+.cashflow-table th:nth-child(9),
+.cashflow-table td:nth-child(9) {
+  width: 11%;
+  text-align: right;
+  white-space: nowrap
+}
+
+.cashflow-table th:nth-child(7),
+.cashflow-table th:nth-child(8),
+.cashflow-table th:nth-child(9) {
+  text-align: right
+}
+
+.cashflow-table td:nth-child(1),
+.cashflow-table td:nth-child(5),
+.cashflow-table td:nth-child(6) {
+  overflow-wrap: anywhere
+}
+
+.cashflow-table .flow-id {
+  display: block;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.45
+}
+
+.cashflow-table .flow-description {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4
+}
+
+.cashflow-table .flow-reference {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35
+}
+
+.cashflow-table .balance-value {
+  display: inline-block;
+  white-space: nowrap
+}
+
+.table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto
+}
+
+.cashflow-table tbody tr {
+  display: table-row
+}
+
+.cashflow-table thead {
+  display: table-header-group
+}
+
+.cashflow-table tbody {
+  display: table-row-group
+}
+
+@media(max-width:900px) {
+  .cashflow-table {
+    min-width: 1450px
+  }
+
+  .table-container {
+    overflow-x: auto
+  }
+}
+
+.cash-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+}
+
+.expense-icon {
+  background: #fff0e8;
+  color: #d97706
+}
+
+.salary-icon {
+  background: #f1eaff;
+  color: #713cf5
+}
+
+.cashflow-date-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 15px;
+  margin: 0 0 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(37, 30, 76, .035)
+}
+
+.date-filter-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: auto
+}
+
+.date-filter-heading strong {
+  font-size: 11px;
+  color: var(--text)
+}
+
+.date-filter-heading span {
+  font-size: 9px;
+  color: #9297a6
+}
+
+.cashflow-date-filter select,
+.cashflow-date-filter input[type=date] {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: #606678;
+  font-size: 10px;
+  outline: 0
+}
+
+.cashflow-date-filter label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #777d8d;
+  font-size: 10px;
+  font-weight: 700
+}
+
+.cashflow-date-filter select:focus,
+.cashflow-date-filter input[type=date]:focus {
+  border-color: #b9a8ff;
+  box-shadow: 0 0 0 3px rgba(109, 61, 245, .08)
+}
+
+.cashflow-date-filter .reset-btn {
+  margin-left: 0
+}
+
+.transaction-choice-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 22px
+}
+
+.transaction-choice-actions button {
+  height: 46px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer
+}
+
+.choice-cash-in {
+  background: var(--green)
+}
+
+.choice-cash-out {
+  background: var(--primary)
+}
+
+@media(max-width:1250px) {
+  .cash-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+}
+
+@media(max-width:850px) {
+  .cashflow-date-filter {
+    align-items: stretch
+  }
+
+  .date-filter-heading {
+    width: 100%
+  }
+
+  .cashflow-date-filter select,
+  .cashflow-date-filter label {
+    flex: 1
+  }
+
+  .cashflow-date-filter input[type=date] {
+    min-width: 0;
+    width: 100%
+  }
+}
+
+@media(max-width:600px) {
+  .cash-summary {
+    grid-template-columns: 1fr
+  }
+
+  .cashflow-date-filter {
+    display: grid;
+    grid-template-columns: 1fr 1fr
+  }
+
+  .date-filter-heading {
+    grid-column: 1/-1
+  }
+
+  .cashflow-date-filter select,
+  .cashflow-date-filter label {
+    grid-column: 1/-1
+  }
+
+  .cashflow-date-filter .reset-btn {
+    width: 100%
+  }
+
+  .transaction-choice-actions {
+    grid-template-columns: 1fr
+  }
+}
+
+/* Cash Flow transaction modal and date range refinements */
+.cashflow-actions .add-expense-btn {
+  min-width: 170px;
+  height: 42px;
+  padding: 0 20px;
+  font-size: 12px;
+}
+
+.transaction-modal {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+#transactionForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+#transactionForm .form-group {
+  min-width: 0;
+  margin: 0;
+}
+
+#transactionForm .form-group.full-width,
+#transactionForm .form-actions.full-width {
+  grid-column: 1 / -1;
+}
+
+#transactionForm select,
+#transactionForm input,
+#transactionForm textarea {
+  width: 100%;
+}
+
+#transactionTypeHint {
+  display: block;
+  margin-top: 6px;
+  color: #7b8192;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+@media (max-width: 560px) {
+  #transactionForm {
+    grid-template-columns: 1fr;
+  }
+  #transactionForm .form-group.full-width,
+  #transactionForm .form-actions.full-width {
+    grid-column: auto;
+  }
+}

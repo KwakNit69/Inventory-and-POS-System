@@ -13,8 +13,7 @@ let unsubscribeSales = null;
 const ACCOUNT_NAMES = ["Cash", "GCash", "BDO", "BIBO", "BPI"];
 const tableBody = document.getElementById("cashflowTableBody");
 const emptyState = document.getElementById("emptyState");
-const expenseModal = document.getElementById("expenseModal");
-const cashInModal = document.getElementById("cashInModal");
+const transactionModal = document.getElementById("transactionModal");
 function formatMoney(value) {
     return new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value) || 0);
 }
@@ -484,8 +483,9 @@ function updateAccountBalances() {
     window.stockMasterAccountBalances = { ...balances, totalFunds };
 }
 function updateSummary() {
-    const totalCashIn = cashFlowData.reduce((sum, item) => sum + (Number(item.cashIn) || 0), 0);
-    const totalCashOut = cashFlowData.reduce((sum, item) => sum + (Number(item.cashOut) || 0), 0);
+    const reportRecords = getDateFilteredRecords();
+    const totalCashIn = reportRecords.reduce((sum, item) => sum + (Number(item.cashIn) || 0), 0);
+    const totalCashOut = reportRecords.reduce((sum, item) => sum + (Number(item.cashOut) || 0), 0);
     const net = totalCashIn - totalCashOut;
     const totalCashInElement = document.getElementById("totalCashIn");
     const totalCashOutElement = document.getElementById("totalCashOut");
@@ -507,10 +507,12 @@ function updateSummary() {
     let expenses = 0;
     let purchases = 0;
     let refunds = 0;
-    for (const record of cashFlowData) {
+    let salary = 0;
+    for (const record of reportRecords) {
         if (record.category === "Sale") sales += Number(record.cashIn) || 0;
         else if (record.type === "in") otherIncome += Number(record.cashIn) || 0;
-        if (record.category === "Expense" || record.category === "Other Expense") expenses += Number(record.cashOut) || 0;
+        if (["Expense", "Other Expense", "Expenses"].includes(record.category)) expenses += Number(record.cashOut) || 0;
+        if (record.category === "Salary") salary += Number(record.cashOut) || 0;
         if (record.category === "Purchase" || record.category === "Inventory Purchase") purchases += Number(record.cashOut) || 0;
         if (record.category === "Refund") refunds += Number(record.cashOut) || 0;
     }
@@ -519,6 +521,8 @@ function updateSummary() {
     setTextByIds(["expenseCash"], expenses);
     setTextByIds(["purchaseCash"], purchases);
     setTextByIds(["refundCash"], refunds);
+    setTextByIds(["totalExpenses"], expenses);
+    setTextByIds(["totalSalary"], salary);
 }
 function updateCategoryFilter() {
     const select = document.getElementById("categoryFilter");
@@ -557,20 +561,42 @@ function renderTable() {
     }
     updatePagination();
 }
+function isWithinSelectedDateRange(date) {
+    const fromValue = document.getElementById("dateFromFilter")?.value || "";
+    const toValue = document.getElementById("dateToFilter")?.value || "";
+    const recordDate = date instanceof Date ? date : new Date(date);
+    if (!recordDate || Number.isNaN(recordDate.getTime())) return false;
+
+    if (fromValue) {
+        const from = new Date(`${fromValue}T00:00:00`);
+        if (recordDate < from) return false;
+    }
+    if (toValue) {
+        const to = new Date(`${toValue}T23:59:59.999`);
+        if (recordDate > to) return false;
+    }
+    return true;
+}
+
+function getDateFilteredRecords() {
+    const dateFilter = document.getElementById("dateFilter")?.value || "all";
+    return cashFlowData.filter(record =>
+        matchesDateFilter(record.date, dateFilter) && isWithinSelectedDateRange(record.date)
+    );
+}
+
 function filterCashFlow() {
     const searchElement = document.getElementById("cashflowSearch");
-    const dateElement = document.getElementById("dateFilter");
     const typeElement = document.getElementById("typeFilter");
     const accountElement = document.getElementById("accountFilter");
     const categoryElement = document.getElementById("categoryFilter");
     const search = searchElement?.value.trim().toLowerCase() || "";
-    const dateFilter = dateElement?.value || "all";
     const typeFilter = typeElement?.value || "all";
     const accountFilter = accountElement?.value || "all";
     const categoryFilter = categoryElement?.value || "all";
-    filteredCashFlow = cashFlowData.filter(record => {
+    filteredCashFlow = getDateFilteredRecords().filter(record => {
         const searchable = `${record.id} ${record.description} ${record.category} ${record.reference} ${record.account}`.toLowerCase();
-        return (!search || searchable.includes(search)) && matchesDateFilter(record.date, dateFilter) && (typeFilter === "all" || record.type === typeFilter) && (accountFilter === "all" || record.account === accountFilter) && (categoryFilter === "all" || record.category === categoryFilter);
+        return (!search || searchable.includes(search)) && (typeFilter === "all" || record.type === typeFilter) && (accountFilter === "all" || record.account === accountFilter) && (categoryFilter === "all" || record.category === categoryFilter);
     });
     currentPage = 1;
     renderTable();
@@ -622,7 +648,7 @@ function getChartData(days) {
         date.setHours(0, 0, 0, 0);
         let cashIn = 0;
         let cashOut = 0;
-        for (const record of cashFlowData) {
+        for (const record of getDateFilteredRecords()) {
             if (isSameDay(record.date, date)) {
                 cashIn += Number(record.cashIn) || 0;
                 cashOut += Number(record.cashOut) || 0;
@@ -654,106 +680,102 @@ function updateChart() {
     cashFlowChart.data.datasets[1].data = data.map(item => item.cashOut);
     cashFlowChart.update();
 }
-function setDefaultExpenseDate() {
+function setDefaultTransactionDate() {
     const now = new Date();
     const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-    const input = document.getElementById("expenseDate");
+    const input = document.getElementById("transactionDate");
     if (input) input.value = local.toISOString().slice(0, 16);
 }
-function setDefaultCashInDate() {
-    const now = new Date();
-    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-    const input = document.getElementById("cashInDate");
-    if (input) input.value = local.toISOString().slice(0, 16);
+
+function closeTransactionModal() {
+    transactionModal?.classList.remove("show");
 }
-function closeExpenseModal() {
-    if (expenseModal) expenseModal.classList.remove("show");
+
+function updateTransactionTypeHint() {
+    const category = document.getElementById("transactionCategory")?.value || "";
+    const hint = document.getElementById("transactionTypeHint");
+    const saveButton = document.getElementById("saveTransactionButton");
+    const isCashIn = category === "Cash In";
+    if (hint) {
+        hint.textContent = !category
+            ? "Choose a category to determine whether this is cash in or cash out."
+            : isCashIn
+                ? "This will be recorded as Cash In and added to the selected account."
+                : `${category} will be recorded as Cash Out and deducted from the selected account.`;
+    }
+    if (saveButton) saveButton.textContent = category ? `Save ${isCashIn ? "Cash In" : "Cash Out"}` : "Save Transaction";
 }
-function closeCashInModal() {
-    if (cashInModal) cashInModal.classList.remove("show");
-}
-async function saveCashOut(event) {
+
+async function saveTransaction(event) {
     event.preventDefault();
-    const account = normalizeAccount(document.getElementById("expenseAccount")?.value);
-    const category = document.getElementById("expenseCategory")?.value.trim();
-    const description = document.getElementById("expenseDescription")?.value.trim();
-    const amount = Number(document.getElementById("expenseAmount")?.value);
-    const dateValue = document.getElementById("expenseDate")?.value;
-    const reference = document.getElementById("expenseReference")?.value.trim();
-    const notes = document.getElementById("expenseNotes")?.value.trim();
-    if (!account || !category || !description || !amount || amount <= 0 || !dateValue) {
-        alert("Please complete all required fields.");
+
+    const category = document.getElementById("transactionCategory")?.value;
+    const account = normalizeAccount(document.getElementById("transactionAccount")?.value);
+    const description = document.getElementById("transactionDescription")?.value.trim();
+    const amount = Number(document.getElementById("transactionAmount")?.value);
+    const dateValue = document.getElementById("transactionDate")?.value;
+    const reference = document.getElementById("transactionReference")?.value.trim();
+    const notes = document.getElementById("transactionNotes")?.value.trim();
+
+    if (!["Salary", "Expenses", "Cash Out", "Cash In"].includes(category)) {
+        alert("Please select a valid transaction category.");
         return;
     }
+    if (!account || !description || !amount || amount <= 0 || !dateValue) {
+        alert("Please complete all required fields with a valid amount.");
+        return;
+    }
+
     const user = auth.currentUser;
     if (!user) {
         alert("You are not logged in. Please log in again.");
         return;
     }
+
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) {
         alert("Invalid date.");
         return;
     }
+
+    const type = category === "Cash In" ? "in" : "out";
+    const cashIn = type === "in" ? amount : 0;
+    const cashOut = type === "out" ? amount : 0;
+
     try {
-        await addDoc(collection(db, "cashFlow"), { type: "out", category, description, reference: reference || "", notes: notes || "", amount, cashIn: 0, cashOut: amount, account, sourceAccount: account, fromAccount: account, paymentMethod: account, date, createdAt: serverTimestamp(), createdBy: user.uid, createdByEmail: user.email || "", source: "cashFlow" });
-        document.getElementById("expenseForm")?.reset();
-        closeExpenseModal();
-        alert("Cash out recorded successfully.");
+        await addDoc(collection(db, "cashFlow"), {
+            type,
+            category,
+            description,
+            reference: reference || "",
+            notes: notes || "",
+            amount,
+            cashIn,
+            cashOut,
+            account,
+            sourceAccount: account,
+            fromAccount: type === "out" ? account : "",
+            toAccount: type === "in" ? account : "",
+            fundAccount: account,
+            paymentMethod: account,
+            date,
+            createdAt: serverTimestamp(),
+            createdBy: user.uid,
+            createdByEmail: user.email || "",
+            source: "cashFlow"
+        });
+
+        document.getElementById("transactionForm")?.reset();
+        updateTransactionTypeHint();
+        setDefaultTransactionDate();
+        closeTransactionModal();
+        alert(`${category} recorded successfully as ${type === "in" ? "Cash In" : "Cash Out"}.`);
     } catch (error) {
-        console.error("Cash out error:", error);
-        alert(`Unable to save cash out.\n\n${error.message}`);
+        console.error("Cash flow transaction error:", error);
+        alert(`Unable to save transaction.\\n\\n${error.message}`);
     }
 }
-async function saveCashIn(event) {
-    event.preventDefault();
-    const account = normalizeAccount(document.getElementById("cashInAccount")?.value);
-    const category = document.getElementById("cashInCategory")?.value.trim();
-    const description = document.getElementById("cashInDescription")?.value.trim();
-    const amount = Number(document.getElementById("cashInAmount")?.value);
-    const dateValue = document.getElementById("cashInDate")?.value;
-    const reference = document.getElementById("cashInReference")?.value.trim();
-    const notes = document.getElementById("cashInNotes")?.value.trim();
-    if (!account) {
-        alert("Please select the account where the money will be added.");
-        return;
-    }
-    if (!category) {
-        alert("Please enter a cash in category.");
-        return;
-    }
-    if (!description) {
-        alert("Please enter a description.");
-        return;
-    }
-    if (!amount || amount <= 0) {
-        alert("Please enter a valid amount.");
-        return;
-    }
-    if (!dateValue) {
-        alert("Please select the date.");
-        return;
-    }
-    const user = auth.currentUser;
-    if (!user) {
-        alert("You are not logged in. Please log in again.");
-        return;
-    }
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) {
-        alert("Invalid date.");
-        return;
-    }
-    try {
-        await addDoc(collection(db, "cashFlow"), { type: "in", category, description, reference: reference || "", notes: notes || "", amount, cashIn: amount, cashOut: 0, account, paymentMethod: account, sourceAccount: account, toAccount: account, fundAccount: account, date, createdAt: serverTimestamp(), createdBy: user.uid, createdByEmail: user.email || "", source: "cashFlow" });
-        document.getElementById("cashInForm")?.reset();
-        closeCashInModal();
-        alert(`Cash In recorded successfully.\n\n${formatMoney(amount)} added to ${account}.`);
-    } catch (error) {
-        console.error("Cash In Firebase error:", error);
-        alert(`Unable to save cash in.\n\n${error.message}`);
-    }
-}
+
 function loadFirebaseData(user) {
     if (!user) {
         cashFlowData = [];
@@ -789,18 +811,38 @@ function loadFirebaseData(user) {
 document.getElementById("resetFilters")?.addEventListener("click", () => {
     const search = document.getElementById("cashflowSearch");
     const date = document.getElementById("dateFilter");
+    const from = document.getElementById("dateFromFilter");
+    const to = document.getElementById("dateToFilter");
     const type = document.getElementById("typeFilter");
     const account = document.getElementById("accountFilter");
     const category = document.getElementById("categoryFilter");
     if (search) search.value = "";
     if (date) date.value = "all";
+    if (from) from.value = "";
+    if (to) to.value = "";
     if (type) type.value = "all";
     if (account) account.value = "all";
     if (category) category.value = "all";
-    filterCashFlow();
+    refreshDateFilteredView();
 });
+document.getElementById("resetDateFilter")?.addEventListener("click", () => {
+    const date = document.getElementById("dateFilter");
+    const from = document.getElementById("dateFromFilter");
+    const to = document.getElementById("dateToFilter");
+    if (date) date.value = "all";
+    if (from) from.value = "";
+    if (to) to.value = "";
+    refreshDateFilteredView();
+});
+function refreshDateFilteredView() {
+    filterCashFlow();
+    updateSummary();
+    updateChart();
+}
 document.getElementById("cashflowSearch")?.addEventListener("input", filterCashFlow);
-document.getElementById("dateFilter")?.addEventListener("change", filterCashFlow);
+document.getElementById("dateFilter")?.addEventListener("change", refreshDateFilteredView);
+document.getElementById("dateFromFilter")?.addEventListener("change", refreshDateFilteredView);
+document.getElementById("dateToFilter")?.addEventListener("change", refreshDateFilteredView);
 document.getElementById("typeFilter")?.addEventListener("change", filterCashFlow);
 document.getElementById("accountFilter")?.addEventListener("change", filterCashFlow);
 document.getElementById("categoryFilter")?.addEventListener("change", filterCashFlow);
@@ -817,26 +859,19 @@ document.getElementById("nextPage")?.addEventListener("click", () => {
         renderTable();
     }
 });
-document.getElementById("addExpenseButton")?.addEventListener("click", () => {
-    setDefaultExpenseDate();
-    expenseModal?.classList.add("show");
+document.getElementById("newTransactionButton")?.addEventListener("click", () => {
+    document.getElementById("transactionForm")?.reset();
+    setDefaultTransactionDate();
+    updateTransactionTypeHint();
+    transactionModal?.classList.add("show");
 });
-document.getElementById("addCashInButton")?.addEventListener("click", () => {
-    setDefaultCashInDate();
-    cashInModal?.classList.add("show");
+document.getElementById("closeTransactionModal")?.addEventListener("click", closeTransactionModal);
+document.getElementById("cancelTransaction")?.addEventListener("click", closeTransactionModal);
+transactionModal?.addEventListener("click", event => {
+    if (event.target === transactionModal) closeTransactionModal();
 });
-document.getElementById("closeExpenseModal")?.addEventListener("click", closeExpenseModal);
-document.getElementById("cancelExpense")?.addEventListener("click", closeExpenseModal);
-document.getElementById("closeCashInModal")?.addEventListener("click", closeCashInModal);
-document.getElementById("cancelCashIn")?.addEventListener("click", closeCashInModal);
-expenseModal?.addEventListener("click", event => {
-    if (event.target === expenseModal) closeExpenseModal();
-});
-cashInModal?.addEventListener("click", event => {
-    if (event.target === cashInModal) closeCashInModal();
-});
-document.getElementById("expenseForm")?.addEventListener("submit", saveCashOut);
-document.getElementById("cashInForm")?.addEventListener("submit", saveCashIn);
+document.getElementById("transactionCategory")?.addEventListener("change", updateTransactionTypeHint);
+document.getElementById("transactionForm")?.addEventListener("submit", saveTransaction);
 document.getElementById("chartPeriod")?.addEventListener("change", updateChart);
 document.getElementById("globalSearch")?.addEventListener("keydown", event => {
     if (event.key === "Enter") {
@@ -848,8 +883,8 @@ document.getElementById("globalSearch")?.addEventListener("keydown", event => {
     }
 });
 document.addEventListener("DOMContentLoaded", () => {
-    setDefaultExpenseDate();
-    setDefaultCashInDate();
+    setDefaultTransactionDate();
+    updateTransactionTypeHint();
     createChart();
 });
 onAuthStateChanged(auth, user => {

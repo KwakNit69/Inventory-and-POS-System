@@ -5,6 +5,7 @@ const cashflowBody = document.getElementById("cashflowBody");
 const cashflowSearch = document.getElementById("cashflowSearch");
 const periodFilter = document.getElementById("periodFilter");
 const typeFilter = document.getElementById("typeFilter");
+const categoryFilter = document.getElementById("categoryFilter");
 const accountFilter = document.getElementById("accountFilter");
 const resetFilters = document.getElementById("resetFilters");
 const refreshCashflow = document.getElementById("refreshCashflow");
@@ -28,17 +29,16 @@ const modalReference = document.getElementById("modalReference");
 const modalDate = document.getElementById("modalDate");
 const modalDescription = document.getElementById("modalDescription");
 const modalType = document.getElementById("modalType");
+const modalCategory = document.getElementById("modalCategory");
 const modalPayment = document.getElementById("modalPayment");
 const modalAmount = document.getElementById("modalAmount");
-const openCashIn = document.getElementById("openCashIn");
-const openCashOut = document.getElementById("openCashOut");
+const openNewTransaction = document.getElementById("openNewTransaction");
 const cashMovementModal = document.getElementById("cashMovementModal");
 const closeMovementModal = document.getElementById("closeMovementModal");
 const cashMovementForm = document.getElementById("cashMovementForm");
 const movementTitle = document.getElementById("movementTitle");
 const movementSubtitle = document.getElementById("movementSubtitle");
-const movementInButton = document.getElementById("movementInButton");
-const movementOutButton = document.getElementById("movementOutButton");
+const movementCategory = document.getElementById("movementCategory");
 const movementAccount = document.getElementById("movementAccount");
 const movementAmount = document.getElementById("movementAmount");
 const movementDescription = document.getElementById("movementDescription");
@@ -50,6 +50,7 @@ let records = [];
 let filteredRecords = [];
 let currentPage = 1;
 let movementType = "in";
+let movementCategoryValue = "Cash In";
 const pageSize = 10;
 const money = value => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value) || 0);
 const initials = name => {
@@ -71,10 +72,17 @@ const getDate = record => {
     return null;
 };
 const getAmount = record => Number(record.amount ?? record.total ?? record.cashAmount ?? record.value ?? 0);
+const getCategory = record => {
+    const category = String(record.category ?? "").trim();
+    if (["Salary", "Expenses", "Cash Out", "Cash In"].includes(category)) return category;
+    const typeValue = String(record.type ?? record.transactionType ?? record.flowType ?? "").toLowerCase();
+    return typeValue.includes("out") || typeValue.includes("expense") || typeValue.includes("withdraw") ? "Cash Out" : "Cash In";
+};
 const getType = record => {
-    const value = String(record.type ?? record.transactionType ?? record.flowType ?? "in").toLowerCase();
-    if (value.includes("out") || value.includes("expense") || value.includes("withdraw")) return "out";
-    return "in";
+    const category = getCategory(record).toLowerCase();
+    if (category === "salary" || category === "expenses" || category === "cash out") return "out";
+    const value = String(record.type ?? record.transactionType ?? record.flowType ?? "").toLowerCase();
+    return value.includes("out") || value.includes("expense") || value.includes("withdraw") ? "out" : "in";
 };
 const getDescription = record => String(record.description ?? record.note ?? record.details ?? record.reason ?? "Sale");
 const getPayment = record => String(record.paymentMethod ?? record.payment ?? record.method ?? record.account ?? "—");
@@ -92,7 +100,7 @@ const loadStaffInfo = user => {
     staffAvatar.textContent = initials(name);
 };
 const loadCashFlow = async () => {
-    cashflowBody.innerHTML = '<tr><td colspan="7" class="empty-cell">Loading cash flow...</td></tr>';
+    cashflowBody.innerHTML = '<tr><td colspan="8" class="empty-cell">Loading cash flow...</td></tr>';
     const snapshot = await getDocs(collection(db, "cashFlow"));
     records = [];
     snapshot.forEach(document => {
@@ -141,6 +149,7 @@ const applyFilters = () => {
     const period = periodFilter.value;
     const type = typeFilter.value;
     const account = accountFilter.value;
+    const category = categoryFilter.value;
     filteredRecords = records.filter(record => {
         const reference = getReference(record).toLowerCase();
         const description = getDescription(record).toLowerCase();
@@ -152,8 +161,9 @@ const applyFilters = () => {
         if (period === "week") matchesPeriod = isThisWeek(date);
         if (period === "month") matchesPeriod = isThisMonth(date);
         const matchesType = type === "all" || getType(record) === type;
+        const matchesCategory = category === "all" || getCategory(record) === category;
         const matchesAccount = account === "all" || getPayment(record).toLowerCase() === account.toLowerCase();
-        return matchesSearch && matchesPeriod && matchesType && matchesAccount;
+        return matchesSearch && matchesPeriod && matchesType && matchesCategory && matchesAccount;
     });
     currentPage = 1;
     renderTable();
@@ -168,7 +178,7 @@ const renderTable = () => {
     nextPage.disabled = currentPage >= totalPages;
     resultCount.textContent = `Showing ${filteredRecords.length ? start + 1 : 0}-${Math.min(start + pageSize, filteredRecords.length)} of ${filteredRecords.length} transaction${filteredRecords.length === 1 ? "" : "s"}`;
     if (!rows.length) {
-        cashflowBody.innerHTML = '<tr><td colspan="7" class="empty-cell">No cash flow records found.</td></tr>';
+        cashflowBody.innerHTML = '<tr><td colspan="8" class="empty-cell">No cash flow records found.</td></tr>';
         return;
     }
     cashflowBody.innerHTML = rows.map(record => {
@@ -177,12 +187,14 @@ const renderTable = () => {
         const timeText = date ? date.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" }) : "";
         const type = getType(record);
         const typeText = type === "in" ? "Cash In" : "Cash Out";
+        const categoryText = getCategory(record);
         const reference = getReference(record);
         const amount = getAmount(record);
         return `<tr>
 <td><strong>${escapeHtml(reference)}</strong></td>
 <td>${dateText}<br><small>${timeText}</small></td>
 <td>${escapeHtml(getDescription(record))}</td>
+<td><span class="category-badge">${escapeHtml(categoryText)}</span></td>
 <td><span class="type-badge ${type === "in" ? "type-in" : "type-out"}">${typeText}</span></td>
 <td><span class="payment-badge">${escapeHtml(getPayment(record))}</span></td>
 <td class="${type === "in" ? "amount-in" : "amount-out"}">${type === "in" ? "+" : "-"}${money(amount)}</td>
@@ -205,18 +217,24 @@ const openRecord = id => {
     modalDate.textContent = date ? date.toLocaleString("en-PH") : "—";
     modalDescription.textContent = getDescription(record);
     modalType.textContent = type === "in" ? "Cash In" : "Cash Out";
+    modalCategory.textContent = getCategory(record);
     modalPayment.textContent = getPayment(record);
     modalAmount.textContent = `${type === "in" ? "+" : "-"}${money(amount)}`;
     modalAmount.style.color = type === "in" ? "#16803c" : "#d74343";
     cashflowModal.classList.add("show");
 };
-const openMovement = type => {
-    movementType = type;
-    movementTitle.textContent = type === "in" ? "Cash In" : "Cash Out";
-    movementSubtitle.textContent = type === "in" ? "Add money to a selected account." : "Remove money from a selected account.";
-    movementInButton.classList.toggle("active", type === "in");
-    movementOutButton.classList.toggle("active", type === "out");
-    saveMovement.textContent = type === "in" ? "Save Cash In" : "Save Cash Out";
+const updateMovementCategory = () => {
+    movementCategoryValue = movementCategory.value;
+    movementType = movementCategoryValue === "Cash In" ? "in" : "out";
+    movementTitle.textContent = movementCategoryValue;
+    movementSubtitle.textContent = movementType === "in"
+        ? "Add money to a selected account."
+        : `Record ${movementCategoryValue.toLowerCase()} and other outgoing cash activity.`;
+    saveMovement.textContent = `Save ${movementCategoryValue}`;
+};
+const openMovement = () => {
+    movementCategory.value = "Cash In";
+    updateMovementCategory();
     movementError.textContent = "";
     movementAccount.value = "";
     movementAmount.value = "";
@@ -265,7 +283,9 @@ const saveCashMovement = async event => {
             type: movementType,
             transactionType: movementType === "in" ? "cash_in" : "cash_out",
             flowType: movementType,
-            category: movementType === "in" ? "Cash In" : "Cash Out",
+            category: movementCategoryValue,
+            cashIn: movementType === "in" ? amount : 0,
+            cashOut: movementType === "out" ? amount : 0,
             paymentMethod: account,
             account: account,
             amount: amount,
@@ -290,7 +310,7 @@ const saveCashMovement = async event => {
         movementError.textContent = error?.message || "Unable to save the cash movement.";
     } finally {
         saveMovement.disabled = false;
-        saveMovement.textContent = movementType === "in" ? "Save Cash In" : "Save Cash Out";
+        saveMovement.textContent = `Save ${movementCategoryValue}`;
     }
 };
 const refresh = async () => {
@@ -305,11 +325,13 @@ const refresh = async () => {
 cashflowSearch.addEventListener("input", applyFilters);
 periodFilter.addEventListener("change", applyFilters);
 typeFilter.addEventListener("change", applyFilters);
+categoryFilter.addEventListener("change", applyFilters);
 accountFilter.addEventListener("change", applyFilters);
 resetFilters.addEventListener("click", () => {
     cashflowSearch.value = "";
     periodFilter.value = "all";
     typeFilter.value = "all";
+    categoryFilter.value = "all";
     accountFilter.value = "all";
     applyFilters();
 });
@@ -332,10 +354,8 @@ closeModal.addEventListener("click", () => cashflowModal.classList.remove("show"
 cashflowModal.addEventListener("click", event => {
     if (event.target === cashflowModal) cashflowModal.classList.remove("show");
 });
-openCashIn.addEventListener("click", () => openMovement("in"));
-openCashOut.addEventListener("click", () => openMovement("out"));
-movementInButton.addEventListener("click", () => openMovement("in"));
-movementOutButton.addEventListener("click", () => openMovement("out"));
+openNewTransaction.addEventListener("click", openMovement);
+movementCategory.addEventListener("change", updateMovementCategory);
 closeMovementModal.addEventListener("click", closeMovement);
 cancelMovement.addEventListener("click", closeMovement);
 cashMovementForm.addEventListener("submit", saveCashMovement);

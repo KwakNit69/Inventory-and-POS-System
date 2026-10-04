@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-<link rel="icon" type="image/png" href="../assets/LOGO1111.jpg">
+    <link rel="icon" type="image/png" href="../assets/LOGO1111.jpg">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>StockMaster - Staff Cash Flow</title>
@@ -30,9 +30,8 @@
                         <h1>Cash Flow</h1>
                         <p>Track money received, money released, and your current cash activity.</p>
                     </div>
-                    <div class="page-actions"><button class="cash-action cash-in-button" id="openCashIn" type="button">＋
-                            Cash In</button><button class="cash-action cash-out-button" id="openCashOut" type="button">−
-                            Cash Out</button>
+                    <div class="page-actions"><button class="cash-action cash-in-button" id="openNewTransaction"
+                            type="button">＋ New Transaction</button>
                         <div class="cashflow-status"><span></span>Live Cash Flow</div>
                     </div>
                 </div>
@@ -49,6 +48,16 @@
                     <div class="summary-card cash-out-card">
                         <div class="summary-icon red">↗</div>
                         <div><span>CASH OUT</span><strong id="cashOut">₱0.00</strong><small>Money released</small></div>
+                    </div>
+                    <div class="summary-card salary-card">
+                        <div class="summary-icon orange">₱</div>
+                        <div><span>SALARY</span><strong id="salaryTotal">₱0.00</strong><small>Total salary
+                                payments</small></div>
+                    </div>
+                    <div class="summary-card expenses-card">
+                        <div class="summary-icon rose">−</div>
+                        <div><span>EXPENSES</span><strong id="expensesTotal">₱0.00</strong><small>Total recorded
+                                expenses</small></div>
                     </div>
                     <div class="summary-card net-card">
                         <div class="summary-icon green">⇄</div>
@@ -75,6 +84,13 @@
                         <option value="in">Cash In</option>
                         <option value="out">Cash Out</option>
                     </select>
+                    <select id="categoryFilter">
+                        <option value="all">All Categories</option>
+                        <option value="Salary">Salary</option>
+                        <option value="Expenses">Expenses</option>
+                        <option value="Cash Out">Cash Out</option>
+                        <option value="Cash In">Cash In</option>
+                    </select>
                     <select id="accountFilter">
                         <option value="all">All Accounts</option>
                         <option value="Cash">Cash</option>
@@ -100,6 +116,7 @@
                                     <th>TRANSACTION</th>
                                     <th>DATE & TIME</th>
                                     <th>DESCRIPTION</th>
+                                    <th>CATEGORY</th>
                                     <th>TYPE</th>
                                     <th>ACCOUNT</th>
                                     <th>AMOUNT</th>
@@ -108,7 +125,7 @@
                             </thead>
                             <tbody id="cashflowBody">
                                 <tr>
-                                    <td colspan="7" class="empty-cell">Loading cash flow...</td>
+                                    <td colspan="8" class="empty-cell">Loading cash flow...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -134,6 +151,7 @@
                 <div class="detail-box"><span>TRANSACTION</span><strong id="modalReference">—</strong></div>
                 <div class="detail-box"><span>DATE & TIME</span><strong id="modalDate">—</strong></div>
                 <div class="detail-box wide"><span>DESCRIPTION</span><strong id="modalDescription">—</strong></div>
+                <div class="detail-box"><span>CATEGORY</span><strong id="modalCategory">—</strong></div>
                 <div class="detail-box"><span>TYPE</span><strong id="modalType">—</strong></div>
                 <div class="detail-box"><span>ACCOUNT</span><strong id="modalPayment">—</strong></div>
                 <div class="detail-box amount-box"><span>AMOUNT</span><strong id="modalAmount">₱0.00</strong></div>
@@ -151,9 +169,14 @@
                 </div><button id="closeMovementModal" type="button">×</button>
             </div>
             <form id="cashMovementForm">
-                <div class="movement-type"><button type="button" id="movementInButton"
-                        class="movement-type-button active">Cash In</button><button type="button" id="movementOutButton"
-                        class="movement-type-button">Cash Out</button></div>
+                <div class="form-group"><label for="movementCategory">Transaction Category</label>
+                    <select id="movementCategory" required>
+                        <option value="Cash In">Cash In</option>
+                        <option value="Cash Out">Cash Out</option>
+                        <option value="Salary">Salary</option>
+                        <option value="Expenses">Expenses</option>
+                    </select>
+                </div>
                 <div class="form-group"><label for="movementAccount">Account</label><select id="movementAccount"
                         required>
                         <option value="">Select account</option>

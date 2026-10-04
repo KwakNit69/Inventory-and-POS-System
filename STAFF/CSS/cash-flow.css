@@ -987,3 +987,28 @@ td strong {
         padding: 0 12px
     }
 }
+
+/* Unified staff cash-flow transaction controls */
+.cash-action.cash-in-button {
+    background: linear-gradient(135deg, #6d28d9, #5b21b6);
+    color: #fff;
+    border-color: #5b21b6;
+    box-shadow: 0 5px 14px rgba(109, 40, 217, .16);
+}
+
+.cash-action.cash-in-button:hover {
+    background: #5b21b6;
+    transform: translateY(-1px);
+}
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #f3eefe;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
